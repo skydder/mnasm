@@ -1,0 +1,12 @@
+[package]
+name = "mnasm"
+version = "0.1.0"
+edition = "2021"
+
+[workspace]
+members = ["tokenizer", "util"]
+
+
+[dependencies]
+tokenizer = { path = "./tokenizer"}
+util = { path = "./util"}
