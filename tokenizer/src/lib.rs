@@ -1,3 +1,7 @@
 mod tokenizer;
+mod token;
+mod location;
 
-pub use tokenizer::{Source, Location, Token, TokenKind, Tokenizer};
+pub use location::{Location, Source};
+pub use token::{Token, TokenKind};
+pub use tokenizer::Tokenizer;
