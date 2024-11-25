@@ -1,11 +1,12 @@
 use std::fs::File;
 
 mod location;
-pub use location::{Location, Source};
+mod error;
 
+pub use location::{Location, Source};
+pub use error::emit_msg_and_exit;
 pub fn open_safely(file: &str) -> File {
     File::open(file).unwrap_or_else(|_| {
-        eprintln!("failed to open '{}'", file);
-        ::std::process::exit(1);
+        emit_msg_and_exit!("failed to open '{}'", file);
     })
 }

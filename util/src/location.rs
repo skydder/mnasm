@@ -1,6 +1,6 @@
 use std::io::Read;
 
-use crate::open_safely;
+use crate::{emit_msg_and_exit, open_safely};
 
 pub struct Source<'a> {
     pub code: String,
@@ -11,8 +11,7 @@ impl<'a> Source<'a> {
     pub fn new(file: &'a str) -> Self {
         let mut code = String::new();
         open_safely(file).read_to_string(&mut code).unwrap_or_else(|_| {
-            eprintln!("failed to load '{}' into 'String'", file);
-            ::std::process::exit(1);
+            emit_msg_and_exit!("failed to load '{}' into 'String'", file);
         });
         Self { code: code, file: file }
     }
