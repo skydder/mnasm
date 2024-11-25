@@ -25,7 +25,7 @@ impl<'a> Tokenizer<'a> {
     }
 
     fn advance_location_by_token(&self, token: &Token) {
-        if token.kind == TokenKind::NewLine {
+        if token.is(TokenKind::NewLine) {
             self.location.replace_with(|loc| loc.advance_line(1).advance_nth(1));
         } else {
             self.location.replace_with(|loc| loc.advance_column(token.len).advance_nth(token.len));
@@ -36,6 +36,15 @@ impl<'a> Tokenizer<'a> {
         let token = self.peek_token();
         self.advance_location_by_token(&token);
         token
+    }
+
+    pub fn expect_token(&self, expecting_token: TokenKind) {
+        let current_token = self.peek_token();
+        if current_token.is(expecting_token) {
+            self.advance_location_by_token(&current_token);
+        } else {
+            todo!();
+        }
     }
 }
 

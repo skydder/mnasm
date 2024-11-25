@@ -4,9 +4,10 @@ version = "0.1.0"
 edition = "2021"
 
 [workspace]
-members = ["tokenizer", "util"]
+members = [ "parser","tokenizer", "util"]
 
 
 [dependencies]
 tokenizer = { path = "./tokenizer"}
 util = { path = "./util"}
+parser = {path = "./parser"}

@@ -75,6 +75,28 @@ impl<'a> Token<'a> {
         Self { kind, len, location }
     }
 
+    pub fn is_identifier(&self) -> bool {
+        match self.kind {
+            TokenKind::Identifier(_) => true,
+            _ => false
+        }
+    }
+
+    pub fn is(&self, token: TokenKind) -> bool {
+        if self.kind == token {
+            true
+        } else {
+            false
+        }
+    }
+
+    pub fn get_identifier(&self) -> Option<&'a str> {
+        match self.kind {
+            TokenKind::Identifier(ident) => Some(ident),
+            _ => None
+        }
+    }
+
     fn check_if_space(s: &'a str) -> Option<TokenBuilder<'a>> {
         let builder = TokenBuilder::new();
         if s.starts_with(' ') {

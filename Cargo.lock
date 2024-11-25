@@ -6,6 +6,15 @@ version = 3
 name = "mnasm"
 version = "0.1.0"
 dependencies = [
+ "parser",
+ "tokenizer",
+ "util",
+]
+
+[[package]]
+name = "parser"
+version = "0.1.0"
+dependencies = [
  "tokenizer",
  "util",
 ]
