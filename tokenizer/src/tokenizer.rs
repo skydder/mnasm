@@ -1,6 +1,7 @@
 use std::cell::RefCell;
 
-use crate::{Location, Token, TokenKind};
+use crate::{Token, TokenKind};
+use util::Location;
 
 pub struct Tokenizer<'a> {
     location: RefCell<Location<'a>>,
@@ -40,7 +41,7 @@ impl<'a> Tokenizer<'a> {
 
 #[test]
 fn test_tokenizer() {
-    use crate::Source;
+    use util::Source;
     let source = Source { file: "test", code: "<test:local:text>{\n100; test}".to_string()};
     let loc = Location::new(&source);
     let t = Tokenizer::new(loc);

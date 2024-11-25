@@ -1,6 +1,6 @@
 use std::io::Read;
 
-use util::open_safely;
+use crate::open_safely;
 
 pub struct Source<'a> {
     pub code: String,
@@ -48,22 +48,22 @@ impl<'a> Location<'a> {
         Self { source: source, line: 1, column: 1, nth: 0 }
     }
 
-    pub(crate) fn create_location(source: &'a Source<'a>, line: usize, column: usize, nth: usize) -> Self {
+    pub fn create_location(source: &'a Source<'a>, line: usize, column: usize, nth: usize) -> Self {
         Self { source: source, line: line, column: column, nth: nth }
     }
 
-    pub(crate) fn advance_line(&self, dl: usize) -> Location<'a> {
+    pub fn advance_line(&self, dl: usize) -> Location<'a> {
         Self::create_location(self.source, self.line + dl, self.column, self.nth)
     }
 
-    pub(crate) fn advance_column(&self, dc: usize) -> Location<'a> {
+    pub fn advance_column(&self, dc: usize) -> Location<'a> {
         Self::create_location(self.source, self.line , self.column + dc, self.nth)
     }
 
-    pub(crate) fn advance_nth(&self, dn: usize) -> Location<'a>  {
+    pub fn advance_nth(&self, dn: usize) -> Location<'a>  {
         Self::create_location(self.source, self.line, self.column, self.nth + dn)
     }
-    pub(crate) fn current_slice(&self) -> &'a str {
+    pub fn current_slice(&self) -> &'a str {
         self.source.nth(self.nth)
     }
 }

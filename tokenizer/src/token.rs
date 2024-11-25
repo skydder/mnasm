@@ -1,6 +1,6 @@
 // const PUNCTUATOR: &[&str] = &["<", ">", "{", "}", "(", ")", ":", ";"];
 
-use crate::Location;
+use util::Location;
 
 #[derive(PartialEq, Debug)]
 pub enum TokenKind<'a> {
