@@ -10,10 +10,15 @@ pub struct Source<'a> {
 impl<'a> Source<'a> {
     pub fn new(file: &'a str) -> Self {
         let mut code = String::new();
-        open_safely(file).read_to_string(&mut code).unwrap_or_else(|_| {
-            emit_msg_and_exit!("failed to load '{}' into 'String'", file);
-        });
-        Self { code: code, file: file }
+        open_safely(file)
+            .read_to_string(&mut code)
+            .unwrap_or_else(|_| {
+                emit_msg_and_exit!("failed to load '{}' into 'String'\n", file);
+            });
+        Self {
+            code: code,
+            file: file,
+        }
     }
 
     pub fn nth(&self, n: usize) -> &str {
@@ -26,7 +31,7 @@ pub struct Location<'a> {
     source: &'a Source<'a>,
     line: usize,
     column: usize,
-    nth: usize
+    nth: usize,
 }
 
 impl<'a> std::fmt::Display for Location<'a> {
@@ -41,25 +46,34 @@ impl<'a> std::fmt::Debug for Location<'a> {
     }
 }
 
-
 impl<'a> Location<'a> {
     pub fn new(source: &'a Source<'a>) -> Self {
-        Self { source: source, line: 1, column: 1, nth: 0 }
+        Self {
+            source: source,
+            line: 1,
+            column: 1,
+            nth: 0,
+        }
     }
 
     pub fn create_location(source: &'a Source<'a>, line: usize, column: usize, nth: usize) -> Self {
-        Self { source: source, line: line, column: column, nth: nth }
+        Self {
+            source: source,
+            line: line,
+            column: column,
+            nth: nth,
+        }
     }
 
     pub fn advance_line(&self, dl: usize) -> Location<'a> {
-        Self::create_location(self.source, self.line + dl, self.column, self.nth)
+        Self::create_location(self.source, self.line + dl, 0, self.nth)
     }
 
     pub fn advance_column(&self, dc: usize) -> Location<'a> {
-        Self::create_location(self.source, self.line , self.column + dc, self.nth)
+        Self::create_location(self.source, self.line, self.column + dc, self.nth)
     }
 
-    pub fn advance_nth(&self, dn: usize) -> Location<'a>  {
+    pub fn advance_nth(&self, dn: usize) -> Location<'a> {
         Self::create_location(self.source, self.line, self.column, self.nth + dn)
     }
     pub fn current_slice(&self) -> &'a str {

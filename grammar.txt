@@ -7,6 +7,6 @@
 <label> = <ident>
 
 <stmt> = <ins> "(" op * ")"
-<block> = <stmt>+
+<block> = (<stmt> | <label_def>)+
 <label_def> = "<" <label> ":" <scope> (":" <section>)? ">" (<block> | ";")
 

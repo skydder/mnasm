@@ -22,41 +22,49 @@ pub enum TokenKind<'a> {
 struct TokenBuilder<'a> {
     kind: Option<TokenKind<'a>>,
     len: Option<usize>,
-    location: Option<Location<'a>>
-} 
+    location: Option<Location<'a>>,
+}
 
 impl<'a> TokenBuilder<'a> {
     fn new() -> Self {
-        Self { kind: None, len: None, location: None }
+        Self {
+            kind: None,
+            len: None,
+            location: None,
+        }
     }
 
     fn kind(self, kind: TokenKind<'a>) -> Self {
         Self {
             kind: Some(kind),
-            len:  self.len,
-            location: self.location
+            len: self.len,
+            location: self.location,
         }
-    } 
+    }
 
     fn location(self, location: Location<'a>) -> Self {
         Self {
             kind: self.kind,
-            len:  self.len,
-            location: Some(location)
+            len: self.len,
+            location: Some(location),
         }
     }
 
     fn len(self, len: usize) -> Self {
         Self {
             kind: self.kind,
-            len:  Some(len),
-            location: self.location
+            len: Some(len),
+            location: self.location,
         }
     }
 
     fn build(self) -> Option<Token<'a>> {
-        if self.kind.is_some() && self.len.is_some() &&self.location.is_some() {
-            Some(Token::new(self.kind.unwrap(), self.len.unwrap(), self.location.unwrap()))
+        if self.kind.is_some() && self.len.is_some() && self.location.is_some() {
+            Some(Token::new(
+                self.kind.unwrap(),
+                self.len.unwrap(),
+                self.location.unwrap(),
+            ))
         } else {
             None
         }
@@ -67,18 +75,22 @@ impl<'a> TokenBuilder<'a> {
 pub struct Token<'a> {
     pub kind: TokenKind<'a>,
     pub(crate) len: usize,
-    pub location: Location<'a>
+    pub location: Location<'a>,
 }
 
 impl<'a> Token<'a> {
     pub(crate) fn new(kind: TokenKind<'a>, len: usize, location: Location<'a>) -> Self {
-        Self { kind, len, location }
+        Self {
+            kind,
+            len,
+            location,
+        }
     }
 
     pub fn is_identifier(&self) -> bool {
         match self.kind {
             TokenKind::Identifier(_) => true,
-            _ => false
+            _ => false,
         }
     }
 
@@ -93,7 +105,7 @@ impl<'a> Token<'a> {
     pub fn get_identifier(&self) -> Option<&'a str> {
         match self.kind {
             TokenKind::Identifier(ident) => Some(ident),
-            _ => None
+            _ => None,
         }
     }
 
@@ -119,7 +131,7 @@ impl<'a> Token<'a> {
         let builder = TokenBuilder::new();
         if s.starts_with("<") {
             Some(builder.kind(TokenKind::LessThan).len(1))
-        } else if s.starts_with(">") { 
+        } else if s.starts_with(">") {
             Some(builder.kind(TokenKind::GreaterThan).len(1))
         } else if s.starts_with("(") {
             Some(builder.kind(TokenKind::OpenParenthesis).len(1))
@@ -140,11 +152,20 @@ impl<'a> Token<'a> {
 
     fn check_if_ident(s: &'a str) -> Option<TokenBuilder<'a>> {
         let builder = TokenBuilder::new();
-        if !s.chars().peekable().peek().is_some_and(|c| c.is_ascii_alphabetic()) {
+        if !s
+            .chars()
+            .peekable()
+            .peek()
+            .is_some_and(|c| c.is_ascii_alphabetic())
+        {
             return None;
         }
         let mut n = 0;
-        while s.chars().nth(n).is_some_and(|c| c.is_ascii_alphanumeric() || c == '_') {
+        while s
+            .chars()
+            .nth(n)
+            .is_some_and(|c| c.is_ascii_alphanumeric() || c == '_')
+        {
             n += 1;
         }
         Some(builder.kind(TokenKind::Identifier(&s[..n])).len(n))
@@ -152,7 +173,12 @@ impl<'a> Token<'a> {
 
     fn check_if_number(s: &'a str) -> Option<TokenBuilder<'a>> {
         let builder = TokenBuilder::new();
-        if !s.chars().peekable().peek().is_some_and(|c| c.is_ascii_digit()) {
+        if !s
+            .chars()
+            .peekable()
+            .peek()
+            .is_some_and(|c| c.is_ascii_digit())
+        {
             return None;
         }
         let mut n = 0;
@@ -182,5 +208,4 @@ impl<'a> Token<'a> {
         };
         builder.location(location).build()
     }
-
 }
