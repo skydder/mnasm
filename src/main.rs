@@ -4,7 +4,7 @@ fn main() {
     use parser::parse_label_def;
     let source = Source {
         file: "test",
-        code: "< test > {\ntest()\n}".to_string(),
+        code: "< test > {\n    test()\n}".to_string(),
     };
 
     let loc = Location::new(&source);

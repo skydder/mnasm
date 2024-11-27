@@ -1,0 +1,9 @@
+[package]
+name = "codegen"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+util = { path = "../util"}
+tokenizer = { path = "../tokenizer"}
+parser = { path = "../parser" }

@@ -5,8 +5,8 @@ use crate::{parse_block, Block};
 
 #[derive(Debug)]
 pub struct LabelDef<'a> {
-    label: &'a str,
-    block: Option<Block<'a>>,
+    pub label: &'a str,
+    pub block: Option<Block<'a>>,
 }
 
 pub fn parse_label_def<'a>(tokenizer: &'a Tokenizer<'a>) -> Option<LabelDef> {

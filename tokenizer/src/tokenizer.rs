@@ -88,9 +88,13 @@ impl<'a> Tokenizer<'a> {
     
     pub fn expect_indent(&self) {
         let loc = self.location();
-        for _ in 0..4 {
-            match self.next_token().kind {
-                TokenKind::Space => (),
+        for i in 0..4 {
+            eprintln!("{}", i);
+            eprintln!("{:#?}", self.peek_token());
+            match self.peek_token().kind {
+                TokenKind::Space => {
+                    self.next_token();
+                },
                 _ => {
                     emit_error!(loc, "Indent error, the number of spase must be 4");
                 }
@@ -104,11 +108,12 @@ fn test_tokenizer() {
     use util::Source;
     let source = Source {
         file: "test",
-        code: "< test : local : text > {\n100; test}".to_string(),
+        code: "< test > {\n     test()\n}".to_string(),
     };
     let loc = Location::new(&source);
     let t = Tokenizer::new(loc);
+    // t.expect_indent();;
     loop {
-        eprintln!("{:#?}", t.next_symbol());
+        eprintln!("{:#?}", t.next_token());
     }
 }
