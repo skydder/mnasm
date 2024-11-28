@@ -6,6 +6,7 @@ version = 3
 name = "codegen"
 version = "0.1.0"
 dependencies = [
+ "data",
  "parser",
  "tokenizer",
  "util",
@@ -14,6 +15,9 @@ dependencies = [
 [[package]]
 name = "data"
 version = "0.1.0"
+dependencies = [
+ "util",
+]
 
 [[package]]
 name = "mnasm"
@@ -30,6 +34,7 @@ dependencies = [
 name = "parser"
 version = "0.1.0"
 dependencies = [
+ "data",
  "tokenizer",
  "util",
 ]

@@ -1,6 +1,6 @@
 use std::fmt::Write;
 
-use parser::{parse_stmt, Block};
+use data::Block;
 
 use crate::codegen_stmt;
 

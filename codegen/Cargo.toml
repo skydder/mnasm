@@ -7,3 +7,4 @@ edition = "2021"
 util = { path = "../util"}
 tokenizer = { path = "../tokenizer"}
 parser = { path = "../parser" }
+data = { path = "../data" }

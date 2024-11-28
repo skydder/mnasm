@@ -1,12 +1,6 @@
 use tokenizer::{TokenKind, Tokenizer};
-use util::{emit_error, Location};
-
-#[derive(Debug)]
-pub struct Stmt<'a> {
-    pub instruction: &'a str,
-    pub operand: (),
-    location: Location<'a>,
-}
+use util::emit_error;
+use data::Stmt;
 
 pub fn parse_stmt<'a>(tokenizer: &'a Tokenizer<'a>) -> Option<Stmt<'a>> {
     let currrent_token = tokenizer.peek_token();

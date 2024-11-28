@@ -1,13 +1,9 @@
 use tokenizer::{TokenKind, Tokenizer};
 use util::emit_error;
+use data::LabelDef;
 
-use crate::{parse_block, Block};
+use crate::parse_block;
 
-#[derive(Debug)]
-pub struct LabelDef<'a> {
-    pub label: &'a str,
-    pub block: Option<Block<'a>>,
-}
 
 pub fn parse_label_def<'a>(tokenizer: &'a Tokenizer<'a>) -> Option<LabelDef> {
     if !tokenizer.peek_token().is(TokenKind::LessThan) {

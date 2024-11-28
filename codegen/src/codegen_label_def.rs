@@ -1,6 +1,6 @@
 use std::fmt::Write;
 
-use parser::LabelDef;
+use data::LabelDef;
 
 use crate::codegen_block;
 

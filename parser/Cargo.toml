@@ -5,4 +5,5 @@ edition = "2021"
 
 [dependencies]
 tokenizer = { path = "../tokenizer"}
-util = { path = "../util"}
+util = { path = "../util" }
+data = { path = "../data" }

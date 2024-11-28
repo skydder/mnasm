@@ -3,11 +3,10 @@ mod indent;
 mod label_def;
 mod stmt;
 
-pub use block::{parse_block, Block};
+pub use block::parse_block;
 pub use indent::read_indent_by_depth;
-pub use stmt::{parse_stmt, Stmt};
-pub use label_def::{LabelDef, parse_label_def};
-use util::emit_msg_and_exit;
+pub use stmt::parse_stmt;
+pub use label_def::parse_label_def;
 
 #[test]
 fn test() {

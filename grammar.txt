@@ -1,12 +1,12 @@
 <ident> = alphabete (alphabete | number)*
 
 <op> = operand
-<ins> = instruction
-<scope> = "global" | "local"
-<section> = "text" | "data" | "bss" | <ident>
+<ins_name> = instruction_name
+<ins> = <ins_name> "(" op * ")"
+<scope> = "global" | "local" | "_"
+<section> = "text" | "data" | "bss" | <ident> | "_"
 <label> = <ident>
 
-<stmt> = <ins> "(" op * ")"
+<stmt> = (<ins> ("," <ins>)* ) | <label_def> | <block>
 <block> = (<stmt> | <label_def>)+
-<label_def> = "<" <label> ":" <scope> (":" <section>)? ">" (<block> | ";")
-
+<label_def> = "<" <label> ":" <scope> (":" <section>)? ">" (<block> | null)

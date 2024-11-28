@@ -1,13 +1,8 @@
 use tokenizer::{TokenKind, Tokenizer};
 use util::emit_error;
+use data::Block;
 
-use crate::{parse_stmt, read_indent_by_depth, Stmt};
-
-#[derive(Debug)]
-pub struct Block<'a> {
-    indent_depth: usize,
-    pub stmts: Vec<Stmt<'a>>,
-}
+use crate::{parse_stmt, read_indent_by_depth};
 
 pub fn parse_block<'a>(tokenizer: &'a Tokenizer<'a>, indent_depth: usize) -> Option<Block<'a>> {
     if !tokenizer.peek_symbol().is(TokenKind::OpenBrace) {
