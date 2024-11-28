@@ -12,9 +12,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "data"
+version = "0.1.0"
+
+[[package]]
 name = "mnasm"
 version = "0.1.0"
 dependencies = [
+ "codegen",
+ "data",
  "parser",
  "tokenizer",
  "util",

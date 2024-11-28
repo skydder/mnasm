@@ -88,9 +88,7 @@ impl<'a> Tokenizer<'a> {
     
     pub fn expect_indent(&self) {
         let loc = self.location();
-        for i in 0..4 {
-            eprintln!("{}", i);
-            eprintln!("{:#?}", self.peek_token());
+        for _ in 0..4 {
             match self.peek_token().kind {
                 TokenKind::Space => {
                     self.next_token();

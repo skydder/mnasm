@@ -66,7 +66,7 @@ impl<'a> Location<'a> {
     }
 
     pub fn advance_line(&self, dl: usize) -> Location<'a> {
-        Self::create_location(self.source, self.line + dl, 0, self.nth)
+        Self::create_location(self.source, self.line + dl, 1, self.nth)
     }
 
     pub fn advance_column(&self, dc: usize) -> Location<'a> {

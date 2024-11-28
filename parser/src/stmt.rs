@@ -3,8 +3,8 @@ use util::{emit_error, Location};
 
 #[derive(Debug)]
 pub struct Stmt<'a> {
-    instruction: &'a str,
-    operand: (),
+    pub instruction: &'a str,
+    pub operand: (),
     location: Location<'a>,
 }
 
