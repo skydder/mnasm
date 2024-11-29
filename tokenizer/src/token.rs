@@ -18,7 +18,7 @@ pub enum TokenKind<'a> {
     Identifier(&'a str),
     NewLine,
     Space,
-    EOF
+    EOF,
 }
 
 struct TokenBuilder<'a> {
@@ -119,15 +119,28 @@ impl<'a> Token<'a> {
             None
         }
     }
-
+    // I know it's inefficient, but...
     fn check_if_newline(s: &'a str) -> Option<TokenBuilder<'a>> {
         let builder = TokenBuilder::new();
         if s.starts_with('\n') {
-            Some(builder.kind(TokenKind::NewLine).len(1))
+            let mut n = 1;
+            while s
+                .chars()
+                .nth(n)
+                .is_some_and(|c| c == ' ' )
+            {
+                n += 1;
+            }
+            if s.chars().nth(n).is_some_and(|c| c == '\n') {
+                Some(builder.kind(TokenKind::NewLine).len(n + 1))
+            } else {
+                Some(builder.kind(TokenKind::NewLine).len(1))
+            }
         } else {
             None
         }
     }
+
 
     fn check_if_punc(s: &'a str) -> Option<TokenBuilder<'a>> {
         let builder = TokenBuilder::new();
@@ -196,6 +209,23 @@ impl<'a> Token<'a> {
         Some(builder.kind(TokenKind::Number(i)).len(n))
     }
 
+    fn check_if_comment(s: &'a str) -> Option<TokenBuilder<'a>> {
+        if !s.starts_with('#') {
+            return None;
+        }
+        let builder = TokenBuilder::new();
+        let mut n = 0;
+        while s
+            .chars()
+            .nth(n)
+            .is_some_and(|c| c != '\n' )
+        {
+            n += 1;
+        }
+        let b = Token::check_if_newline(&s[n..]).unwrap();
+        Some(builder.kind(TokenKind::NewLine).len(n + b.len.unwrap()))
+    }
+
     pub(crate) fn tokenize(s: &'a str, location: Location<'a>) -> Token<'a> {
         let builder = if let Some(b) = Token::check_if_punc(s) {
             b
@@ -206,6 +236,8 @@ impl<'a> Token<'a> {
         } else if let Some(b) = Token::check_if_space(s) {
             b
         } else if let Some(b) = Token::check_if_newline(s) {
+            b
+        } else if let Some(b) = Token::check_if_comment(s) {
             b
         } else {
             TokenBuilder::new().kind(TokenKind::EOF).len(1)

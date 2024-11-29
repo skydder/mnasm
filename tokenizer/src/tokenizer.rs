@@ -29,7 +29,7 @@ impl<'a> Tokenizer<'a> {
     fn advance_location_by_token(&self, token: &Token) {
         if token.is(TokenKind::NewLine) {
             self.location
-                .replace_with(|loc| loc.advance_line(1).advance_nth(1));
+                .replace_with(|loc| loc.advance_line(1).advance_nth(token.len));
         } else {
             self.location
                 .replace_with(|loc| loc.advance_column(token.len).advance_nth(token.len));
@@ -103,7 +103,7 @@ fn test_tokenizer() {
     use util::Source;
     let source = Source {
         file: "test",
-        code: "< test > {\n     test()\n}".to_string(),
+        code: "< test > {\n     \ntest()\n}".to_string(),
     };
     let loc = Location::new(&source);
     let t = Tokenizer::new(loc);
