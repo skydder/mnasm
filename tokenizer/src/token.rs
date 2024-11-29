@@ -2,7 +2,7 @@
 
 use util::Location;
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Clone, Copy)]
 pub enum TokenKind<'a> {
     LessThan,
     GreaterThan,
@@ -156,7 +156,7 @@ impl<'a> Token<'a> {
             .chars()
             .peekable()
             .peek()
-            .is_some_and(|c| c.is_ascii_alphabetic())
+            .is_some_and(|c| c.is_ascii_alphabetic() || *c == '_')
         {
             return None;
         }

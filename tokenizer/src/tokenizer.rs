@@ -26,7 +26,7 @@ impl<'a> Tokenizer<'a> {
         if let Some(token) = Token::tokenize(self.current_slice(), self.location.borrow().clone()) {
             return token;
         } else {
-            todo!()
+            emit_error!(self.location(), "here we are!"); // dedug debris
         }
     }
 
@@ -82,17 +82,22 @@ impl<'a> Tokenizer<'a> {
         if current_token.is(expecting_token) {
             self.advance_location_by_token(&current_token);
         } else {
-            todo!();
+            emit_error!(
+                self.location(),
+                "expected {:#?}, but found {:#?}",
+                expecting_token,
+                current_token.kind
+            )
         }
     }
-    
+
     pub fn expect_indent(&self) {
         let loc = self.location();
         for _ in 0..4 {
             match self.peek_token().kind {
                 TokenKind::Space => {
                     self.next_token();
-                },
+                }
                 _ => {
                     emit_error!(loc, "Indent error, the number of spase must be 4");
                 }

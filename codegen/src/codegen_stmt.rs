@@ -1,5 +1,5 @@
-use std::fmt::Write;
 use data::Stmt;
+use std::fmt::Write;
 
 pub fn codegen_stmt(stmt: &Stmt) -> String {
     let mut code = String::new();

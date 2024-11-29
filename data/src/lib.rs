@@ -1,7 +1,7 @@
 mod block;
-mod stmt;
 mod label_def;
+mod stmt;
 
 pub use block::Block;
-pub use stmt::Stmt;
 pub use label_def::LabelDef;
+pub use stmt::Stmt;

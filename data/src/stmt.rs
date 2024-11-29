@@ -6,4 +6,3 @@ pub struct Stmt<'a> {
     pub operand: (),
     pub location: Location<'a>,
 }
-

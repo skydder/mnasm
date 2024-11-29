@@ -3,10 +3,10 @@
 <op> = operand
 <ins_name> = instruction_name
 <ins> = <ins_name> "(" op * ")"
-<scope> = "global" | "local" | "_"
-<section> = "text" | "data" | "bss" | <ident> | "_"
+<visibility> = "global"
+<section> = ".text" | ".data" | ".bss" | <ident>
 <label> = <ident>
-
-<stmt> = (<ins> ("," <ins>)* ) | <label_def> | <block>
-<block> = (<stmt> | <label_def>)+
-<label_def> = "<" <label> ":" <scope> (":" <section>)? ">" (<block> | null)
+<compound_ins> = <ins> ("," <ins>)* 
+<stmt> = <compound_ins> | <label_def> | <block>
+<block> = "{" <NEW>(<INDENT><stmt><NEW>)+ "}"
+<label_def> = "<" <label> (":" <visibility>)? (":" <section>)? ">" (<block> | null)

@@ -1,6 +1,6 @@
+use data::Stmt;
 use tokenizer::{TokenKind, Tokenizer};
 use util::emit_error;
-use data::Stmt;
 
 pub fn parse_stmt<'a>(tokenizer: &'a Tokenizer<'a>) -> Option<Stmt<'a>> {
     let currrent_token = tokenizer.peek_token();

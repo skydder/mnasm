@@ -5,13 +5,13 @@ mod stmt;
 
 pub use block::parse_block;
 pub use indent::read_indent_by_depth;
-pub use stmt::parse_stmt;
 pub use label_def::parse_label_def;
+pub use stmt::parse_stmt;
 
 #[test]
 fn test() {
-    use util::{Source, Location};
     use tokenizer::Tokenizer;
+    use util::{Location, Source};
     let source = Source {
         file: "test",
         code: "< test > {\n    test()}".to_string(),
