@@ -46,7 +46,7 @@ pub fn parse_label_def<'a>(tokenizer: &'a Tokenizer<'a>) -> Option<LabelDef> {
     tokenizer.skip_space();
     let block = match tokenizer.peek_token().kind {
         TokenKind::OpenBrace => parse_block(tokenizer, 0),
-        TokenKind::NewLine => None,
+        TokenKind::NewLine | TokenKind::EOF => None,
         _ => {
             todo!()
         }

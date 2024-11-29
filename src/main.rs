@@ -1,6 +1,6 @@
 fn main() {
-    use codegen::codegen_label_def;
-    use parser::parse_label_def;
+    use codegen::codegen_code;
+    use parser::parse_code;
     use tokenizer::Tokenizer;
     use util::{Location, Source};
     // let source = Source {
@@ -11,8 +11,8 @@ fn main() {
     let source = Source::new(&file);
     let loc = Location::new(&source);
     let t = Tokenizer::new(loc);
-    let ast = parse_label_def(&t);
-    eprintln!("{}", codegen_label_def(&ast.unwrap()));
+    let ast = parse_code(&t);
+    eprintln!("{}", codegen_code(&ast.unwrap()));
 }
 
 fn parse_args<'a>() -> String {

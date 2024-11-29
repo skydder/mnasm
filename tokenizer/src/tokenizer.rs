@@ -23,11 +23,7 @@ impl<'a> Tokenizer<'a> {
     }
 
     pub fn peek_token(&self) -> Token {
-        if let Some(token) = Token::tokenize(self.current_slice(), self.location.borrow().clone()) {
-            return token;
-        } else {
-            emit_error!(self.location(), "here we are!"); // dedug debris
-        }
+        Token::tokenize(self.current_slice(), self.location.borrow().clone())
     }
 
     fn advance_location_by_token(&self, token: &Token) {
@@ -53,11 +49,7 @@ impl<'a> Tokenizer<'a> {
 
     pub fn peek_symbol(&self) -> Token {
         self.skip_space();
-        if let Some(token) = Token::tokenize(self.current_slice(), self.location.borrow().clone()) {
-            return token;
-        } else {
-            todo!()
-        }
+        self.peek_token()
     }
 
     pub fn next_symbol(&self) -> Token {

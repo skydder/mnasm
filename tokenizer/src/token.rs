@@ -18,6 +18,7 @@ pub enum TokenKind<'a> {
     Identifier(&'a str),
     NewLine,
     Space,
+    EOF
 }
 
 struct TokenBuilder<'a> {
@@ -59,15 +60,15 @@ impl<'a> TokenBuilder<'a> {
         }
     }
 
-    fn build(self) -> Option<Token<'a>> {
+    fn build(self) -> Token<'a> {
         if self.kind.is_some() && self.len.is_some() && self.location.is_some() {
-            Some(Token::new(
+            Token::new(
                 self.kind.unwrap(),
                 self.len.unwrap(),
                 self.location.unwrap(),
-            ))
+            )
         } else {
-            None
+            todo!()
         }
     }
 }
@@ -195,7 +196,7 @@ impl<'a> Token<'a> {
         Some(builder.kind(TokenKind::Number(i)).len(n))
     }
 
-    pub(crate) fn tokenize(s: &'a str, location: Location<'a>) -> Option<Token<'a>> {
+    pub(crate) fn tokenize(s: &'a str, location: Location<'a>) -> Token<'a> {
         let builder = if let Some(b) = Token::check_if_punc(s) {
             b
         } else if let Some(b) = Token::check_if_ident(s) {
@@ -207,7 +208,7 @@ impl<'a> Token<'a> {
         } else if let Some(b) = Token::check_if_newline(s) {
             b
         } else {
-            return None;
+            TokenBuilder::new().kind(TokenKind::EOF).len(1)
         };
         builder.location(location).build()
     }
