@@ -12,6 +12,7 @@ pub enum TokenKind<'a> {
     CloseBrace,
     Colon,
     Semicolon,
+    Comma,
     Number(i64),
     String(&'a str),
     Identifier(&'a str),
@@ -145,6 +146,8 @@ impl<'a> Token<'a> {
             Some(builder.kind(TokenKind::Colon).len(1))
         } else if s.starts_with(";") {
             Some(builder.kind(TokenKind::Semicolon).len(1))
+        } else if s.starts_with(",") {
+            Some(builder.kind(TokenKind::Comma).len(1))
         } else {
             None
         }
