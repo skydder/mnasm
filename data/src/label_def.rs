@@ -5,7 +5,7 @@ pub struct LabelDef<'a> {
     pub label: &'a str,
     pub is_global: bool, // visibility
     pub section: &'a str,
-    pub block: Option<Block<'a>>,
+    pub block: Option<Block>,
 }
 
 impl<'a> LabelDef<'a> {
@@ -13,7 +13,7 @@ impl<'a> LabelDef<'a> {
         label: &'a str,
         is_global: bool,
         section: &'a str,
-        block: Option<Block<'a>>,
+        block: Option<Block>,
     ) -> Self {
         Self {
             label: label,

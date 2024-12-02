@@ -1,7 +1,7 @@
 use crate::Stmt;
 
 #[derive(Debug)]
-pub struct Block<'a> {
+pub struct Block {
     pub indent_depth: usize,
-    pub stmts: Vec<Stmt<'a>>,
+    pub stmts: Vec<Stmt>,
 }

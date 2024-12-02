@@ -4,6 +4,7 @@ mod label_def;
 mod stmt;
 mod ins;
 mod code;
+mod null_stmt;
 
 pub use block::parse_block;
 pub use indent::read_indent_by_depth;
@@ -11,6 +12,7 @@ pub use label_def::parse_label_def;
 pub use stmt::parse_stmt;
 pub use ins::parse_compound_ins;
 pub use code::parse_code;
+pub use null_stmt::parse_null_stmt;
 
 #[test]
 fn test() {

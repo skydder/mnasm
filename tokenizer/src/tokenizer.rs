@@ -89,7 +89,10 @@ impl<'a> Tokenizer<'a> {
             match self.peek_token().kind {
                 TokenKind::Space => {
                     self.next_token();
-                }
+                },
+                TokenKind::NewLine | TokenKind::EOF => {
+                    ()
+                },
                 _ => {
                     emit_error!(loc, "Indent error, the number of spase must be 4");
                 }
