@@ -111,31 +111,33 @@ impl<'a> Token<'a> {
         }
     }
 
+    // I know it's inefficient, but...
     fn check_if_space(s: &'a str) -> Option<TokenBuilder<'a>> {
         let builder = TokenBuilder::new();
         if s.starts_with(' ') {
+            // let mut n = 0;
+            // while s
+            //     .chars()
+            //     .nth(n)
+            //     .is_some_and(|c| c == ' ')
+            // {
+            //     n += 1;
+            // }
+            // if s.chars().nth(n).is_some_and(|c| c == '\n') {
+            //     Some(builder.kind(TokenKind::NewLine).len(n))
+            // } else {
+            //     Some(builder.kind(TokenKind::Space).len(1))
+            // }
             Some(builder.kind(TokenKind::Space).len(1))
         } else {
             None
         }
     }
-    // I know it's inefficient, but...
+
     fn check_if_newline(s: &'a str) -> Option<TokenBuilder<'a>> {
         let builder = TokenBuilder::new();
         if s.starts_with('\n') {
-            let mut n = 1;
-            while s
-                .chars()
-                .nth(n)
-                .is_some_and(|c| c == ' ' )
-            {
-                n += 1;
-            }
-            if s.chars().nth(n).is_some_and(|c| c == '\n') {
-                Some(builder.kind(TokenKind::NewLine).len(n + 1))
-            } else {
-                Some(builder.kind(TokenKind::NewLine).len(1))
-            }
+            Some(builder.kind(TokenKind::NewLine).len(1))
         } else {
             None
         }
@@ -222,8 +224,7 @@ impl<'a> Token<'a> {
         {
             n += 1;
         }
-        let b = Token::check_if_newline(&s[n..]).unwrap();
-        Some(builder.kind(TokenKind::NewLine).len(n + b.len.unwrap()))
+        Some(builder.kind(TokenKind::NewLine).len(n + 1))
     }
 
     pub(crate) fn tokenize(s: &'a str, location: Location<'a>) -> Token<'a> {
