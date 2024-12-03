@@ -10,10 +10,20 @@ pub fn parse_code<'a>(tokenizer: &'a Tokenizer<'a>) -> Option<Code<'a>> {
 }
 
 fn parse_code_inside<'a>(tokenizer: &'a Tokenizer<'a>, labels:&mut Vec<LabelDef<'a>>) {
-    labels.push(parse_label_def(tokenizer).unwrap());
     if tokenizer.peek_token().is(TokenKind::EOF) {
         return;
     }
-    tokenizer.expect_token(TokenKind::NewLine);
+    
+    while tokenizer.peek_token().is(TokenKind::Space) || tokenizer.peek_token().is(TokenKind::NewLine) {
+        skip_null_line(tokenizer);
+    }
+
+    labels.push(parse_label_def(tokenizer).unwrap());
+
     parse_code_inside(tokenizer, labels);
+} 
+
+fn skip_null_line<'a>(tokenizer: &'a Tokenizer<'a>) {
+    tokenizer.skip_space();
+    tokenizer.expect_token(TokenKind::NewLine);
 }

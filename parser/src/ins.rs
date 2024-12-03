@@ -1,25 +1,17 @@
-use data::{CompoundIns, Ins, Stmt};
+use data::{CompoundIns, Ins};
 use tokenizer::{TokenKind, Tokenizer};
 use util::emit_error;
 
-pub fn parse_ins<'a>(tokenizer: &'a Tokenizer<'a>) -> Option<Ins<'a>> {
+pub fn parse_ins<'a>(tokenizer: &'a Tokenizer<'a>) -> Ins<'a> {
     let currrent_token = tokenizer.peek_token();
-    if !currrent_token.is_identifier() {
-        return None;
-    } else if currrent_token.is(TokenKind::Space) {
-        emit_error!(currrent_token.location, "Indent error")
-    }
+    assert!(currrent_token.is_identifier());
 
     let ins = currrent_token.get_identifier().unwrap();
     tokenizer.next_symbol();
     tokenizer.expect_symbol(TokenKind::OpenParenthesis);
     tokenizer.expect_symbol(TokenKind::CloseParenthesis);
     tokenizer.skip_space();
-    Some(Ins {
-        instruction: ins,
-        operand: (),
-        location: currrent_token.location,
-    })
+    Ins::new(ins, currrent_token.location)
 }
 
 pub fn parse_compound_ins<'a>(tokenizer: &'a Tokenizer<'a>) -> Option<CompoundIns<'a>> {
@@ -30,7 +22,7 @@ pub fn parse_compound_ins<'a>(tokenizer: &'a Tokenizer<'a>) -> Option<CompoundIn
 }
 
 fn parse_compound_ins_inside<'a>(tokenizer: &'a Tokenizer<'a>, compound: &mut Vec<Ins<'a>>) {
-    compound.push(parse_ins(tokenizer).unwrap_or_else(|| emit_error!(tokenizer.location(), "expected ins, but found others")));
+    compound.push(parse_ins(tokenizer));
     match tokenizer.peek_token().kind {
         TokenKind::NewLine => {
             return;

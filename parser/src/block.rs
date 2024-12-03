@@ -1,6 +1,5 @@
 use data::{Block, Stmt};
 use tokenizer::{TokenKind, Tokenizer};
-use util::emit_error;
 
 use crate::{parse_stmt, read_indent_by_depth};
 
