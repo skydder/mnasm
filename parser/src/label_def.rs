@@ -8,6 +8,7 @@ pub fn parse_label_def<'a>(tokenizer: &'a Tokenizer<'a>) -> Option<LabelDef> {
     if !tokenizer.peek_token().is(TokenKind::LessThan) {
         return None;
     }
+    let loc = tokenizer.location();
     tokenizer.next_token();
     let label = tokenizer.peek_symbol().get_identifier().unwrap_or_else(|| {
         emit_error!(tokenizer.location(), "expected label here but found other");
@@ -53,5 +54,5 @@ pub fn parse_label_def<'a>(tokenizer: &'a Tokenizer<'a>) -> Option<LabelDef> {
             todo!()
         }
     };
-    Some(LabelDef::new(label, is_global, section, block))
+    Some(LabelDef::new(label, is_global, section, block, loc))
 }

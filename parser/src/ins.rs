@@ -24,8 +24,9 @@ pub fn parse_ins<'a>(tokenizer: &'a Tokenizer<'a>) -> Option<Ins<'a>> {
 
 pub fn parse_compound_ins<'a>(tokenizer: &'a Tokenizer<'a>) -> Option<CompoundIns<'a>> {
     let mut compound = Vec::new();
+    let loc = tokenizer.location();
     parse_compound_ins_inside(tokenizer, &mut compound);
-    Some(CompoundIns { compound: compound })
+    Some(CompoundIns::new(compound, loc))
 }
 
 fn parse_compound_ins_inside<'a>(tokenizer: &'a Tokenizer<'a>, compound: &mut Vec<Ins<'a>>) {

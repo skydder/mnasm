@@ -1,13 +1,16 @@
-use tokenizer::{TokenKind, Tokenizer};
+use tokenizer::{TokenKind, Tokenizer}; 
+use data::NullStmt;
+use util::emit_error;
 
-pub fn parse_null_stmt<'a>(tokenizer: &'a Tokenizer<'a>) -> Option<()> {
+pub fn parse_null_stmt<'a>(tokenizer: &'a Tokenizer<'a>) -> NullStmt<'a> {
+    let loc = tokenizer.location();
     if !tokenizer.peek_token().is(TokenKind::Space) && !tokenizer.peek_token().is(TokenKind::NewLine) {
-        return None;
+        emit_error!(loc, "expected Space!!")
     }
     tokenizer.skip_space();
     if tokenizer.peek_token().is(TokenKind::NewLine) {
-        Some(())
+        NullStmt::new(loc)
     } else {
-        None
+        emit_error!(loc, "expected Space!!")
     }
 }

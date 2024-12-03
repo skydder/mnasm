@@ -1,19 +1,19 @@
 use util::Location;
 
-use crate::{CompoundIns, IsStmt};
-
-#[derive(Debug)]
-pub struct Stmt {
-    // pub instruction: &'a str,
-    // pub operand: (),
-    // pub location: Location<'a>,
-    pub line: Box<dyn IsStmt>
-}
-
+use crate::Stmt;
 #[derive(Debug)]
 pub struct NullStmt<'a> {
-    location: Location<'a>
+    pub location: Location<'a>
 }
 
-impl<'a> IsStmt for NullStmt<'a> {
+impl<'a> NullStmt<'a> {
+    pub fn new(location: Location<'a>) -> Self {
+        Self { location: location }
+    }
+}
+
+impl<'a> Stmt for NullStmt<'a> {
+    fn codegen(&self) -> String {
+        String::new()
+    }
 }
