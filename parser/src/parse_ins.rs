@@ -14,11 +14,11 @@ pub fn parse_ins<'a>(tokenizer: &'a Tokenizer<'a>) -> Ins<'a> {
     Ins::new(ins, currrent_token.location)
 }
 
-pub fn parse_compound_ins<'a>(tokenizer: &'a Tokenizer<'a>) -> Option<CompoundIns<'a>> {
+pub fn parse_compound_ins<'a>(tokenizer: &'a Tokenizer<'a>) -> CompoundIns<'a> {
     let mut compound = Vec::new();
     let loc = tokenizer.location();
     parse_compound_ins_inside(tokenizer, &mut compound);
-    Some(CompoundIns::new(compound, loc))
+    CompoundIns::new(compound, loc)
 }
 
 fn parse_compound_ins_inside<'a>(tokenizer: &'a Tokenizer<'a>, compound: &mut Vec<Ins<'a>>) {

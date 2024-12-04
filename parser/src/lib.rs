@@ -1,18 +1,18 @@
-mod block;
-mod code;
-mod indent;
-mod ins;
-mod label_def;
-mod null_stmt;
-mod stmt;
+mod parse_block;
+mod parse_code;
+mod parse_indent;
+mod parse_ins;
+mod parse_label_def;
+mod parse_null_stmt;
+mod parse_stmt;
 
-pub use block::parse_block;
-pub use code::parse_code;
-pub use indent::read_indent_by_depth;
-pub use ins::parse_compound_ins;
-pub use label_def::parse_label_def;
-pub use null_stmt::parse_null_stmt;
-pub use stmt::parse_stmt;
+pub use parse_block::parse_block;
+pub use parse_code::parse_code;
+pub use parse_indent::read_indent_by_depth;
+pub use parse_ins::parse_compound_ins;
+pub use parse_label_def::parse_label_def;
+pub use parse_null_stmt::parse_null_stmt;
+pub use parse_stmt::parse_stmt;
 
 #[test]
 fn test() {

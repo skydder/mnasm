@@ -64,7 +64,18 @@ impl<'a> Tokenizer<'a> {
         if current_token.is(expecting_token) {
             self.advance_location_by_token(&current_token);
         } else {
-            todo!();
+            emit_error!(current_token.location, "expected {:?}, but found {:?}", expecting_token, current_token.kind)
+        }
+    }
+
+    pub fn expect_newline(&self) {
+        let current_token = self.peek_token();
+        match current_token.kind {
+            TokenKind::NewLine => self.advance_location_by_token(&current_token),
+            TokenKind::EOF => (),
+            _ => {
+                emit_error!(current_token.location, "expected new line")
+            }
         }
     }
 
