@@ -1,6 +1,6 @@
 use util::Location;
 
-use crate::Block;
+use crate::{Block, Stmt};
 
 #[derive(Debug)]
 pub struct LabelDef<'a> {
@@ -8,7 +8,7 @@ pub struct LabelDef<'a> {
     pub is_global: bool, // visibility
     pub section: &'a str,
     pub block: Option<Block<'a>>,
-    pub location: Location<'a>
+    pub location: Location<'a>,
 }
 
 impl<'a> LabelDef<'a> {
@@ -26,5 +26,26 @@ impl<'a> LabelDef<'a> {
             block: block,
             location: location,
         }
+    }
+}
+
+impl<'a> Stmt for LabelDef<'a> {
+    fn codegen(&self) -> String {
+        let mut code = String::new();
+
+        if self.section != "" {
+            code.push_str(&format!("section {}\n", self.section));
+        }
+
+        if self.is_global {
+            code.push_str(&format!("global {}\n", self.label));
+        }
+
+        code.push_str(&format!("{}:\n", self.label));
+        if let Some(bl) = &self.block {
+            code.push_str(&bl.codegen());
+        }
+        code.push('\n');
+        code
     }
 }

@@ -4,7 +4,7 @@ use util::emit_error;
 
 use crate::parse_block;
 
-pub fn parse_label_def<'a>(tokenizer: &'a Tokenizer<'a>) -> Option<LabelDef> {
+pub fn parse_label_def<'a>(tokenizer: &'a Tokenizer<'a>, indent_depth: usize) -> Option<LabelDef> {
     if !tokenizer.peek_token().is(TokenKind::LessThan) {
         return None;
     }
@@ -46,10 +46,8 @@ pub fn parse_label_def<'a>(tokenizer: &'a Tokenizer<'a>) -> Option<LabelDef> {
     tokenizer.expect_symbol(TokenKind::GreaterThan);
     tokenizer.skip_space();
     let block = match tokenizer.peek_token().kind {
-        TokenKind::OpenBrace => parse_block(tokenizer, 0),
-        TokenKind::NewLine | TokenKind::EOF => {
-            None
-        },
+        TokenKind::OpenBrace => parse_block(tokenizer, indent_depth),
+        TokenKind::NewLine | TokenKind::EOF => None,
         _ => {
             todo!()
         }

@@ -11,19 +11,26 @@ pub struct Ins<'a> {
 
 impl<'a> Ins<'a> {
     pub fn new(instruction: &'a str, location: Location<'a>) -> Self {
-        Self { instruction: instruction, operand: (), location: location }
+        Self {
+            instruction: instruction,
+            operand: (),
+            location: location,
+        }
     }
 }
 
 #[derive(Debug)]
 pub struct CompoundIns<'a> {
     pub compound: Vec<Ins<'a>>,
-    pub location: Location<'a>
+    pub location: Location<'a>,
 }
 
 impl<'a> CompoundIns<'a> {
     pub fn new(compound: Vec<Ins<'a>>, location: Location<'a>) -> Self {
-        Self { compound: compound, location: location }
+        Self {
+            compound: compound,
+            location: location,
+        }
     }
 }
 

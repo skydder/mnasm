@@ -143,7 +143,6 @@ impl<'a> Token<'a> {
         }
     }
 
-
     fn check_if_punc(s: &'a str) -> Option<TokenBuilder<'a>> {
         let builder = TokenBuilder::new();
         if s.starts_with("<") {
@@ -217,11 +216,7 @@ impl<'a> Token<'a> {
         }
         let builder = TokenBuilder::new();
         let mut n = 0;
-        while s
-            .chars()
-            .nth(n)
-            .is_some_and(|c| c != '\n' )
-        {
+        while s.chars().nth(n).is_some_and(|c| c != '\n') {
             n += 1;
         }
         Some(builder.kind(TokenKind::NewLine).len(n + 1))

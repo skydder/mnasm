@@ -3,7 +3,7 @@ use util::Location;
 use crate::Stmt;
 #[derive(Debug)]
 pub struct NullStmt<'a> {
-    pub location: Location<'a>
+    pub location: Location<'a>,
 }
 
 impl<'a> NullStmt<'a> {
