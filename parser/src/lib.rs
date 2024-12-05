@@ -4,6 +4,7 @@ mod parse_indent;
 mod parse_ins;
 mod parse_label_def;
 mod parse_null_stmt;
+mod parse_operands;
 mod parse_stmt;
 
 pub use parse_block::parse_block;
@@ -12,6 +13,7 @@ pub use parse_indent::read_indent_by_depth;
 pub use parse_ins::parse_compound_ins;
 pub use parse_label_def::parse_label_def;
 pub use parse_null_stmt::parse_null_stmt;
+pub use parse_operands::parse_operands;
 pub use parse_stmt::parse_stmt;
 
 #[test]

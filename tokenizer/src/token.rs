@@ -16,6 +16,7 @@ pub enum TokenKind<'a> {
     Number(i64),
     String(&'a str),
     Identifier(&'a str),
+    // Reserved(&'a str),
     NewLine,
     Space,
     EOF,
@@ -73,6 +74,16 @@ impl<'a> TokenBuilder<'a> {
     }
 }
 
+// const RESERVED: &[&str] = &["rax", "ra"];
+// fn is_reserved(s: &str) -> bool {
+//     for i in RESERVED {
+//         if s == *i {
+//             return true;
+//         }
+//     }
+//     false
+// }
+
 #[derive(Debug)]
 pub struct Token<'a> {
     pub kind: TokenKind<'a>,
@@ -111,23 +122,9 @@ impl<'a> Token<'a> {
         }
     }
 
-    // I know it's inefficient, but...
     fn check_if_space(s: &'a str) -> Option<TokenBuilder<'a>> {
         let builder = TokenBuilder::new();
         if s.starts_with(' ') {
-            // let mut n = 0;
-            // while s
-            //     .chars()
-            //     .nth(n)
-            //     .is_some_and(|c| c == ' ')
-            // {
-            //     n += 1;
-            // }
-            // if s.chars().nth(n).is_some_and(|c| c == '\n') {
-            //     Some(builder.kind(TokenKind::NewLine).len(n))
-            // } else {
-            //     Some(builder.kind(TokenKind::Space).len(1))
-            // }
             Some(builder.kind(TokenKind::Space).len(1))
         } else {
             None

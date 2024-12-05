@@ -1,6 +1,9 @@
+use std::fmt::Debug;
 use util::Location;
 
-use crate::Stmt;
+pub trait Stmt: Debug {
+    fn codegen(&self) -> String;
+}
 #[derive(Debug)]
 pub struct NullStmt<'a> {
     pub location: Location<'a>,
