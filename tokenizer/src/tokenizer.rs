@@ -64,7 +64,12 @@ impl<'a> Tokenizer<'a> {
         if current_token.is(expecting_token) {
             self.advance_location_by_token(&current_token);
         } else {
-            emit_error!(current_token.location, "expected {:?}, but found {:?}", expecting_token, current_token.kind)
+            emit_error!(
+                current_token.location,
+                "expected {:?}, but found {:?}",
+                expecting_token,
+                current_token.kind
+            )
         }
     }
 
