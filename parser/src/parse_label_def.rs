@@ -4,32 +4,46 @@ use util::emit_error;
 
 use crate::parse_block;
 
+// <label_def> = "<" <label> (":" "global")? (":" <section> )? ">" <block>?
 pub fn parse_label_def<'a>(tokenizer: &'a Tokenizer<'a>, indent_depth: usize) -> LabelDef {
-    assert!(tokenizer.peek_token().is(TokenKind::LessThan));
     let loc = tokenizer.location();
+
+    // "<"
+    assert!(tokenizer.peek_token().is(TokenKind::LessThan));
     tokenizer.next_token();
+
+    // <label>
     let label = tokenizer.peek_symbol().get_identifier().unwrap_or_else(|| {
         emit_error!(tokenizer.location(), "expected label here but found other");
     });
     tokenizer.next_token();
 
-    // kimokimo-nest::
+    // kimokimo-nest :< 
+
+    // (":" "global")? (":" <section> )?
     let (is_global, section) = if tokenizer.peek_symbol().is(TokenKind::Colon) {
         tokenizer.next_token();
-
+        // "global" (":" <section> )?
         if tokenizer.peek_symbol().is(TokenKind::Identifier("global")) {
             tokenizer.next_token();
+
+            // (":" <section> )?
             let sec = if tokenizer.peek_symbol().is(TokenKind::Colon) {
                 tokenizer.next_token();
+
+                // <section>
                 let s = tokenizer.peek_symbol().get_identifier().unwrap_or_else(|| {
                     emit_error!(tokenizer.location(), "expected label here but found other");
                 });
                 tokenizer.next_token();
+
                 s
             } else {
                 ""
             };
             (true, sec)
+        
+        // <section>
         } else {
             let sec = tokenizer.peek_symbol().get_identifier().unwrap_or_else(|| {
                 emit_error!(tokenizer.location(), "expected label here but found other");
@@ -37,12 +51,16 @@ pub fn parse_label_def<'a>(tokenizer: &'a Tokenizer<'a>, indent_depth: usize) ->
             tokenizer.next_token();
             (false, sec)
         }
+    
     } else {
         (false, "")
     };
 
+    // ">"
     tokenizer.expect_symbol(TokenKind::GreaterThan);
     tokenizer.skip_space();
+
+    // <block>?
     let block = match tokenizer.peek_token().kind {
         TokenKind::OpenBrace => Some(parse_block(tokenizer, indent_depth)),
         TokenKind::NewLine | TokenKind::EOF => None,
@@ -50,5 +68,6 @@ pub fn parse_label_def<'a>(tokenizer: &'a Tokenizer<'a>, indent_depth: usize) ->
             todo!()
         }
     };
+
     LabelDef::new(label, is_global, section, block, loc)
 }
