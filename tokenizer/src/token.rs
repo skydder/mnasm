@@ -13,7 +13,8 @@ pub enum TokenKind<'a> {
     Colon,
     Semicolon,
     Comma,
-    Number(i64),
+    Minus,
+    Number(u64),
     String(&'a str),
     Identifier(&'a str),
     // Reserved(&'a str),
@@ -160,6 +161,8 @@ impl<'a> Token<'a> {
             Some(builder.kind(TokenKind::Semicolon).len(1))
         } else if s.starts_with(",") {
             Some(builder.kind(TokenKind::Comma).len(1))
+        } else if s.starts_with("-") {
+            Some(builder.kind(TokenKind::Minus).len(1))
         } else {
             None
         }
@@ -200,8 +203,8 @@ impl<'a> Token<'a> {
         while s.chars().nth(n).is_some_and(|c| c.is_ascii_digit()) {
             n += 1;
         }
-        let i = s[..n].parse::<i64>().unwrap_or_else(|_| {
-            eprintln!("failed to convert '<str>' to '<i64>'");
+        let i = s[..n].parse::<u64>().unwrap_or_else(|_| {
+            eprintln!("failed to convert '<str>' to '<u64>'");
             ::std::process::exit(1);
         });
         Some(builder.kind(TokenKind::Number(i)).len(n))

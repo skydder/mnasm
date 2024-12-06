@@ -15,7 +15,7 @@ pub struct Register<'a> {
     kind: RegisterKind,
     value: u8,
     size: usize,
-    pub location: Location<'a>
+    pub location: Location<'a>,
 }
 
 impl<'a> Register<'a> {
@@ -24,7 +24,7 @@ impl<'a> Register<'a> {
             kind: kind,
             value: value,
             size: size,
-            location: location
+            location: location,
         }
     }
 

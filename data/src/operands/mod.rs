@@ -1,12 +1,13 @@
 use std::fmt::Debug;
 
-mod register;
-mod label;
 mod immediate;
+mod label;
 mod memory;
-pub use register::{Register, RegisterKind};
+mod register;
+pub use immediate::Immediate;
 pub use label::Label;
-pub use immediate::Immediate; 
+pub use memory::{Memory, Scale};
+pub use register::{Register, RegisterKind};
 
 pub trait Operand: Debug {
     fn codegen(&self) -> String;

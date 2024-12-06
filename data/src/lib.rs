@@ -9,5 +9,5 @@ pub use block::Block;
 pub use code::Code;
 pub use ins::{CompoundIns, Ins};
 pub use label_def::LabelDef;
-pub use operands::{Operand, Register, RegisterKind, Label, Immediate};
+pub use operands::{Immediate, Label, Memory, Operand, Register, RegisterKind, Scale};
 pub use stmt::{NullStmt, Stmt};
