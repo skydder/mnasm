@@ -1,6 +1,6 @@
 use util::Location;
 
-use crate::{Block, Stmt};
+use crate::{Block, Label, Stmt, StmtKind};
 
 #[derive(Debug)]
 pub struct LabelDef<'a> {
@@ -27,6 +27,10 @@ impl<'a> LabelDef<'a> {
             location: location,
         }
     }
+
+    pub fn label(&self) -> Label<'a> {
+        Label::new(self.label, self.location)
+    }
 }
 
 impl<'a> Stmt for LabelDef<'a> {
@@ -47,5 +51,9 @@ impl<'a> Stmt for LabelDef<'a> {
         }
         code.push('\n');
         code
+    }
+    
+    fn kind(&self) -> crate::StmtKind {
+        StmtKind::LabelDef
     }
 }

@@ -3,6 +3,15 @@
 version = 3
 
 [[package]]
+name = "analyzer"
+version = "0.1.0"
+dependencies = [
+ "data",
+ "tokenizer",
+ "util",
+]
+
+[[package]]
 name = "codegen"
 version = "0.1.0"
 dependencies = [

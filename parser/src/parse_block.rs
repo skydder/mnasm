@@ -10,11 +10,11 @@ pub fn parse_block<'a>(tokenizer: &'a Tokenizer<'a>, indent_depth: usize) -> Blo
     // "{"
     assert!(tokenizer.peek_symbol().is(TokenKind::OpenBrace));
     tokenizer.next_token();
-    
+
     // <stmt>*
     let mut stmts: Vec<Box<dyn Stmt + 'a>> = Vec::new();
     parse_inside(tokenizer, indent_depth, &mut stmts);
-    
+
     // "}"
     tokenizer.expect_token(TokenKind::CloseBrace);
     tokenizer.skip_space();
@@ -46,7 +46,7 @@ fn parse_inside<'a>(
             if !tokenizer.peek_token().is(TokenKind::Space) {
                 stmts.push(parse_stmt(tokenizer, indent_depth + 1));
             }
-                        
+
             parse_inside(tokenizer, indent_depth, stmts);
         }
     }

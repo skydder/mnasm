@@ -10,11 +10,11 @@ pub fn parse_operands<'a>(tokenizer: &'a Tokenizer<'a>) -> Box<dyn Operand + 'a>
             // <memory>
             if s == "ptr" {
                 return Box::new(parse_memory(tokenizer));
-            
+
             // <register>
             } else if let Some(reg) = parse_register(tokenizer, s) {
                 return Box::new(reg);
-            
+
             // <label>
             } else {
                 tokenizer.next_token();
@@ -68,7 +68,7 @@ fn parse_immediate<'a>(tokenizer: &'a Tokenizer<'a>) -> Immediate<'a> {
     }
 }
 
-// <register> 
+// <register>
 fn parse_register<'a>(tokenizer: &'a Tokenizer<'a>, s: &str) -> Option<Register<'a>> {
     let loc = tokenizer.location();
     if let Some((kind, value, size)) = Register::is_reg(s) {
@@ -84,10 +84,10 @@ fn parse_memory<'a>(tokenizer: &'a Tokenizer<'a>) -> Memory<'a> {
     let loc = tokenizer.location();
     // "ptr"
     tokenizer.expect_token(TokenKind::Identifier("ptr"));
-    
+
     // size process
     // ============
-    
+
     // "("
     tokenizer.expect_symbol(TokenKind::OpenParenthesis);
     tokenizer.skip_space();
@@ -113,7 +113,7 @@ fn parse_memory<'a>(tokenizer: &'a Tokenizer<'a>) -> Memory<'a> {
 
     // ","
     tokenizer.expect_symbol(TokenKind::Comma);
-    
+
     // <index> = "_" | <register>
     let index = match tokenizer.peek_symbol().kind {
         // "_"
@@ -176,7 +176,7 @@ fn parse_memory<'a>(tokenizer: &'a Tokenizer<'a>) -> Memory<'a> {
     };
     // ","
     tokenizer.expect_symbol(TokenKind::Comma);
-    
+
     // <disp> = "_" | <immediate>
     let disp = match tokenizer.peek_symbol().kind {
         // "_"
@@ -194,6 +194,6 @@ fn parse_memory<'a>(tokenizer: &'a Tokenizer<'a>) -> Memory<'a> {
 
     // ")"
     tokenizer.expect_symbol(TokenKind::CloseParenthesis);
-    
+
     Memory::new((base, index, scale, disp), 0, loc)
 }

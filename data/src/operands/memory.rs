@@ -1,6 +1,6 @@
 use util::{emit_error, Location};
 
-use super::{Immediate, Operand, Register};
+use super::{Immediate, Operand, OperandKind, Register};
 
 #[derive(Debug)]
 
@@ -184,5 +184,9 @@ impl<'a> Operand for Memory<'a> {
 
     fn size(&self) -> usize {
         self.size
+    }
+
+    fn kind(&self) -> super::OperandKind {
+        OperandKind::Memory
     }
 }

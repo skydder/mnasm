@@ -1,6 +1,6 @@
 use util::Location;
 
-use crate::Stmt;
+use crate::{Stmt, StmtKind};
 
 #[derive(Debug)]
 pub struct Block<'a> {
@@ -30,5 +30,9 @@ impl<'a> Stmt for Block<'a> {
             code.push_str(&i.codegen());
         }
         code
+    }
+    
+    fn kind(&self) -> StmtKind {
+        StmtKind::Block
     }
 }

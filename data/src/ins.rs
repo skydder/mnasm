@@ -1,6 +1,6 @@
 use util::Location;
 
-use crate::{Operand, Stmt};
+use crate::{Operand, Stmt, StmtKind};
 
 #[derive(Debug)]
 pub struct Ins<'a> {
@@ -66,5 +66,9 @@ impl<'a> Stmt for CompoundIns<'a> {
             code.push_str(&format!("\t{}\n", i.codegen()));
         }
         code
+    }
+    
+    fn kind(&self) -> crate::StmtKind {
+        StmtKind::Ins
     }
 }

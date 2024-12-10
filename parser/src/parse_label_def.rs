@@ -18,7 +18,7 @@ pub fn parse_label_def<'a>(tokenizer: &'a Tokenizer<'a>, indent_depth: usize) ->
     });
     tokenizer.next_token();
 
-    // kimokimo-nest :< 
+    // kimokimo-nest :<
 
     // (":" "global")? (":" <section> )?
     let (is_global, section) = if tokenizer.peek_symbol().is(TokenKind::Colon) {
@@ -42,7 +42,7 @@ pub fn parse_label_def<'a>(tokenizer: &'a Tokenizer<'a>, indent_depth: usize) ->
                 ""
             };
             (true, sec)
-        
+
         // <section>
         } else {
             let sec = tokenizer.peek_symbol().get_identifier().unwrap_or_else(|| {
@@ -51,7 +51,6 @@ pub fn parse_label_def<'a>(tokenizer: &'a Tokenizer<'a>, indent_depth: usize) ->
             tokenizer.next_token();
             (false, sec)
         }
-    
     } else {
         (false, "")
     };

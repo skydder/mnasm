@@ -1,8 +1,8 @@
 use util::Location;
 
-use super::Operand;
+use super::{Operand, OperandKind};
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub enum RegisterKind {
     GR8,
     GR16,
@@ -99,5 +99,9 @@ impl<'a> Operand for Register<'a> {
     }
     fn size(&self) -> usize {
         self.size
+    }
+
+    fn kind(&self) -> OperandKind {
+        OperandKind::Register(self.value, self.kind)
     }
 }

@@ -1,6 +1,6 @@
 use util::Location;
 
-use super::Operand;
+use super::{Operand, OperandKind};
 
 #[derive(Debug)]
 pub struct Immediate<'a> {
@@ -39,5 +39,9 @@ impl<'a> Operand for Immediate<'a> {
 
     fn size(&self) -> usize {
         self.size
+    }
+
+    fn kind(&self) -> super::OperandKind {
+        OperandKind::Immediate(self.is_signed)
     }
 }

@@ -1,6 +1,6 @@
 use util::Location;
 
-use super::Operand;
+use super::{Operand, OperandKind};
 
 #[derive(Debug)]
 pub struct Label<'a> {
@@ -24,5 +24,23 @@ impl<'a> Operand for Label<'a> {
 
     fn size(&self) -> usize {
         64
+    }
+
+    fn kind(&self) -> super::OperandKind {
+        OperandKind::Label
+    }
+}
+
+impl<'a> std::cmp::PartialEq for Label<'a> {
+    fn eq(&self, other: &Self) -> bool {
+        self.name == other.name
+    }
+}
+
+impl<'a> std::cmp::Eq for Label<'a> {}
+
+impl<'a> std::hash::Hash for Label<'a> {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.name.hash(state);
     }
 }

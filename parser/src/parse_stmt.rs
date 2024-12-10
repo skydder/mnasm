@@ -10,7 +10,7 @@ pub fn parse_stmt<'a>(tokenizer: &'a Tokenizer<'a>, indent_depth: usize) -> Box<
     match currrent_token.kind {
         // <compound_stmt>
         TokenKind::Identifier(_) => Box::new(parse_compound_ins(tokenizer)),
-        
+
         // <block>
         TokenKind::OpenBrace => Box::new(parse_block(tokenizer, indent_depth)),
 

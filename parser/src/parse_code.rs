@@ -8,7 +8,7 @@ pub fn parse_code<'a>(tokenizer: &'a Tokenizer<'a>) -> Option<Code<'a>> {
     // <label_def>*
     let mut labels = Vec::new();
     parse_code_inside(tokenizer, &mut labels);
-    
+
     Some(Code { labels: labels })
 }
 
