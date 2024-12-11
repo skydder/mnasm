@@ -1,13 +1,12 @@
 use std::collections::HashMap;
 
-use crate::{analyze_label_def, LabelState};
-use data::Code;
+use data::{Code, LabelState, Stmt};
 use util::emit_error;
 
-pub fn analyze<'a>(code: &'a Code<'a>) {
+pub fn analyze<'a>(code: &Code<'a>) {
     let mut labels = &mut HashMap::new();
     for ld in &code.labels {
-        labels = analyze_label_def(ld, labels);
+        labels = ld.analyze(labels);
     }
 
     for (lb, state) in labels {

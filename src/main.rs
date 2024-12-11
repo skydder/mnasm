@@ -3,6 +3,7 @@ fn main() {
     use parser::parse_code;
     use tokenizer::Tokenizer;
     use util::{Location, Source};
+    use analyzer::analyze;
     // let source = Source {
     // file: "test",
     // code: "< test > {\n    test()\n}".to_string(),
@@ -11,8 +12,9 @@ fn main() {
     let source = Source::new(&file);
     let loc = Location::new(&source);
     let t = Tokenizer::new(loc);
-    let ast = parse_code(&t);
-    eprintln!("{}", codegen_code(&ast.unwrap()));
+    let ast = parse_code(&t).unwrap();
+    analyze(&ast);
+    eprintln!("{}", codegen_code(&ast));
 }
 
 fn parse_args<'a>() -> String {

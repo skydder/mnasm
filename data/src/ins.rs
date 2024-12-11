@@ -59,7 +59,7 @@ impl<'a> CompoundIns<'a> {
     }
 }
 
-impl<'a> Stmt for CompoundIns<'a> {
+impl<'a> Stmt<'a> for CompoundIns<'a> {
     fn codegen(&self) -> String {
         let mut code = String::new();
         for i in &self.compound {
@@ -70,5 +70,9 @@ impl<'a> Stmt for CompoundIns<'a> {
     
     fn kind(&self) -> crate::StmtKind {
         StmtKind::Ins
+    }
+
+    fn analyze<'b>(&self, labels: &'b mut std::collections::HashMap<crate::Label<'a>, crate::LabelState>) -> &'b mut std::collections::HashMap<crate::Label<'a>, crate::LabelState> {
+        labels
     }
 }

@@ -7,6 +7,7 @@
     }
     <test_2> {
         testfdsa()
+        jump(test4)
     }
 }
 

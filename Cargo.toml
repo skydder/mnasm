@@ -13,3 +13,4 @@ util = { path = "./util"}
 parser = {path = "./parser"}
 codegen = {path = "./codegen"}
 data = {path = "./data"}
+analyzer = {path = "./analyzer"}

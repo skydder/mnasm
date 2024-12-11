@@ -1,6 +1,7 @@
 use util::Location;
+use util::emit_error;
 
-use crate::{Block, Label, Stmt, StmtKind};
+use crate::{Block, Label, LabelState, Stmt, StmtKind};
 
 #[derive(Debug)]
 pub struct LabelDef<'a> {
@@ -33,7 +34,7 @@ impl<'a> LabelDef<'a> {
     }
 }
 
-impl<'a> Stmt for LabelDef<'a> {
+impl<'a> Stmt<'a> for LabelDef<'a> {
     fn codegen(&self) -> String {
         let mut code = String::new();
 
@@ -55,5 +56,22 @@ impl<'a> Stmt for LabelDef<'a> {
     
     fn kind(&self) -> crate::StmtKind {
         StmtKind::LabelDef
+    }
+
+    fn analyze<'b>(&self, mut labels: &'b mut std::collections::HashMap<Label<'a>, crate::LabelState>) -> &'b mut std::collections::HashMap<Label<'a>, crate::LabelState> {
+        if let Some(data) = labels.get_mut(&self.label()) {
+            *data = match data {
+                LabelState::Used => LabelState::UsedAndDefined,
+                _ => {
+                    emit_error!(self.location, "multiple definition!!");
+                }
+            };
+        } else {
+            labels.insert(self.label(), LabelState::Defined);
+        }
+        if let Some(block) = &self.block  {
+            labels = block.analyze(labels);
+        }
+        labels
     }
 }

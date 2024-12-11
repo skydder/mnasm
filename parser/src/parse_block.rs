@@ -26,7 +26,7 @@ pub fn parse_block<'a>(tokenizer: &'a Tokenizer<'a>, indent_depth: usize) -> Blo
 fn parse_inside<'a>(
     tokenizer: &'a Tokenizer<'a>,
     indent_depth: usize,
-    stmts: &mut Vec<Box<dyn Stmt + 'a>>,
+    stmts: &mut Vec<Box<dyn Stmt<'a> + 'a>>,
 ) {
     tokenizer.expect_symbol(TokenKind::NewLine);
     read_indent_by_depth(tokenizer, indent_depth);

@@ -2,6 +2,13 @@ use util::Location;
 
 use super::{Operand, OperandKind};
 
+#[derive(PartialEq, Debug)]
+pub enum LabelState {
+    Used,
+    Defined,
+    UsedAndDefined,
+}
+
 #[derive(Debug)]
 pub struct Label<'a> {
     name: &'a str,

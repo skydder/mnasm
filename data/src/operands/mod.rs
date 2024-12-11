@@ -5,7 +5,7 @@ mod label;
 mod memory;
 mod register;
 pub use immediate::Immediate;
-pub use label::Label;
+pub use label::{Label, LabelState};
 pub use memory::{Memory, Scale};
 pub use register::{Register, RegisterKind};
 
