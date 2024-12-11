@@ -1,1 +1,1 @@
-<test2:test:stest>
+<test2:global:stest>

@@ -1,6 +1,6 @@
 use util::Location;
 
-use crate::{Operand, Stmt, StmtKind};
+use crate::{Label, Operand};
 
 #[derive(Debug)]
 pub struct Ins<'a> {
@@ -22,12 +22,16 @@ impl<'a> Ins<'a> {
         }
     }
 
-    fn codegen(&self) -> String {
+    pub fn codegen(&self) -> String {
         let mut code = format!("{}", self.instruction);
         if self.operands.len() != 0 {
             stringify_operands(&mut code, &self.operands, 0);
         }
         code
+    }
+
+    pub fn analyze<'b>(&self, mut labels: &'b mut std::collections::HashMap<Label<'a>, crate::LabelState>) -> &'b mut std::collections::HashMap<Label<'a>, crate::LabelState> {
+        labels
     }
 }
 
@@ -42,37 +46,4 @@ fn stringify_operands<'a>(
     }
     code.push_str(&format!(" {},", operands[n].codegen()));
     stringify_operands(code, operands, n + 1);
-}
-
-#[derive(Debug)]
-pub struct CompoundIns<'a> {
-    pub compound: Vec<Ins<'a>>,
-    pub location: Location<'a>,
-}
-
-impl<'a> CompoundIns<'a> {
-    pub fn new(compound: Vec<Ins<'a>>, location: Location<'a>) -> Self {
-        Self {
-            compound: compound,
-            location: location,
-        }
-    }
-}
-
-impl<'a> Stmt<'a> for CompoundIns<'a> {
-    fn codegen(&self) -> String {
-        let mut code = String::new();
-        for i in &self.compound {
-            code.push_str(&format!("\t{}\n", i.codegen()));
-        }
-        code
-    }
-    
-    fn kind(&self) -> crate::StmtKind {
-        StmtKind::Ins
-    }
-
-    fn analyze<'b>(&self, labels: &'b mut std::collections::HashMap<crate::Label<'a>, crate::LabelState>) -> &'b mut std::collections::HashMap<crate::Label<'a>, crate::LabelState> {
-        labels
-    }
 }

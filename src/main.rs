@@ -12,7 +12,7 @@ fn main() {
     let source = Source::new(&file);
     let loc = Location::new(&source);
     let t = Tokenizer::new(loc);
-    let ast = parse_code(&t).unwrap();
+    let ast = parse_code(&t);
     analyze(&ast);
     eprintln!("{}", codegen_code(&ast));
 }

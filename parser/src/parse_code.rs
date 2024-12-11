@@ -4,12 +4,12 @@ use tokenizer::{TokenKind, Tokenizer};
 use crate::parse_label_def;
 
 // <code> = <label_def>*
-pub fn parse_code<'a>(tokenizer: &'a Tokenizer<'a>) -> Option<Code<'a>> {
+pub fn parse_code<'a>(tokenizer: &'a Tokenizer<'a>) -> Code<'a> {
     // <label_def>*
     let mut labels = Vec::new();
     parse_code_inside(tokenizer, &mut labels);
 
-    Some(Code { labels: labels })
+    Code { labels: labels }
 }
 
 // <label_def>*
