@@ -1,6 +1,6 @@
 use util::Location;
 
-use crate::{Stmt, StmtKind};
+use crate::{LabelInfo, Stmt, StmtKind};
 
 #[derive(Debug)]
 pub struct Block<'a> {
@@ -31,15 +31,18 @@ impl<'a> Stmt<'a> for Block<'a> {
         }
         code
     }
-    
+
     fn kind(&self) -> StmtKind {
         StmtKind::Block
     }
 
-    fn analyze<'b>(&self, mut labels: &'b mut std::collections::HashMap<crate::Label<'a>, crate::LabelState>) -> &'b mut std::collections::HashMap<crate::Label<'a>, crate::LabelState> {
-        for stmt in &self.stmts {
-            labels = stmt.analyze(labels);
-        }
+    fn analyze(
+        &self,
+        labels: &'a mut LabelInfo<'a>,
+    ) -> &'a mut LabelInfo<'a> {
+        // for stmt in &self.stmts {
+        //     labels = stmt.analyze(labels);
+        // }
         labels
     }
 }

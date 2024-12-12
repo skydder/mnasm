@@ -20,4 +20,5 @@ pub trait Operand: Debug {
     fn codegen(&self) -> String;
     fn kind(&self) -> OperandKind;
     fn size(&self) -> usize;
+    fn get_label(&self) -> Option<Label>;
 }

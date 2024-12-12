@@ -44,4 +44,8 @@ impl<'a> Operand for Immediate<'a> {
     fn kind(&self) -> super::OperandKind {
         OperandKind::Immediate(self.is_signed)
     }
+
+    fn get_label(&self) -> Option<super::Label> {
+        None
+    }
 }

@@ -104,4 +104,8 @@ impl<'a> Operand for Register<'a> {
     fn kind(&self) -> OperandKind {
         OperandKind::Register(self.value, self.kind)
     }
+
+    fn get_label(&self) -> Option<super::Label> {
+        None
+    }
 }

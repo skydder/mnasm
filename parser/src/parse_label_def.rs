@@ -1,4 +1,4 @@
-use data::LabelDef;
+use data::{LabelDef, Name};
 use tokenizer::{TokenKind, Tokenizer};
 use util::emit_error;
 
@@ -37,22 +37,22 @@ pub fn parse_label_def<'a>(tokenizer: &'a Tokenizer<'a>, indent_depth: usize) ->
                 });
                 tokenizer.next_token();
 
-                s
+                Some(Name::new(s))
             } else {
-                ""
+                None
             };
             (true, sec)
 
         // <section>
         } else {
-            let sec = tokenizer.peek_symbol().get_identifier().unwrap_or_else(|| {
+            let sec = Some(Name::new(tokenizer.peek_symbol().get_identifier().unwrap_or_else(|| {
                 emit_error!(tokenizer.location(), "expected label here but found other");
-            });
+            })));
             tokenizer.next_token();
             (false, sec)
         }
     } else {
-        (false, "")
+        (false,  None)
     };
 
     // ">"
@@ -68,5 +68,5 @@ pub fn parse_label_def<'a>(tokenizer: &'a Tokenizer<'a>, indent_depth: usize) ->
         }
     };
 
-    LabelDef::new(label, is_global, section, block, loc)
+    LabelDef::new(Name::new(label), is_global, section, block, loc)
 }

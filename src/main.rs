@@ -1,9 +1,10 @@
+
 fn main() {
+    use analyzer::analyze;
     use codegen::codegen_code;
     use parser::parse_code;
     use tokenizer::Tokenizer;
     use util::{Location, Source};
-    use analyzer::analyze;
     // let source = Source {
     // file: "test",
     // code: "< test > {\n    test()\n}".to_string(),
