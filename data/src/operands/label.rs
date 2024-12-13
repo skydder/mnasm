@@ -1,6 +1,6 @@
 use util::Location;
 
-use crate::Name;
+use crate::Ident;
 
 use super::{Operand, OperandKind};
 
@@ -13,12 +13,12 @@ pub enum LabelState {
 
 #[derive(Debug, Clone, Copy)]
 pub struct Label<'a> {
-    name: Name<'a>,
+    name: Ident<'a>,
     pub location: Location<'a>,
 }
 
 impl<'a> Label<'a> {
-    pub fn new(name: Name<'a>, location: Location<'a>) -> Self {
+    pub fn new(name: Ident<'a>, location: Location<'a>) -> Self {
         Self {
             name: name,
             location: location,

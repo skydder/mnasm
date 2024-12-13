@@ -14,6 +14,7 @@ pub enum TokenKind<'a> {
     Semicolon,
     Comma,
     Minus,
+    Dot,
     Number(u64),
     String(&'a str),
     Identifier(&'a str),
@@ -163,6 +164,8 @@ impl<'a> Token<'a> {
             Some(builder.kind(TokenKind::Comma).len(1))
         } else if s.starts_with("-") {
             Some(builder.kind(TokenKind::Minus).len(1))
+        } else if s.starts_with(".") {
+            Some(builder.kind(TokenKind::Dot).len(1))
         } else {
             None
         }
@@ -222,6 +225,27 @@ impl<'a> Token<'a> {
         Some(builder.kind(TokenKind::NewLine).len(n + 1))
     }
 
+    fn check_if_string(s: &'a str) -> Option<TokenBuilder<'a>> {
+        let builder = TokenBuilder::new();
+        if !s
+            .chars()
+            .peekable()
+            .peek()
+            .is_some_and(|c| *c == '"')
+        {
+            return None;
+        }
+        let mut n = 1;
+        while !s
+            .chars()
+            .nth(n)
+            .is_some_and(|c|  c == '"')
+        {
+            n += 1;
+        }
+        Some(builder.kind(TokenKind::String(&s[1..n])).len(n - 1))
+    }
+
     pub(crate) fn tokenize(s: &'a str, location: Location<'a>) -> Token<'a> {
         let builder = if let Some(b) = Token::check_if_punc(s) {
             b
@@ -234,6 +258,8 @@ impl<'a> Token<'a> {
         } else if let Some(b) = Token::check_if_newline(s) {
             b
         } else if let Some(b) = Token::check_if_comment(s) {
+            b
+        } else if let Some(b) = Token::check_if_string(s) {
             b
         } else {
             TokenBuilder::new().kind(TokenKind::EOF).len(1)

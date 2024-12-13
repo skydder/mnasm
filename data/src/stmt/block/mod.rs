@@ -4,14 +4,14 @@ mod scope;
 use std::{cell::RefCell, rc::Rc};
 
 use super::Stmt;
-use crate::Name;
+use crate::Ident;
 use util::Location;
 
 #[derive(Debug)]
 pub struct Scope<'a> {
-    scope_name: Option<Name<'a>>,
+    scope_name: Option<Ident<'a>>,
     parent: Option<Rc<RefCell<Scope<'a>>>>,
-    labels: RefCell<Vec<Name<'a>>>,
+    labels: RefCell<Vec<Ident<'a>>>,
 }
 
 #[derive(Debug)]

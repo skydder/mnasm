@@ -4,6 +4,7 @@ mod block;
 mod compound_ins;
 mod ins;
 mod label_def;
+mod pseudo_ins;
 
 pub use block::{Block, Scope};
 pub use compound_ins::CompoundIns;

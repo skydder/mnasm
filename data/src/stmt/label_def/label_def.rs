@@ -1,32 +1,32 @@
+use std::cell::RefCell;
+
 use util::Location;
 
 use crate::Analyze;
 use crate::Codegen;
-use crate::Name;
+use crate::Ident;
 use crate::Object;
-use crate::{Block, Label, Stmt, StmtKind};
+use crate::{Block, Stmt, StmtKind};
 
 use super::LabelDef;
 
 impl<'a> LabelDef<'a> {
     pub fn new(
-        label: Name<'a>,
+        label: Ident<'a>,
+        gen_label:  String,
         is_global: bool,
-        section: Option<Name<'a>>,
+        section: Option<Ident<'a>>,
         block: Option<Block<'a>>,
         location: Location<'a>,
     ) -> Self {
         Self {
             label: label,
+            gen_label: gen_label,
             is_global: is_global,
             section: section,
             block: block,
             location: location,
         }
-    }
-
-    pub fn label(&self) -> Label<'a> {
-        Label::new(self.label, self.location)
     }
 }
 
@@ -43,7 +43,7 @@ impl<'a> Codegen for LabelDef<'a> {
             code.push_str(&format!("global {}\n", self.label.get()));
         }
 
-        code.push_str(&format!("{}:\n", self.label.get()));
+        code.push_str(&format!("{}:\n", self.gen_label));
         if let Some(bl) = &self.block {
             code.push_str(&bl.codegen());
         }

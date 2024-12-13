@@ -1,10 +1,10 @@
 mod code;
-mod name;
+mod ident;
 mod operands;
 mod stmt;
 
 pub use code::Code;
-pub use name::Name;
+pub use ident::Ident;
 pub use operands::{
     Immediate, Label, LabelState, Memory, Operand, OperandKind, Register, RegisterKind, Scale,
 };
