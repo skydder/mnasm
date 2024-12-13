@@ -1,4 +1,6 @@
-use data::{Code, LabelDef};
+use std::{cell::RefCell, rc::Rc};
+
+use data::{Code, LabelDef, Scope};
 use tokenizer::{TokenKind, Tokenizer};
 
 use crate::parse_label_def;
@@ -22,7 +24,11 @@ fn parse_code_inside<'a>(tokenizer: &'a Tokenizer<'a>, labels: &mut Vec<LabelDef
     }
 
     // <label_def>
-    labels.push(parse_label_def(tokenizer, 0));
+    labels.push(parse_label_def(
+        tokenizer,
+        0,
+        Rc::new(RefCell::new(Scope::new(None, None))),
+    ));
 
     // *
     parse_code_inside(tokenizer, labels);

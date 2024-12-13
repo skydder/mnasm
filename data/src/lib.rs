@@ -1,29 +1,20 @@
-
 mod code;
+mod name;
 mod operands;
 mod stmt;
-mod name;
 
 pub use code::Code;
+pub use name::Name;
 pub use operands::{
     Immediate, Label, LabelState, Memory, Operand, OperandKind, Register, RegisterKind, Scale,
 };
-pub use stmt::{Stmt, StmtKind, LabelInfo, LabelDef, Block, Ins, CompoundIns, Scope};
-pub use name::Name;
+pub use stmt::{Block, CompoundIns, Ins, LabelDef, LabelInfo, Scope, Stmt, StmtKind};
 
-use tokenizer::Tokenizer;
-
-
-pub trait Object{}
-
-pub trait Parse: Object {
-    fn parse<'a>(tokenizer: &'a Tokenizer<'a>) -> Self;
-}
-
-pub trait Analyze: Object {
+pub trait Analyze {
     fn analyze(&self);
 }
 
-pub trait Codegen: Object {
+pub trait Codegen {
     fn codegen(&self) -> String;
 }
+pub trait Object: Analyze + Codegen {}

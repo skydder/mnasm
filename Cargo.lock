@@ -25,7 +25,6 @@ dependencies = [
 name = "data"
 version = "0.1.0"
 dependencies = [
- "tokenizer",
  "util",
 ]
 

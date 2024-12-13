@@ -1,13 +1,7 @@
 mod label_def;
 
-use util::Location;
 use crate::{Block, Name};
-
-pub struct Scope<'a> {
-    parents: Option<Box<LabelDef<'a>>>,
-    labels: Vec<Name<'a>>,
-}
-
+use util::Location;
 
 #[derive(Debug)]
 pub struct LabelDef<'a> {
@@ -16,6 +10,4 @@ pub struct LabelDef<'a> {
     pub section: Option<Name<'a>>,
     pub block: Option<Block<'a>>,
     pub location: Location<'a>,
-
-
 }

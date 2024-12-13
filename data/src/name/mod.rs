@@ -1,6 +1,6 @@
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub struct Name<'a> {
-    name: &'a str
+    name: &'a str,
 }
 
 impl<'a> Name<'a> {

@@ -14,16 +14,3 @@ pub use parse_label_def::parse_label_def;
 pub use parse_operands::parse_operands;
 pub use parse_stmt::parse_stmt;
 
-#[test]
-fn test() {
-    use tokenizer::Tokenizer;
-    use util::{Location, Source};
-    let source = Source {
-        file: "test",
-        code: "< test > {\n    test()}".to_string(),
-    };
-    let loc = Location::new(&source);
-    let t = Tokenizer::new(loc);
-    eprintln!("{:#?}", parse_label_def(&t, 0));
-    None.unwrap()
-}

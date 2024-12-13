@@ -1,8 +1,7 @@
-use util::{emit_error, Location};
+use util::Location;
 
-use crate::{Label, LabelState, Operand, OperandKind};
+use crate::{Label, Operand};
 
-use super::analyze;
 
 #[derive(Debug)]
 pub struct Ins<'a> {
@@ -36,7 +35,7 @@ impl<'a> Ins<'a> {
         &self,
         labels: &'a mut std::collections::HashMap<Label<'a>, crate::LabelState>,
     ) -> &'a mut std::collections::HashMap<Label<'a>, crate::LabelState> {
-   labels
+        labels
     }
 }
 

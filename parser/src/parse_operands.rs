@@ -1,4 +1,4 @@
-use data::{Immediate, Label, Memory, Operand, Register, Scale, Name};
+use data::{Immediate, Label, Memory, Name, Operand, Register, Scale};
 use tokenizer::{TokenKind, Tokenizer};
 use util::emit_error;
 
@@ -18,7 +18,7 @@ pub fn parse_operands<'a>(tokenizer: &'a Tokenizer<'a>) -> Box<dyn Operand + 'a>
             // <label>
             } else {
                 tokenizer.next_token();
-                return Box::new(Label::new( Name::new(s), loc));
+                return Box::new(Label::new(Name::new(s), loc));
             }
         }
 

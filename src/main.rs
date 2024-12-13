@@ -1,4 +1,3 @@
-
 fn main() {
     use analyzer::analyze;
     use codegen::codegen_code;

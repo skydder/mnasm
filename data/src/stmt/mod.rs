@@ -2,15 +2,15 @@ use std::{collections::HashMap, fmt::Debug};
 
 mod block;
 mod compound_ins;
-mod label_def;
 mod ins;
+mod label_def;
 
-pub use block::Block;
+pub use block::{Block, Scope};
 pub use compound_ins::CompoundIns;
 pub use ins::Ins;
-pub use label_def::{LabelDef, Scope};
+pub use label_def::LabelDef;
 
-use crate::{Label, LabelState};
+use crate::{Label, LabelState, Object};
 
 pub enum StmtKind {
     Ins,
@@ -18,12 +18,7 @@ pub enum StmtKind {
     LabelDef,
 }
 
-pub trait Stmt<'a>: Debug {
-    fn codegen(&self) -> String;
-    fn analyze(
-        &self,
-        labels: &'a mut LabelInfo<'a>,
-    ) -> &mut LabelInfo<'a>;
+pub trait Stmt<'a>: Debug + Object {
     fn kind(&self) -> StmtKind;
 }
 

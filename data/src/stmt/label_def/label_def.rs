@@ -1,12 +1,12 @@
-use util::emit_error;
 use util::Location;
 
-use crate::stmt::LabelInfo;
+use crate::Analyze;
+use crate::Codegen;
 use crate::Name;
-use crate::{Block, Label, LabelState, Stmt, StmtKind};
+use crate::Object;
+use crate::{Block, Label, Stmt, StmtKind};
 
 use super::LabelDef;
-
 
 impl<'a> LabelDef<'a> {
     pub fn new(
@@ -30,7 +30,8 @@ impl<'a> LabelDef<'a> {
     }
 }
 
-impl<'a> Stmt<'a> for LabelDef<'a> {
+impl<'a> Object for LabelDef<'a> {}
+impl<'a> Codegen for LabelDef<'a> {
     fn codegen(&self) -> String {
         let mut code = String::new();
 
@@ -49,28 +50,35 @@ impl<'a> Stmt<'a> for LabelDef<'a> {
         code.push('\n');
         code
     }
+}
+impl<'a> Analyze for LabelDef<'a> {
+    fn analyze(&self) {
+        todo!()
+    }
+}
 
+impl<'a> Stmt<'a> for LabelDef<'a> {
     fn kind(&self) -> crate::StmtKind {
         StmtKind::LabelDef
     }
 
-    fn analyze(
-        &self,
-        mut labels: &'a mut LabelInfo<'a>,
-    ) -> &'a mut LabelInfo<'a> {
-        if let Some(data) = labels.get_mut(&self.label()) {
-            *data = match data {
-                LabelState::Used => LabelState::UsedAndDefined,
-                _ => {
-                    emit_error!(self.location, "multiple definition!!");
-                }
-            };
-        } else {
-            labels.insert(self.label(), LabelState::Defined);
-        }
-        if let Some(block) = &self.block {
-           // labels = block.analyze(labels);
-        }
-        labels
-    }
+    // fn analyze(
+    //     &self,
+    //     mut labels: &'a mut LabelInfo<'a>,
+    // ) -> &'a mut LabelInfo<'a> {
+    //     if let Some(data) = labels.get_mut(&self.label()) {
+    //         *data = match data {
+    //             LabelState::Used => LabelState::UsedAndDefined,
+    //             _ => {
+    //                 emit_error!(self.location, "multiple definition!!");
+    //             }
+    //         };
+    //     } else {
+    //         labels.insert(self.label(), LabelState::Defined);
+    //     }
+    //     if let Some(block) = &self.block {
+    //        // labels = block.analyze(labels);
+    //     }
+    //     labels
+    // }
 }

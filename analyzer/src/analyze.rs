@@ -1,7 +1,7 @@
-use std::collections::HashMap;
+// use std::collections::HashMap;
 
-use data::{Code, LabelState, Stmt};
-use util::emit_error;
+use data::Code;
+// use util::emit_error;
 
 pub fn analyze<'a>(code: &Code<'a>) {
     // let mut labels = &mut HashMap::new();

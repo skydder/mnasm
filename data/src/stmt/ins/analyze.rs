@@ -7,8 +7,10 @@ use super::Ins;
 pub(crate) fn analyze<'a, 'b>(
     ins: &'a Ins<'a>,
     labels: &'b mut std::collections::HashMap<Label<'a>, crate::LabelState>,
-) -> &'b mut std::collections::HashMap<Label<'a>, crate::LabelState> 
-where 'a: 'b{
+) -> &'b mut std::collections::HashMap<Label<'a>, crate::LabelState>
+where
+    'a: 'b,
+{
     if ins.operands.len() >= 4 {
         emit_error!(ins.location, "unexpected number of operands")
     }
