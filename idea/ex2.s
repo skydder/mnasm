@@ -1,7 +1,7 @@
-<_start:global:text> {
+<_start:global:.text> {
     mov(rax, 0)
     mov(rbx, 1)
-    <loop:local> {
+    <loop> {
         add(rax, rbx)
         add(rbx, 1)
         cmp(rbx, 10)

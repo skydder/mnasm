@@ -23,6 +23,9 @@ impl<'a> Scope<'a> {
                 return true;
             }
         }
+        if let Some(p) = &self.parent {
+            return p.borrow().find_label(label);
+        }
         false
     }
 

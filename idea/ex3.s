@@ -1,8 +1,8 @@
-<helloworld:local:data> {
+<helloworld:.data> {
     db("Hello world!")
 }
 
-<_start:global:text> {
+<_start:global:.text> {
     mov(rax, 1)
     mov(rdi, 1)
     mov(rsi, helloworld)

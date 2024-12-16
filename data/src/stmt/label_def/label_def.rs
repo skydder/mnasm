@@ -1,5 +1,3 @@
-use std::cell::RefCell;
-
 use util::Location;
 
 use crate::Analyze;

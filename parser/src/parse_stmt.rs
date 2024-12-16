@@ -4,7 +4,7 @@ use data::{Scope, Stmt};
 use tokenizer::{TokenKind, Tokenizer};
 use util::emit_error;
 
-use crate::{parse_block, parse_compound_ins, parse_label_def};
+use crate::{parse_block, parse_compound_ins, parse_label_def, parse_pseudo_ins};
 
 // <stmt> = <compound_ins> | <block> | <label_def>
 pub fn parse_stmt<'a>(
@@ -14,6 +14,7 @@ pub fn parse_stmt<'a>(
 ) -> Box<dyn Stmt<'a> + 'a> {
     let currrent_token = tokenizer.peek_token();
     match currrent_token.kind {
+        TokenKind::Identifier("db") => Box::new(parse_pseudo_ins(tokenizer)),
         // <compound_stmt>
         TokenKind::Identifier(_) => Box::new(parse_compound_ins(tokenizer)),
 

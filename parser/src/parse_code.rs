@@ -8,8 +8,10 @@ use crate::parse_label_def;
 // <code> = <label_def>*
 pub fn parse_code<'a>(tokenizer: &'a Tokenizer<'a>) -> Code<'a> {
     // <label_def>*
+    eprintln!("!test");
     let mut labels = Vec::new();
     parse_code_inside(tokenizer, &mut labels);
+    eprintln!("{:#?}", labels);
 
     Code { labels: labels }
 }
@@ -18,8 +20,9 @@ pub fn parse_code<'a>(tokenizer: &'a Tokenizer<'a>) -> Code<'a> {
 fn parse_code_inside<'a>(tokenizer: &'a Tokenizer<'a>, labels: &mut Vec<LabelDef<'a>>) {
     // <space>*<EOF> will be error so it should be fixed
     // => fixed, however, not good?
-
+    eprintln!("11!");
     if is_eof(tokenizer) {
+        eprintln!("ok1");
         return;
     }
 
@@ -29,6 +32,7 @@ fn parse_code_inside<'a>(tokenizer: &'a Tokenizer<'a>, labels: &mut Vec<LabelDef
         0,
         Rc::new(RefCell::new(Scope::new(None, None))),
     ));
+    eprintln!("!!test");
 
     // *
     parse_code_inside(tokenizer, labels);
@@ -40,6 +44,7 @@ fn skip_null_line<'a>(tokenizer: &'a Tokenizer<'a>) {
 }
 
 fn is_eof<'a>(tokenizer: &'a Tokenizer<'a>) -> bool {
+    eprintln!("ok2");
     match tokenizer.peek_token().kind {
         TokenKind::EOF => true,
         TokenKind::NewLine | TokenKind::Space => {

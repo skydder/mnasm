@@ -1,4 +1,4 @@
-<_start:global:text> {
+<_start:global:.text> {
     mov(rax, 60)
     mov(rdi, 42)
     syscall()

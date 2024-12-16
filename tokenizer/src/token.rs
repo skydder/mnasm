@@ -243,7 +243,7 @@ impl<'a> Token<'a> {
         {
             n += 1;
         }
-        Some(builder.kind(TokenKind::String(&s[1..n])).len(n - 1))
+        Some(builder.kind(TokenKind::String(&s[1..n])).len(n+1))
     }
 
     pub(crate) fn tokenize(s: &'a str, location: Location<'a>) -> Token<'a> {

@@ -34,7 +34,7 @@ pub fn parse_operands<'a>(tokenizer: &'a Tokenizer<'a>) -> Box<dyn Operand + 'a>
 }
 
 // <immediate> = ("-")? <number>
-fn parse_immediate<'a>(tokenizer: &'a Tokenizer<'a>) -> Immediate<'a> {
+pub fn parse_immediate<'a>(tokenizer: &'a Tokenizer<'a>) -> Immediate<'a> {
     let current_token = tokenizer.peek_token();
     match current_token.kind {
         // <number>
@@ -63,6 +63,7 @@ fn parse_immediate<'a>(tokenizer: &'a Tokenizer<'a>) -> Immediate<'a> {
         _ => {
             // never happends
             assert!(false);
+            eprintln!("test");
             std::process::exit(1);
         }
     }

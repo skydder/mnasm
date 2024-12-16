@@ -10,6 +10,7 @@ pub use block::{Block, Scope};
 pub use compound_ins::CompoundIns;
 pub use ins::Ins;
 pub use label_def::LabelDef;
+pub use pseudo_ins::PseudoIns;
 
 use crate::{Label, LabelState, Object};
 
