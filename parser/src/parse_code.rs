@@ -10,14 +10,15 @@ pub fn parse_code<'a>(tokenizer: &'a Tokenizer<'a>) -> Code<'a> {
     // <label_def>*
     eprintln!("!test");
     let mut labels = Vec::new();
-    parse_code_inside(tokenizer, &mut labels);
+    let root = Rc::new(RefCell::new(Scope::new(None, None)));
+    parse_code_inside(tokenizer, &mut labels, root);
     eprintln!("{:#?}", labels);
 
     Code { labels: labels }
 }
 
 // <label_def>*
-fn parse_code_inside<'a>(tokenizer: &'a Tokenizer<'a>, labels: &mut Vec<LabelDef<'a>>) {
+fn parse_code_inside<'a>(tokenizer: &'a Tokenizer<'a>, labels: &mut Vec<LabelDef<'a>>, root: Rc<RefCell<Scope<'a>>>) {
     // <space>*<EOF> will be error so it should be fixed
     // => fixed, however, not good?
     eprintln!("11!");
@@ -30,12 +31,12 @@ fn parse_code_inside<'a>(tokenizer: &'a Tokenizer<'a>, labels: &mut Vec<LabelDef
     labels.push(parse_label_def(
         tokenizer,
         0,
-        Rc::new(RefCell::new(Scope::new(None, None))),
+        root.clone(),
     ));
     eprintln!("!!test");
 
     // *
-    parse_code_inside(tokenizer, labels);
+    parse_code_inside(tokenizer, labels, root);
 }
 
 fn skip_null_line<'a>(tokenizer: &'a Tokenizer<'a>) {

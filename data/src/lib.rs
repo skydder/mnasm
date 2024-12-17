@@ -8,7 +8,7 @@ pub use ident::Ident;
 pub use operands::{
     Immediate, Label, LabelState, Memory, Operand, OperandKind, Register, RegisterKind, Scale,
 };
-pub use stmt::{Block, CompoundIns, Ins, LabelDef, LabelInfo, Scope, Stmt, StmtKind, PseudoIns};
+pub use stmt::{Block, CompoundIns, Ins, LabelDef, LabelInfo, PseudoIns, Scope, Stmt, StmtKind};
 
 pub trait Analyze {
     fn analyze(&self);

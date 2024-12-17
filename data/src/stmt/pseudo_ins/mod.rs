@@ -13,7 +13,11 @@ pub struct PseudoIns<'a> {
 
 impl<'a> PseudoIns<'a> {
     pub fn new(instruction: &'a str, operands: Vec<String>, location: Location<'a>) -> Self {
-        Self { instruction: instruction, operands: operands, location: location }
+        Self {
+            instruction: instruction,
+            operands: operands,
+            location: location,
+        }
     }
 
     fn codegen_operands(&self) -> String {
@@ -43,7 +47,7 @@ impl<'a> Analyze for PseudoIns<'a> {
     }
 }
 
-impl<'a> Codegen for PseudoIns<'a>  {
+impl<'a> Codegen for PseudoIns<'a> {
     fn codegen(&self) -> String {
         eprintln!("test55!");
 

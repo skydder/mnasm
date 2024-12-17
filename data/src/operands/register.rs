@@ -108,4 +108,8 @@ impl<'a> Operand for Register<'a> {
     fn get_label(&self) -> Option<super::Label> {
         None
     }
+
+    fn analyze(&self, scope: &crate::Scope) {
+        todo!()
+    }
 }

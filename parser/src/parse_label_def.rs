@@ -1,6 +1,6 @@
 use std::{cell::RefCell, rc::Rc};
 
-use data::{LabelDef, Ident, Scope};
+use data::{Ident, LabelDef, Scope};
 use tokenizer::{TokenKind, Tokenizer};
 use util::emit_error;
 
@@ -24,10 +24,10 @@ pub fn parse_label_def<'a>(
     }));
     tokenizer.next_token();
 
-    if scope.borrow().find_label(label) {
+    if scope.borrow().find_label(label).is_some() {
         emit_error!(loc, "multiple difinition!!")
     }
-    
+
     let gen_label = scope.borrow().gen_label(label);
     scope.borrow_mut().add_label(label);
     // kimokimo-nest :<
@@ -79,10 +79,7 @@ pub fn parse_label_def<'a>(
     LabelDef::new(label, gen_label, is_global, section, block, loc)
 }
 
-
-fn parse_section<'a>(
-    tokenizer: &'a Tokenizer<'a>,
-) -> Ident<'a> {
+fn parse_section<'a>(tokenizer: &'a Tokenizer<'a>) -> Ident<'a> {
     let s = if tokenizer.peek_token().is(TokenKind::Dot) {
         tokenizer.next_token();
         // todo: add all reserved section

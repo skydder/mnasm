@@ -11,7 +11,7 @@ use super::LabelDef;
 impl<'a> LabelDef<'a> {
     pub fn new(
         label: Ident<'a>,
-        gen_label:  String,
+        gen_label: String,
         is_global: bool,
         section: Option<Ident<'a>>,
         block: Option<Block<'a>>,

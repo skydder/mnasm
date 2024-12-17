@@ -1,11 +1,13 @@
-use data::{CompoundIns, Ins, Operand};
+use std::{cell::RefCell, rc::Rc};
+
+use data::{CompoundIns, Ins, Operand, Scope};
 use tokenizer::{TokenKind, Tokenizer};
 use util::emit_error;
 
 use crate::parse_operands;
 
 // <ins> = <instruction(identifier)> "(" <operands>? ")"
-pub fn parse_ins<'a>(tokenizer: &'a Tokenizer<'a>) -> Ins<'a> {
+pub fn parse_ins<'a>(tokenizer: &'a Tokenizer<'a>, scope: Rc<RefCell<Scope<'a>>>) -> Ins<'a> {
     let currrent_token = tokenizer.peek_token();
     assert!(currrent_token.is_identifier());
 
@@ -19,7 +21,7 @@ pub fn parse_ins<'a>(tokenizer: &'a Tokenizer<'a>) -> Ins<'a> {
     // <operands>?
     let mut operands: Vec<Box<dyn Operand + 'a>> = Vec::new();
     if !tokenizer.peek_symbol().is(TokenKind::CloseParenthesis) {
-        parse_ins_operands_inside(tokenizer, &mut operands);
+        parse_ins_operands_inside(tokenizer, &mut operands, scope);
     }
 
     // ")"
@@ -32,9 +34,10 @@ pub fn parse_ins<'a>(tokenizer: &'a Tokenizer<'a>) -> Ins<'a> {
 fn parse_ins_operands_inside<'a>(
     tokenizer: &'a Tokenizer<'a>,
     operands: &mut Vec<Box<dyn Operand + 'a>>,
+    scope: Rc<RefCell<Scope<'a>>>,
 ) {
     // <operand>
-    operands.push(parse_operands(tokenizer));
+    operands.push(parse_operands(tokenizer, scope.clone()));
     tokenizer.skip_space();
 
     match tokenizer.peek_token().kind {
@@ -45,10 +48,11 @@ fn parse_ins_operands_inside<'a>(
         TokenKind::Comma => {
             // ","
             tokenizer.next_token();
+
             tokenizer.skip_space();
 
             // <operand>)*
-            parse_ins_operands_inside(tokenizer, operands);
+            parse_ins_operands_inside(tokenizer, operands, scope);
         }
         _ => {
             emit_error!(tokenizer.location(), "invalid expression");
@@ -57,19 +61,26 @@ fn parse_ins_operands_inside<'a>(
 }
 
 // <compound_ins> = <ins> ("," <ins>)*
-pub fn parse_compound_ins<'a>(tokenizer: &'a Tokenizer<'a>) -> CompoundIns<'a> {
+pub fn parse_compound_ins<'a>(
+    tokenizer: &'a Tokenizer<'a>,
+    scope: Rc<RefCell<Scope<'a>>>,
+) -> CompoundIns<'a> {
     // <compound_ins>
     let mut compound = Vec::new();
     let loc = tokenizer.location();
-    parse_compound_ins_inside(tokenizer, &mut compound);
+    parse_compound_ins_inside(tokenizer, &mut compound, scope);
 
     CompoundIns::new(compound, loc)
 }
 
 // <compound_ins> = <ins> ("," <ins>)*
-fn parse_compound_ins_inside<'a>(tokenizer: &'a Tokenizer<'a>, compound: &mut Vec<Ins<'a>>) {
+fn parse_compound_ins_inside<'a>(
+    tokenizer: &'a Tokenizer<'a>,
+    compound: &mut Vec<Ins<'a>>,
+    scope: Rc<RefCell<Scope<'a>>>,
+) {
     // <ins>
-    compound.push(parse_ins(tokenizer));
+    compound.push(parse_ins(tokenizer, scope.clone()));
     tokenizer.skip_space();
 
     match tokenizer.peek_token().kind {
@@ -83,7 +94,7 @@ fn parse_compound_ins_inside<'a>(tokenizer: &'a Tokenizer<'a>, compound: &mut Ve
             tokenizer.skip_space();
 
             // <ins>)*
-            parse_compound_ins_inside(tokenizer, compound);
+            parse_compound_ins_inside(tokenizer, compound, scope);
         }
         _ => {
             emit_error!(tokenizer.location(), "invalid expression");

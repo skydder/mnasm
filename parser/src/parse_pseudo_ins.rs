@@ -1,5 +1,5 @@
-use tokenizer::{TokenKind, Tokenizer};
 use data::{Operand, PseudoIns};
+use tokenizer::{TokenKind, Tokenizer};
 use util::emit_error;
 
 use crate::parse_operands;
@@ -29,16 +29,19 @@ pub fn parse_pseudo_ins<'a>(tokenizer: &'a Tokenizer<'a>) -> PseudoIns<'a> {
     PseudoIns::new(ins, operands, currrent_token.location)
 }
 
-fn parse_ins_operands_inside<'a>(
-    tokenizer: &'a Tokenizer<'a>,
-    operands: &mut Vec<String>,
-) {
+fn parse_ins_operands_inside<'a>(tokenizer: &'a Tokenizer<'a>, operands: &mut Vec<String>) {
     // <operand>
     let op = match tokenizer.peek_token().kind {
-        TokenKind::Minus | TokenKind::Number(_) => parse_operands::parse_immediate(tokenizer).codegen().clone(),
+        TokenKind::Minus | TokenKind::Number(_) => {
+            parse_operands::parse_immediate(tokenizer).codegen().clone()
+        }
         TokenKind::String(i) => format!("\"{}\"", i),
         _ => {
-            emit_error!(tokenizer.location(), "invalid expression, {:#?}", tokenizer.peek_token());
+            emit_error!(
+                tokenizer.location(),
+                "invalid expression, {:#?}",
+                tokenizer.peek_token()
+            );
         }
     };
     operands.push(op);
@@ -58,7 +61,11 @@ fn parse_ins_operands_inside<'a>(
             parse_ins_operands_inside(tokenizer, operands);
         }
         _ => {
-            emit_error!(tokenizer.location(), "invalid expression, {:#?}", tokenizer.peek_token());
+            emit_error!(
+                tokenizer.location(),
+                "invalid expression, {:#?}",
+                tokenizer.peek_token()
+            );
         }
     }
 }

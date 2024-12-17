@@ -227,23 +227,14 @@ impl<'a> Token<'a> {
 
     fn check_if_string(s: &'a str) -> Option<TokenBuilder<'a>> {
         let builder = TokenBuilder::new();
-        if !s
-            .chars()
-            .peekable()
-            .peek()
-            .is_some_and(|c| *c == '"')
-        {
+        if !s.chars().peekable().peek().is_some_and(|c| *c == '"') {
             return None;
         }
         let mut n = 1;
-        while !s
-            .chars()
-            .nth(n)
-            .is_some_and(|c|  c == '"')
-        {
+        while !s.chars().nth(n).is_some_and(|c| c == '"') {
             n += 1;
         }
-        Some(builder.kind(TokenKind::String(&s[1..n])).len(n+1))
+        Some(builder.kind(TokenKind::String(&s[1..n])).len(n + 1))
     }
 
     pub(crate) fn tokenize(s: &'a str, location: Location<'a>) -> Token<'a> {

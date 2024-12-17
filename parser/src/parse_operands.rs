@@ -1,9 +1,14 @@
-use data::{Immediate, Label, Memory, Ident, Operand, Register, Scale};
+use std::{cell::RefCell, rc::Rc};
+
+use data::{Ident, Immediate, Label, Memory, Operand, Register, Scale, Scope};
 use tokenizer::{TokenKind, Tokenizer};
 use util::emit_error;
 
 // <operand> = <memory> | <register> | <immediate> | <label>
-pub fn parse_operands<'a>(tokenizer: &'a Tokenizer<'a>) -> Box<dyn Operand + 'a> {
+pub fn parse_operands<'a>(
+    tokenizer: &'a Tokenizer<'a>,
+    scope: Rc<RefCell<Scope<'a>>>,
+) -> Box<dyn Operand + 'a> {
     let loc = tokenizer.location();
     match tokenizer.peek_token().kind {
         TokenKind::Identifier(s) => {
@@ -18,7 +23,14 @@ pub fn parse_operands<'a>(tokenizer: &'a Tokenizer<'a>) -> Box<dyn Operand + 'a>
             // <label>
             } else {
                 tokenizer.next_token();
-                return Box::new(Label::new(Ident::new(s), loc));
+                return Box::new(Label::new(
+                    Ident::new(s),
+                    scope
+                        .borrow()
+                        .find_label(Ident::new(s))
+                        .unwrap_or_else(|| emit_error!(loc, "undefined label")),
+                    loc,
+                ));
             }
         }
 

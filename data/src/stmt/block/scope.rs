@@ -1,6 +1,6 @@
 use std::{cell::RefCell, rc::Rc};
 
-use crate::Ident;
+use crate::{Ident, Label};
 
 use super::Scope;
 
@@ -17,16 +17,16 @@ impl<'a> Scope<'a> {
         self.labels.borrow_mut().push(label);
     }
 
-    pub fn find_label(&self, label: Ident<'a>) -> bool {
+    pub fn find_label(&self, label: Ident<'a>) -> Option<String> {
         for l in self.labels.borrow().iter() {
             if label == *l {
-                return true;
+                return Some(self.gen_label(label));
             }
         }
         if let Some(p) = &self.parent {
             return p.borrow().find_label(label);
         }
-        false
+        None
     }
 
     pub fn scope_name(&self) -> Ident<'a> {
@@ -42,7 +42,11 @@ impl<'a> Scope<'a> {
 
     pub fn gen_label_scope(&self) -> String {
         if self.parent.is_some() {
-            format!("{}__{}", self.scope_name().get(), self.parent.clone().unwrap().borrow().gen_label_scope())
+            format!(
+                "{}__{}",
+                self.scope_name().get(),
+                self.parent.clone().unwrap().borrow().gen_label_scope()
+            )
         } else {
             String::new()
         }
