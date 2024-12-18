@@ -8,32 +8,27 @@ use crate::parse_label_def;
 // <code> = <label_def>*
 pub fn parse_code<'a>(tokenizer: &'a Tokenizer<'a>) -> Code<'a> {
     // <label_def>*
-    eprintln!("!test");
     let mut labels = Vec::new();
     let root = Rc::new(RefCell::new(Scope::new(None, None)));
     parse_code_inside(tokenizer, &mut labels, root);
-    eprintln!("{:#?}", labels);
 
     Code { labels: labels }
 }
 
 // <label_def>*
-fn parse_code_inside<'a>(tokenizer: &'a Tokenizer<'a>, labels: &mut Vec<LabelDef<'a>>, root: Rc<RefCell<Scope<'a>>>) {
+fn parse_code_inside<'a>(
+    tokenizer: &'a Tokenizer<'a>,
+    labels: &mut Vec<LabelDef<'a>>,
+    root: Rc<RefCell<Scope<'a>>>,
+) {
     // <space>*<EOF> will be error so it should be fixed
     // => fixed, however, not good?
-    eprintln!("11!");
     if is_eof(tokenizer) {
-        eprintln!("ok1");
         return;
     }
 
     // <label_def>
-    labels.push(parse_label_def(
-        tokenizer,
-        0,
-        root.clone(),
-    ));
-    eprintln!("!!test");
+    labels.push(parse_label_def(tokenizer, 0, root.clone()));
 
     // *
     parse_code_inside(tokenizer, labels, root);
@@ -45,7 +40,6 @@ fn skip_null_line<'a>(tokenizer: &'a Tokenizer<'a>) {
 }
 
 fn is_eof<'a>(tokenizer: &'a Tokenizer<'a>) -> bool {
-    eprintln!("ok2");
     match tokenizer.peek_token().kind {
         TokenKind::EOF => true,
         TokenKind::NewLine | TokenKind::Space => {

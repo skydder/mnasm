@@ -5,7 +5,6 @@ use util::emit_error;
 use crate::parse_operands;
 
 pub fn parse_pseudo_ins<'a>(tokenizer: &'a Tokenizer<'a>) -> PseudoIns<'a> {
-    eprintln!("test!");
     let currrent_token = tokenizer.peek_token();
     assert!(currrent_token.is_identifier());
 
@@ -24,7 +23,6 @@ pub fn parse_pseudo_ins<'a>(tokenizer: &'a Tokenizer<'a>) -> PseudoIns<'a> {
 
     // ")"
     tokenizer.expect_symbol(TokenKind::CloseParenthesis);
-    eprintln!("test5!");
 
     PseudoIns::new(ins, operands, currrent_token.location)
 }

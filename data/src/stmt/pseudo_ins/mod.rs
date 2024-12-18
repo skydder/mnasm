@@ -49,8 +49,6 @@ impl<'a> Analyze for PseudoIns<'a> {
 
 impl<'a> Codegen for PseudoIns<'a> {
     fn codegen(&self) -> String {
-        eprintln!("test55!");
-
-        format!("{} {}", self.instruction, self.codegen_operands())
+        format!("\t{} {}", self.instruction, self.codegen_operands())
     }
 }

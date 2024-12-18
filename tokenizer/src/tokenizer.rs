@@ -24,7 +24,6 @@ impl<'a> Tokenizer<'a> {
 
     pub fn peek_token(&self) -> Token {
         let tok = Token::tokenize(self.current_slice(), self.location.borrow().clone());
-        // eprintln!("{:#?}", tok);
         tok
     }
 
