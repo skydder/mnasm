@@ -25,10 +25,7 @@ pub fn parse_operands<'a>(
                 tokenizer.next_token();
                 return Box::new(Label::new(
                     Ident::new(s),
-                    scope
-                        .borrow()
-                        .find_label(Ident::new(s))
-                        .unwrap_or_else(|| emit_error!(loc, "undefined label")),
+                    scope,
                     loc,
                 ));
             }
@@ -100,6 +97,34 @@ fn parse_memory<'a>(tokenizer: &'a Tokenizer<'a>) -> Memory<'a> {
 
     // size process
     // ============
+    let size = if tokenizer.peek_symbol().is(TokenKind::LessThan) {
+        tokenizer.next_token();
+        let v = match tokenizer.peek_symbol().kind {
+            TokenKind::Identifier("byte") => {
+                tokenizer.next_token();
+                8
+            },
+            TokenKind::Identifier("word") => {
+                tokenizer.next_token();
+                16
+            },
+            TokenKind::Identifier("dword") => {
+                tokenizer.next_token();
+                32
+            },
+            TokenKind::Identifier("qword") => {
+                tokenizer.next_token();
+                64
+            },
+            _ => {
+                emit_error!(tokenizer.location(), "expected size expression here, but there is not.");
+            }
+        };
+        tokenizer.expect_symbol(TokenKind::GreaterThan);
+        v
+    } else {
+        0
+    };
 
     // "("
     tokenizer.expect_symbol(TokenKind::OpenParenthesis);
@@ -208,5 +233,5 @@ fn parse_memory<'a>(tokenizer: &'a Tokenizer<'a>) -> Memory<'a> {
     // ")"
     tokenizer.expect_symbol(TokenKind::CloseParenthesis);
 
-    Memory::new((base, index, scale, disp), 0, loc)
+    Memory::new((base, index, scale, disp), size, loc)
 }

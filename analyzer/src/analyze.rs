@@ -2,7 +2,7 @@
 
 use data::Code;
 // use util::emit_error;
-
+#[allow(unused_variables)]
 pub fn analyze<'a>(code: &Code<'a>) {
     // let mut labels = &mut HashMap::new();
     // for ld in &code.labels {

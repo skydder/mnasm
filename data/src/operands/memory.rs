@@ -190,11 +190,7 @@ impl<'a> Operand for Memory<'a> {
         OperandKind::Memory
     }
 
-    fn get_label(&self) -> Option<super::Label> {
-        None
-    }
-
-    fn analyze(&self, scope: &crate::Scope) {
+    fn analyze(&self) {
         todo!()
     }
 }

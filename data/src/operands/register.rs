@@ -105,11 +105,5 @@ impl<'a> Operand for Register<'a> {
         OperandKind::Register(self.value, self.kind)
     }
 
-    fn get_label(&self) -> Option<super::Label> {
-        None
-    }
-
-    fn analyze(&self, scope: &crate::Scope) {
-        todo!()
-    }
+    fn analyze(&self) {}
 }

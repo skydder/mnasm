@@ -1,11 +1,11 @@
 use std::{
-    cell::{Cell, RefCell},
+    cell::RefCell,
     rc::Rc,
 };
 
-use util::Location;
+use util::{emit_error, Location};
 
-use crate::Ident;
+use crate::{Ident, Scope};
 
 use super::{Operand, OperandKind};
 
@@ -19,15 +19,15 @@ pub enum LabelState {
 #[derive(Debug, Clone)]
 pub struct Label<'a> {
     name: Ident<'a>,
-    label: String,
+    scope: Rc<RefCell<Scope<'a>>>,
     pub location: Location<'a>,
 }
 
 impl<'a> Label<'a> {
-    pub fn new(name: Ident<'a>, label: String, location: Location<'a>) -> Self {
+    pub fn new(name: Ident<'a>, scope: Rc<RefCell<Scope<'a>>>, location: Location<'a>) -> Self {
         Self {
             name: name,
-            label: label,
+            scope: scope,
             location: location,
         }
     }
@@ -35,7 +35,7 @@ impl<'a> Label<'a> {
 
 impl<'a> Operand for Label<'a> {
     fn codegen(&self) -> String {
-        format!("{}", self.label)
+        format!("{}", self.scope.borrow().find_label(self.name).unwrap_or_else(|| emit_error!(self.location, "undefined label")),)
     }
 
     fn size(&self) -> usize {
@@ -46,11 +46,7 @@ impl<'a> Operand for Label<'a> {
         OperandKind::Label
     }
 
-    fn get_label(&self) -> Option<Label> {
-        Some(self.clone())
-    }
-
-    fn analyze(&self, scope: &crate::Scope) {
+    fn analyze(&self) {
         // self.gen_label =
     }
 }

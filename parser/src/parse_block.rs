@@ -5,7 +5,6 @@ use tokenizer::{TokenKind, Tokenizer};
 
 use crate::{parse_stmt, read_indent_by_depth};
 
-static mut currrent_scope: Option<Rc<RefCell<Scope>>> = None;
 // <block> = "{" <stmt>* "}"
 pub fn parse_block<'a>(
     tokenizer: &'a Tokenizer<'a>,

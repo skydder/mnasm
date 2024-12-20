@@ -1,6 +1,6 @@
 use util::Location;
 
-use crate::{Label, Operand, Scope};
+use crate::Operand;
 
 #[derive(Debug)]
 pub struct Ins<'a> {
@@ -30,7 +30,7 @@ impl<'a> Ins<'a> {
         code
     }
 
-    pub fn analyze(&self, scope: &Scope<'a>) {
+    pub fn analyze(&self) {
         todo!()
     }
 }

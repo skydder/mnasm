@@ -1,6 +1,6 @@
 use std::{cell::RefCell, rc::Rc};
 
-use crate::{Ident, Label};
+use crate::Ident;
 
 use super::Scope;
 

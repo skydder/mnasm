@@ -4,6 +4,7 @@
     test() #test
     nop()
     ret()
+    jmp(test2)
 }
 
 <test2:global:stest> #test

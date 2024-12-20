@@ -45,9 +45,7 @@ impl<'a> Operand for Immediate<'a> {
         OperandKind::Immediate(self.is_signed)
     }
 
-    fn get_label(&self) -> Option<super::Label> {
-        None
+    fn analyze(&self) {
+        
     }
-
-    fn analyze(&self, scope: &crate::Scope) {}
 }
