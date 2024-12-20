@@ -11,17 +11,7 @@ use util::{emit_msg_and_exit, Location, Source};
 
 
 fn main() {
-    let file = parse_args();
-    nasm_and_link(assemble(&file), "out").unwrap_or_else(|e| eprintln!("{}", e));
-    // run().unwrap_or_else(|e| eprintln!("{}", e));
-}
-
-fn parse_args<'a>() -> String {
-    let args: Vec<String> = std::env::args().skip(1).collect();
-    if args.len() != 1 {
-        todo!()
-    }
-    args[0].clone()
+    run().unwrap_or_else(|e| eprintln!("{}", e));
 }
 
 fn assemble(file: &str) -> String {
@@ -56,19 +46,6 @@ fn link(obj_file: &Path, out_file: &Path) -> Result<(), io::Error> {
         .spawn()
         .expect("do you have ld?")
         .wait()?;
-    
-    Ok(())
-}
-
-fn nasm_and_link(code: String, file: &str) -> Result<(), io::Error> {
-    let nasm_code = NamedTempFile::new()?;
-
-    let mut out = File::create(nasm_code.path())?;
-    write!(&mut out, "{}", code).expect("failed to write file");
-
-    let obj_file = NamedTempFile::new()?;
-    assemble_by_nasm(nasm_code.path(), obj_file.path())?;
-    link(obj_file.path(), Path::new(file))?;
     
     Ok(())
 }
@@ -112,9 +89,11 @@ fn parse_run_flags<'a>(args: Vec<String>) -> RunFlags {
             continue;
         }
         if arg_s == "-o" {
-            // arg_iter.next();
             flags.output = arg_iter.next().unwrap_or_else(|| help()).clone();
             continue;
+        }
+        if flags.input.len() != 0 {
+            help()
         }
         flags.input = arg_s.clone();
     }
@@ -131,7 +110,7 @@ fn run() -> Result<(), io::Error> {
 
     let mut nasm_out = File::create(nasm_code.path())?;
     write!(&mut nasm_out, "{}", assemble(&flag.input)).expect("failed to write file");
-    if flag.is_c {
+    if flag.is_cs {
         fs::copy(nasm_code.path(), if flag.output.len() != 0 {
             flag.output
         } else {
@@ -139,8 +118,10 @@ fn run() -> Result<(), io::Error> {
         })?;
         return Ok(());
     }
+
     let obj_file = NamedTempFile::new()?;
     assemble_by_nasm(nasm_code.path(), obj_file.path())?;
+
     if flag.is_c {
         fs::copy(obj_file.path(), if flag.output.len() != 0 {
             flag.output
@@ -149,9 +130,11 @@ fn run() -> Result<(), io::Error> {
         })?;
         return Ok(());
     }
+
     let exc = NamedTempFile::new()?;
     link(obj_file.path(), exc.path())?;
-    fs::copy(obj_file.path(), if flag.output.len() != 0 {
+    
+    fs::copy(exc.path(), if flag.output.len() != 0 {
         flag.output
     } else {
         "out".to_string()
