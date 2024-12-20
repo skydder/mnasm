@@ -35,7 +35,8 @@ impl<'a> Label<'a> {
 
 impl<'a> Operand for Label<'a> {
     fn codegen(&self) -> String {
-        format!("{}", self.scope.borrow().find_label(self.name).unwrap_or_else(|| emit_error!(self.location, "undefined label")),)
+        // should be run after analyzed
+        format!("{}", self.scope.borrow().find_label(self.name).unwrap())
     }
 
     fn size(&self) -> usize {
@@ -47,7 +48,11 @@ impl<'a> Operand for Label<'a> {
     }
 
     fn analyze(&self) {
-        // self.gen_label =
+        self.scope.borrow().find_label(self.name).unwrap_or_else(|| emit_error!(self.location, "undefined label"));
+    }
+
+    fn op(&self) -> (OperandKind, usize) {
+        (OperandKind::Immediate(false), 64)
     }
 }
 

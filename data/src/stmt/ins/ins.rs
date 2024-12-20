@@ -1,7 +1,7 @@
 use util::Location;
 
 use crate::Operand;
-
+use super::analyze_ins;
 #[derive(Debug)]
 pub struct Ins<'a> {
     pub instruction: &'a str,
@@ -31,7 +31,7 @@ impl<'a> Ins<'a> {
     }
 
     pub fn analyze(&self) {
-        todo!()
+        analyze_ins(self.instruction, &self.operands);
     }
 }
 

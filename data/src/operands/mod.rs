@@ -21,4 +21,5 @@ pub trait Operand: Debug {
     fn analyze(&self);
     fn kind(&self) -> OperandKind;
     fn size(&self) -> usize;
+    fn op(&self) -> (OperandKind, usize);
 }

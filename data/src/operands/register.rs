@@ -8,6 +8,13 @@ pub enum RegisterKind {
     GR16,
     GR32,
     GR64,
+    X87_80,
+    MMX,
+    XMM,
+    YMM,
+    SReg,
+    CReg,
+    DReg,
 }
 
 #[derive(Debug)]
@@ -89,6 +96,9 @@ impl<'a> std::fmt::Display for Register<'a> {
             RegisterKind::GR64 => {
                 write!(f, "{}", REG64[self.value as usize])
             }
+            _ => {
+                todo!()
+            }
         }
     }
 }
@@ -106,4 +116,8 @@ impl<'a> Operand for Register<'a> {
     }
 
     fn analyze(&self) {}
+    
+    fn op(&self) -> (OperandKind, usize) {
+        (self.kind(), self.size)
+    }
 }

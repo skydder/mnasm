@@ -45,7 +45,8 @@ impl<'a> Operand for Immediate<'a> {
         OperandKind::Immediate(self.is_signed)
     }
 
-    fn analyze(&self) {
-        
+    fn analyze(&self) {}
+    fn op(&self) -> (OperandKind, usize) {
+        (self.kind(), self.size)
     }
 }

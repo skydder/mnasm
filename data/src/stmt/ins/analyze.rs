@@ -1,33 +1,40 @@
 use util::emit_error;
 
-use crate::{Label, LabelState, OperandKind};
+use crate::{Operand, OperandKind};
 
-use super::Ins;
+use super::ins_analyzer::ins_analyzer;
 
-pub(crate) fn analyze<'a, 'b>(
-    ins: &'a Ins<'a>,
-    labels: &'b mut std::collections::HashMap<Label<'a>, crate::LabelState>,
-) -> &'b mut std::collections::HashMap<Label<'a>, crate::LabelState>
-where
-    'a: 'b,
-{
-    if ins.operands.len() >= 4 {
-        emit_error!(ins.location, "unexpected number of operands")
+const INSES:&[&'static str] = &[];
+
+pub fn analyze_ins<'a>(ins: &'a str, operands: &Vec<Box<dyn Operand + 'a>>) {
+    match ins_analyzer(ins, Operands::convert_operands(operands)) {
+        Ok(_) => return,
+        Err(_) => {
+            eprintln!("unsuppoted instruction and operands. Be Carefull")
+        },
     }
-    for oprand in &ins.operands {
-        if let OperandKind::Label = oprand.kind() {
-            let lbl = oprand.get_label().unwrap();
-            if let Some(data) = labels.get_mut(&lbl) {
-                match data {
-                    LabelState::Defined => {
-                        *data = LabelState::UsedAndDefined;
-                    }
-                    _ => (),
-                };
-            } else {
-                labels.insert(lbl, LabelState::Used);
-            }
+}
+
+pub struct Operands(pub Option<(OperandKind, usize)>, pub Option<(OperandKind, usize)> , pub Option<(OperandKind, usize)>, pub Option<(OperandKind, usize)>);
+
+impl Operands {
+    fn default() -> Self {
+        Self(None, None, None, None)
+    }
+    fn set(&mut self, i: usize, value: Option<(OperandKind, usize)>) {
+        match i {
+            0 => self.0 = value,
+            1 => self.1 = value,
+            2 => self.2 = value,
+            3 => self.3 = value,
+            _ => todo!(),
         }
     }
-    labels
+    fn convert_operands<'a>(operands: &Vec<Box<dyn Operand + 'a>>) -> Self {
+        let mut op = Operands::default();
+        for i in 0..4 {
+            op.set(i, operands.get(i).map_or(None, |o| Some(o.op())));
+        }
+        op
+    }
 }
