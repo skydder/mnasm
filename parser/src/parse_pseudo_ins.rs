@@ -32,8 +32,13 @@ fn parse_ins_operands_inside<'a>(tokenizer: &'a Tokenizer<'a>, operands: &mut Ve
     let op = match tokenizer.peek_token().kind {
         TokenKind::Minus | TokenKind::Number(_) => {
             parse_operands::parse_immediate(tokenizer).codegen().clone()
-        }
-        TokenKind::String(i) => format!("\"{}\"", i),
+        },
+
+        TokenKind::String(i) => {
+            tokenizer.next_token();
+            tokenizer.skip_space();
+            format!("\"{}\"", i)
+        },
         _ => {
             emit_error!(
                 tokenizer.location(),
@@ -43,8 +48,6 @@ fn parse_ins_operands_inside<'a>(tokenizer: &'a Tokenizer<'a>, operands: &mut Ve
         }
     };
     operands.push(op);
-    tokenizer.next_token();
-    tokenizer.skip_space();
     match tokenizer.peek_token().kind {
         TokenKind::CloseParenthesis => {
             return;
@@ -61,7 +64,7 @@ fn parse_ins_operands_inside<'a>(tokenizer: &'a Tokenizer<'a>, operands: &mut Ve
         _ => {
             emit_error!(
                 tokenizer.location(),
-                "invalid expression, {:#?}",
+                "invalid expression, is end?, {:#?}",
                 tokenizer.peek_token()
             );
         }

@@ -133,11 +133,11 @@ fn run() -> Result<(), io::Error> {
 
     let exc = NamedTempFile::new()?;
     link(obj_file.path(), exc.path())?;
-    
+
     fs::copy(exc.path(), if flag.output.len() != 0 {
         flag.output
     } else {
-        "out".to_string()
+        "a.out".to_string()
     })?;
     Ok(())
 }
