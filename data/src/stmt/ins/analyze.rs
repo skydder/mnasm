@@ -1,16 +1,15 @@
-use util::emit_error;
+use util::emit_warning;
 
 use crate::{Operand, OperandKind};
 
-use super::ins_analyzer::ins_analyzer;
+use super::{ins_analyzer::ins_analyzer, Ins};
 
-const INSES:&[&'static str] = &[];
 
-pub fn analyze_ins<'a>(ins: &'a str, operands: &Vec<Box<dyn Operand + 'a>>) {
-    match ins_analyzer(ins, Operands::convert_operands(operands)) {
+pub fn analyze_ins<'a>(ins: &Ins<'a>) {
+    match ins_analyzer(ins.instruction, Operands::convert_operands(&ins.operands)) {
         Ok(_) => return,
         Err(_) => {
-            eprintln!("unsuppoted instruction and operands. Be Carefull")
+            emit_warning!(ins.location, "unsuppoted instruction and operands. Be Carefull");
         },
     }
 }

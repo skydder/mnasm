@@ -42,9 +42,7 @@ impl<'a> Stmt<'a> for PseudoIns<'a> {
 }
 impl<'a> Object for PseudoIns<'a> {}
 impl<'a> Analyze for PseudoIns<'a> {
-    fn analyze(&self) {
-        todo!()
-    }
+    fn analyze(&self) {}
 }
 
 impl<'a> Codegen for PseudoIns<'a> {

@@ -25,7 +25,9 @@ impl<'a> Codegen for CompoundIns<'a> {
 }
 impl<'a> Analyze for CompoundIns<'a> {
     fn analyze(&self) {
-        todo!()
+        for i in &self.compound {
+            i.analyze();
+        }
     }
 }
 

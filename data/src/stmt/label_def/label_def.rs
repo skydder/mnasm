@@ -51,7 +51,7 @@ impl<'a> Codegen for LabelDef<'a> {
 }
 impl<'a> Analyze for LabelDef<'a> {
     fn analyze(&self) {
-        todo!()
+        self.block.as_ref().and_then(|b| Some(b.analyze()));
     }
 }
 
@@ -59,24 +59,4 @@ impl<'a> Stmt<'a> for LabelDef<'a> {
     fn kind(&self) -> crate::StmtKind {
         StmtKind::LabelDef
     }
-
-    // fn analyze(
-    //     &self,
-    //     mut labels: &'a mut LabelInfo<'a>,
-    // ) -> &'a mut LabelInfo<'a> {
-    //     if let Some(data) = labels.get_mut(&self.label()) {
-    //         *data = match data {
-    //             LabelState::Used => LabelState::UsedAndDefined,
-    //             _ => {
-    //                 emit_error!(self.location, "multiple definition!!");
-    //             }
-    //         };
-    //     } else {
-    //         labels.insert(self.label(), LabelState::Defined);
-    //     }
-    //     if let Some(block) = &self.block {
-    //        // labels = block.analyze(labels);
-    //     }
-    //     labels
-    // }
 }

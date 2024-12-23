@@ -65,7 +65,7 @@ impl RunFlags {
 }
 
 fn help() -> ! {
-    emit_msg_and_exit!("invalid flag usage\n")
+    emit_msg_and_exit!("mnasm [ -o <path> || -c || -S ] <file>\n")
 }
 
 fn parse_run_flags<'a>(args: Vec<String>) -> RunFlags {
@@ -108,8 +108,7 @@ fn run() -> Result<(), io::Error> {
     let flag = parse_run_flags(std::env::args().skip(1).collect());
     let nasm_code = NamedTempFile::new()?;
 
-    let mut nasm_out = File::create(nasm_code.path())?;
-    write!(&mut nasm_out, "{}", assemble(&flag.input)).expect("failed to write file");
+    write!(&mut File::create(nasm_code.path())?, "{}", assemble(&flag.input)).expect("failed to write file");
     if flag.is_cs {
         fs::copy(nasm_code.path(), if flag.output.len() != 0 {
             flag.output

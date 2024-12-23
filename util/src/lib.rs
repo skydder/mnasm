@@ -3,7 +3,7 @@ use std::fs::File;
 mod error;
 mod location;
 
-pub use error::{emit_error, emit_msg_and_exit};
+pub use error::{emit_error, emit_msg_and_exit, emit_warning};
 pub use location::{Location, Source};
 pub fn open_safely(file: &str) -> File {
     File::open(file).unwrap_or_else(|_| {

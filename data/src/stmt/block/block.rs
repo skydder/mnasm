@@ -34,7 +34,9 @@ impl<'a> Codegen for Block<'a> {
 }
 impl<'a> Analyze for Block<'a> {
     fn analyze(&self) {
-        todo!()
+        for i in self.stmts.borrow().iter() {
+            i.analyze();
+        }
     }
 }
 
@@ -42,14 +44,4 @@ impl<'a> Stmt<'a> for Block<'a> {
     fn kind(&self) -> StmtKind {
         StmtKind::Block
     }
-
-    // fn analyze(
-    //     &self,
-    //     labels: &'a mut LabelInfo<'a>,
-    // ) -> &'a mut LabelInfo<'a> {
-    //     // for stmt in &self.stmts {
-    //     //     labels = stmt.analyze(labels);
-    //     // }
-    //     labels
-    // }
 }

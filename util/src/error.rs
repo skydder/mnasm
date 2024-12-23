@@ -23,3 +23,13 @@ macro_rules! emit_error {
         $crate::emit_error($loc, format!($($msg), *))
     };
 }
+pub fn emit_warning(location: Location, msg: String) {
+    eprint!("[WARNING]: {}\n-> {:?}\n", msg, location);
+}
+
+#[macro_export]
+macro_rules! emit_warning {
+    ($loc: expr,$($msg: expr), *) => {
+        $crate::emit_warning($loc, format!($($msg), *))
+    };
+}

@@ -31,7 +31,10 @@ impl<'a> Ins<'a> {
     }
 
     pub fn analyze(&self) {
-        analyze_ins(self.instruction, &self.operands);
+        for op in &self.operands {
+            op.analyze();
+        }
+        analyze_ins(self);
     }
 }
 

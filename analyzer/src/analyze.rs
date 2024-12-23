@@ -1,17 +1,10 @@
 // use std::collections::HashMap;
 
-use data::Code;
+use data::{Analyze, Code};
 // use util::emit_error;
 #[allow(unused_variables)]
 pub fn analyze<'a>(code: &Code<'a>) {
-    // let mut labels = &mut HashMap::new();
-    // for ld in &code.labels {
-    //     labels = ld.analyze(labels);
-    // }
-
-    // for (lb, state) in labels {
-    //     if *state == LabelState::Used {
-    //         emit_error!(lb.location, "undefined label")
-    //     }
-    // }
+    for ld in &code.labels {
+        ld.analyze();
+    }
 }
