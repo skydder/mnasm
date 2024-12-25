@@ -51,7 +51,7 @@ fn parse_inside<'a>(
             read_indent_by_depth(tokenizer, 1);
 
             // <stmt>
-            if !tokenizer.peek_token().is(TokenKind::Space) {
+            if !(tokenizer.peek_token().is(TokenKind::Space) || tokenizer.peek_token().is(TokenKind::NewLine)) {
                 stmts.push(parse_stmt(tokenizer, indent_depth + 1, scope.clone()));
             }
 

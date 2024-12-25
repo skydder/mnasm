@@ -4,5 +4,7 @@
     }
     <test2> {
         <test3>
+        jump(pyton)
     }
+    extern(pyton)
 }

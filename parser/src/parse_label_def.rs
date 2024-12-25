@@ -86,6 +86,7 @@ fn parse_section<'a>(tokenizer: &'a Tokenizer<'a>) -> Ident<'a> {
         match tokenizer.peek_token().kind {
             TokenKind::Identifier("text") => ".text",
             TokenKind::Identifier("data") => ".data",
+            TokenKind::Identifier("bss") => ".bss",
             _ => {
                 emit_error!(tokenizer.location(), "only special token can come here")
             }

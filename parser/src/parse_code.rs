@@ -10,8 +10,8 @@ pub fn parse_code<'a>(tokenizer: &'a Tokenizer<'a>) -> Code<'a> {
     // <label_def>*
     let mut labels = Vec::new();
     let root = Rc::new(RefCell::new(Scope::new(None, None)));
-    parse_code_inside(tokenizer, &mut labels, root);
-
+    parse_code_inside(tokenizer, &mut labels, root.clone());
+    eprintln!("{:#?}", root.clone());
     Code { labels: labels }
 }
 

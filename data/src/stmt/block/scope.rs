@@ -17,6 +17,23 @@ impl<'a> Scope<'a> {
         self.labels.borrow_mut().push(label);
     }
 
+    pub fn add_label_to_root(&self, label: Ident<'a>) {
+        let parent: &mut Option<Rc<RefCell<Scope<'a>>>> = &mut self.parent_scope();
+        while parent.clone().is_some_and(|s| s.clone().borrow().is_root()) {
+            parent.replace(parent.clone().unwrap().borrow().parent_scope().unwrap());
+        }
+        parent.replace(parent.clone().unwrap().borrow().parent_scope().unwrap());
+        parent.clone().unwrap().borrow_mut().add_label(label);
+    }
+
+    fn is_root(&self) -> bool {
+        self.parent.is_none()
+    }
+
+    fn parent_scope(&self) -> Option<Rc<RefCell<Scope<'a>>>> {
+        self.parent.clone()
+    }
+
     pub fn find_label(&self, label: Ident<'a>) -> Option<String> {
         for l in self.labels.borrow().iter() {
             if label == *l {
@@ -52,3 +69,4 @@ impl<'a> Scope<'a> {
         }
     }
 }
+
