@@ -31,6 +31,9 @@ impl<'a> Label<'a> {
             location: location,
         }
     }
+    pub fn ident(&self) -> Ident<'a> {
+        self.name
+    }
 }
 
 impl<'a> Operand for Label<'a> {

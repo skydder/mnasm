@@ -1,5 +1,5 @@
-use crate::LabelDef;
+use crate::Stmt;
 
 pub struct Code<'a> {
-    pub labels: Vec<LabelDef<'a>>,
+    pub codes: Vec<Box<dyn Stmt<'a> + 'a>>,
 }

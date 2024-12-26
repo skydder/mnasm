@@ -26,10 +26,11 @@ impl<'a> PseudoIns<'a> {
 }
 
 fn stringfy_vec<'a>(v: &Vec<String>, mut n: usize, mut s: String) -> String {
-    if n >= v.len() {
+    if n == v.len() - 1 {
+        s.push_str(&v[n]);
         return s;
     } else {
-        s.push_str(&v[n]);
+        s.push_str(&format!("{}, ", v[n]));
         n += 1;
         return stringfy_vec(v, n, s);
     }
@@ -47,6 +48,9 @@ impl<'a> Analyze for PseudoIns<'a> {
 
 impl<'a> Codegen for PseudoIns<'a> {
     fn codegen(&self) -> String {
-        format!("\t{} {}", self.instruction, self.codegen_operands())
+        match self.instruction {
+            "include" => String::new(),
+            _ => format!("\t{} {}\n", self.instruction, self.codegen_operands())
+        }
     }
 }

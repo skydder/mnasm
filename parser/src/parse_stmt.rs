@@ -16,7 +16,7 @@ pub fn parse_stmt<'a>(
     match currrent_token.kind {
         TokenKind::Identifier("db") => Box::new(parse_pseudo_ins(tokenizer, scope)),
         TokenKind::Identifier("resb") => Box::new(parse_pseudo_ins(tokenizer, scope)),
-        TokenKind::Identifier("extern") => Box::new(parse_pseudo_ins(tokenizer, scope)),
+        TokenKind::Identifier("extern") | TokenKind::Identifier("include") => Box::new(parse_pseudo_ins(tokenizer, scope)),
         // <compound_stmt>
         TokenKind::Identifier(_) => Box::new(parse_compound_ins(tokenizer, scope)),
 

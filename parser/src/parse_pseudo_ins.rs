@@ -17,7 +17,7 @@ pub fn parse_pseudo_ins<'a>(tokenizer: &'a Tokenizer<'a>, scope: Rc<RefCell<Scop
     // "("
     tokenizer.expect_symbol(TokenKind::OpenParenthesis);
     let mut operands: Vec<String> = Vec::new();
-    if ins == "extern" {
+    if ins == "extern" || ins == "include" {
         if tokenizer.peek_symbol().is(TokenKind::CloseParenthesis) {
            emit_error!(tokenizer.location(), "expected label"); 
         }
@@ -82,7 +82,7 @@ fn parse_extern_operands_inside<'a>(tokenizer: &'a Tokenizer<'a>, operands: &mut
     // <operand>
     let op = match tokenizer.peek_token().kind {
         TokenKind::Identifier(ident) => {
-            scope.borrow().add_label_to_root(Ident::new(ident));
+            scope.borrow().add_label_to_root(Ident::new(ident, false));
             tokenizer.next_token();
             ident.to_string()
         }

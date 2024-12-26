@@ -19,10 +19,14 @@ impl<'a> Scope<'a> {
 
     pub fn add_label_to_root(&self, label: Ident<'a>) {
         let parent: &mut Option<Rc<RefCell<Scope<'a>>>> = &mut self.parent_scope();
-        while parent.clone().is_some_and(|s| s.clone().borrow().is_root()) {
+        if self.is_root() {
+            self.add_label(label);
+            return;
+        }
+        while parent.clone().is_some_and(|s| !(s.clone().borrow().is_root())) {
             parent.replace(parent.clone().unwrap().borrow().parent_scope().unwrap());
         }
-        parent.replace(parent.clone().unwrap().borrow().parent_scope().unwrap());
+        // parent.replace(parent.clone().unwrap().borrow().parent_scope().unwrap());
         parent.clone().unwrap().borrow_mut().add_label(label);
     }
 
@@ -47,12 +51,12 @@ impl<'a> Scope<'a> {
     }
 
     pub fn scope_name(&self) -> Ident<'a> {
-        self.scope_name.unwrap_or(Ident::new(""))
+        self.scope_name.unwrap_or(Ident::new("", false))
     }
 
     pub fn gen_label(&self, label: Ident<'a>) -> String {
         let mut l = String::new();
-        l.push_str(label.get());
+        l.push_str(&label.get());
         l.push_str(&self.gen_label_scope());
         l
     }

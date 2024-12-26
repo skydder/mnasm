@@ -1,114 +1,139 @@
-global prep
-prep:
-	extern printfassert_
+	extern printf, assert_
 section .data
-global L_L_26
-L_L_26:
-	db 79797979
+global .L_L_26
+.L_L_26:
+	db 79, 79, 79, 79
+
 section .data
-global L_L_25
-L_L_25:
-	db 4949494949
+global .L_L_25
+.L_L_25:
+	db 49, 49, 49, 49, 49
+
 section .data
-global L_L_24
-L_L_24:
-	db 4949494949
+global .L_L_24
+.L_L_24:
+	db 49, 49, 49, 49, 49
+
 section .data
-global L_L_23
-L_L_23:
-	db 4949494949
+global .L_L_23
+.L_L_23:
+	db 49, 49, 49, 49, 49
+
 section .data
-global L_L_22
-L_L_22:
-	db 49494949
+global .L_L_22
+.L_L_22:
+	db 49, 49, 49, 49
+
 section .data
-global L_L_21
-L_L_21:
-	db 49494949
+global .L_L_21
+.L_L_21:
+	db 49, 49, 49, 49
+
 section .data
-global L_L_20
-L_L_20:
-	db 49494949
+global .L_L_20
+.L_L_20:
+	db 49, 49, 49, 49
+
 section .data
-global L_L_19
-L_L_19:
-	db 5050505050
+global .L_L_19
+.L_L_19:
+	db 50, 50, 50, 50, 50
+
 section .data
-global L_L_18
-L_L_18:
-	db 4949494949
+global .L_L_18
+.L_L_18:
+	db 49, 49, 49, 49, 49
+
 section .data
-global L_L_17
-L_L_17:
-	db 4848484848
+global .L_L_17
+.L_L_17:
+	db 48, 48, 48, 48, 48
+
 section .data
-global L_L_16
-L_L_16:
-	db 50505050
+global .L_L_16
+.L_L_16:
+	db 50, 50, 50, 50
+
 section .data
-global L_L_15
-L_L_15:
-	db 49494949
+global .L_L_15
+.L_L_15:
+	db 49, 49, 49, 49
+
 section .data
-global L_L_14
-L_L_14:
-	db 48484848
+global .L_L_14
+.L_L_14:
+	db 48, 48, 48, 48
+
 section .data
-global L_L_13
-L_L_13:
-	db 52525252525252
+global .L_L_13
+.L_L_13:
+	db 52, 52, 52, 52, 52, 52, 52
+
 section .data
-global L_L_12
-L_L_12:
-	db 4848484848
+global .L_L_12
+.L_L_12:
+	db 48, 48, 48, 48, 48
+
 section .data
-global L_L_11
-L_L_11:
-	db 52525252525252
+global .L_L_11
+.L_L_11:
+	db 52, 52, 52, 52, 52, 52, 52
+
 section .data
-global L_L_10
-L_L_10:
-	db 4848484848
+global .L_L_10
+.L_L_10:
+	db 48, 48, 48, 48, 48
+
 section .data
-global L_L_9
-L_L_9:
-	db 4545454545454545
+global .L_L_9
+.L_L_9:
+	db 45, 45, 45, 45, 45, 45, 45, 45
+
 section .data
-global L_L_8
-L_L_8:
-	db 454545454545
+global .L_L_8
+.L_L_8:
+	db 45, 45, 45, 45, 45, 45
+
 section .data
-global L_L_7
-L_L_7:
-	db 45454545454545
+global .L_L_7
+.L_L_7:
+	db 45, 45, 45, 45, 45, 45, 45
+
 section .data
-global L_L_6
-L_L_6:
-	db 4040404040404040
+global .L_L_6
+.L_L_6:
+	db 40, 40, 40, 40, 40, 40, 40, 40
+
 section .data
-global L_L_5
-L_L_5:
-	db 5353535353535353
+global .L_L_5
+.L_L_5:
+	db 53, 53, 53, 53, 53, 53, 53, 53
+
 section .data
-global L_L_4
-L_L_4:
-	db 535353535353
+global .L_L_4
+.L_L_4:
+	db 53, 53, 53, 53, 53, 53
+
 section .data
-global L_L_3
-L_L_3:
-	db 494949494949494949494949
+global .L_L_3
+.L_L_3:
+	db 49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49
+
 section .data
-global L_L_2
-L_L_2:
-	db 53535353535353
+global .L_L_2
+.L_L_2:
+	db 53, 53, 53, 53, 53, 53, 53
+
 section .data
-global L_L_1
-L_L_1:
-	db 525252
+global .L_L_1
+.L_L_1:
+	db 52, 52, 52
+
 section .data
-global L_L_0
-L_L_0:
-	db 4848
+global .L_L_0
+.L_L_0:
+	db 48, 48
+
 section .text
 global main
 main:
@@ -119,7 +144,7 @@ main:
 	push rax
 	mov rax, 0
 	push rax
-	mov rax, L_L_0
+	mov rax, .L_L_0
 	push rax
 	pop rdx
 	pop rsi
@@ -130,7 +155,7 @@ main:
 	push rax
 	mov rax, 42
 	push rax
-	mov rax, L_L_1
+	mov rax, .L_L_1
 	push rax
 	pop rdx
 	pop rsi
@@ -149,7 +174,7 @@ main:
 	pop rdi
 	sub rax, rdi
 	push rax
-	mov rax, L_L_2
+	mov rax, .L_L_2
 	push rax
 	pop rdx
 	pop rsi
@@ -168,7 +193,7 @@ main:
 	pop rdi
 	sub rax, rdi
 	push rax
-	mov rax, L_L_3
+	mov rax, .L_L_3
 	push rax
 	pop rdx
 	pop rsi
@@ -187,7 +212,7 @@ main:
 	pop rdi
 	add rax, rdi
 	push rax
-	mov rax, L_L_4
+	mov rax, .L_L_4
 	push rax
 	pop rdx
 	pop rsi
@@ -206,7 +231,7 @@ main:
 	pop rdi
 	imul rax, rdi
 	push rax
-	mov rax, L_L_5
+	mov rax, .L_L_5
 	push rax
 	pop rdx
 	pop rsi
@@ -226,7 +251,7 @@ main:
 	cqo
 	idiv rdi
 	push rax
-	mov rax, L_L_6
+	mov rax, .L_L_6
 	push rax
 	pop rdx
 	pop rsi
@@ -242,7 +267,7 @@ main:
 	pop rdi
 	add rax, rdi
 	push rax
-	mov rax, L_L_7
+	mov rax, .L_L_7
 	push rax
 	pop rdx
 	pop rsi
@@ -255,7 +280,7 @@ main:
 	neg rax
 	neg rax
 	push rax
-	mov rax, L_L_8
+	mov rax, .L_L_8
 	push rax
 	pop rdx
 	pop rsi
@@ -268,7 +293,7 @@ main:
 	neg rax
 	neg rax
 	push rax
-	mov rax, L_L_9
+	mov rax, .L_L_9
 	push rax
 	pop rdx
 	pop rsi
@@ -283,9 +308,9 @@ main:
 	pop rdi
 	cmp rax, rdi
 	sete al
-	movzb rax, al
+	movzx rax, al
 	push rax
-	mov rax, L_L_10
+	mov rax, .L_L_10
 	push rax
 	pop rdx
 	pop rsi
@@ -300,9 +325,9 @@ main:
 	pop rdi
 	cmp rax, rdi
 	sete al
-	movzb rax, al
+	movzx rax, al
 	push rax
-	mov rax, L_L_11
+	mov rax, .L_L_11
 	push rax
 	pop rdx
 	pop rsi
@@ -317,9 +342,9 @@ main:
 	pop rdi
 	cmp rax, rdi
 	setne al
-	movzb rax, al
+	movzx rax, al
 	push rax
-	mov rax, L_L_12
+	mov rax, .L_L_12
 	push rax
 	pop rdx
 	pop rsi
@@ -334,9 +359,9 @@ main:
 	pop rdi
 	cmp rax, rdi
 	setne al
-	movzb rax, al
+	movzx rax, al
 	push rax
-	mov rax, L_L_13
+	mov rax, .L_L_13
 	push rax
 	pop rdx
 	pop rsi
@@ -351,9 +376,9 @@ main:
 	pop rdi
 	cmp rax, rdi
 	setl al
-	movzb rax, al
+	movzx rax, al
 	push rax
-	mov rax, L_L_14
+	mov rax, .L_L_14
 	push rax
 	pop rdx
 	pop rsi
@@ -368,9 +393,9 @@ main:
 	pop rdi
 	cmp rax, rdi
 	setl al
-	movzb rax, al
+	movzx rax, al
 	push rax
-	mov rax, L_L_15
+	mov rax, .L_L_15
 	push rax
 	pop rdx
 	pop rsi
@@ -385,9 +410,9 @@ main:
 	pop rdi
 	cmp rax, rdi
 	setl al
-	movzb rax, al
+	movzx rax, al
 	push rax
-	mov rax, L_L_16
+	mov rax, .L_L_16
 	push rax
 	pop rdx
 	pop rsi
@@ -402,9 +427,9 @@ main:
 	pop rdi
 	cmp rax, rdi
 	setle al
-	movzb rax, al
+	movzx rax, al
 	push rax
-	mov rax, L_L_17
+	mov rax, .L_L_17
 	push rax
 	pop rdx
 	pop rsi
@@ -419,9 +444,9 @@ main:
 	pop rdi
 	cmp rax, rdi
 	setle al
-	movzb rax, al
+	movzx rax, al
 	push rax
-	mov rax, L_L_18
+	mov rax, .L_L_18
 	push rax
 	pop rdx
 	pop rsi
@@ -436,9 +461,9 @@ main:
 	pop rdi
 	cmp rax, rdi
 	setle al
-	movzb rax, al
+	movzx rax, al
 	push rax
-	mov rax, L_L_19
+	mov rax, .L_L_19
 	push rax
 	pop rdx
 	pop rsi
@@ -453,9 +478,9 @@ main:
 	pop rdi
 	cmp rax, rdi
 	setl al
-	movzb rax, al
+	movzx rax, al
 	push rax
-	mov rax, L_L_20
+	mov rax, .L_L_20
 	push rax
 	pop rdx
 	pop rsi
@@ -470,9 +495,9 @@ main:
 	pop rdi
 	cmp rax, rdi
 	setl al
-	movzb rax, al
+	movzx rax, al
 	push rax
-	mov rax, L_L_21
+	mov rax, .L_L_21
 	push rax
 	pop rdx
 	pop rsi
@@ -487,9 +512,9 @@ main:
 	pop rdi
 	cmp rax, rdi
 	setl al
-	movzb rax, al
+	movzx rax, al
 	push rax
-	mov rax, L_L_22
+	mov rax, .L_L_22
 	push rax
 	pop rdx
 	pop rsi
@@ -504,9 +529,9 @@ main:
 	pop rdi
 	cmp rax, rdi
 	setle al
-	movzb rax, al
+	movzx rax, al
 	push rax
-	mov rax, L_L_23
+	mov rax, .L_L_23
 	push rax
 	pop rdx
 	pop rsi
@@ -521,9 +546,9 @@ main:
 	pop rdi
 	cmp rax, rdi
 	setle al
-	movzb rax, al
+	movzx rax, al
 	push rax
-	mov rax, L_L_24
+	mov rax, .L_L_24
 	push rax
 	pop rdx
 	pop rsi
@@ -538,23 +563,23 @@ main:
 	pop rdi
 	cmp rax, rdi
 	setle al
-	movzb rax, al
+	movzx rax, al
 	push rax
-	mov rax, L_L_25
+	mov rax, .L_L_25
 	push rax
 	pop rdx
 	pop rsi
 	pop rdi
 	mov rax, 0
 	call assert_
-	mov rax, L_L_26
+	mov rax, .L_L_26
 	push rax
 	pop rdi
 	mov rax, 0
 	call printf
 	mov rax, 0
-	jmp L_return_main__main__
-L_return_main__main__:
+	jmp .L_return_main__main__
+.L_return_main__main__:
 	mov rsp, rbp
 	pop rbp
 	ret

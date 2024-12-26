@@ -4,7 +4,7 @@ use data::{Ident, LabelDef, Scope};
 use tokenizer::{TokenKind, Tokenizer};
 use util::emit_error;
 
-use crate::parse_block;
+use crate::{parse_block, parse_label};
 
 // <label_def> = "<" <label> (":" "global")? (":" <section> )? ">" <block>?
 pub fn parse_label_def<'a>(
@@ -17,12 +17,10 @@ pub fn parse_label_def<'a>(
     // "<"
     assert!(tokenizer.peek_token().is(TokenKind::LessThan));
     tokenizer.next_token();
+    tokenizer.skip_space();
 
     // <label>
-    let label = Ident::new(tokenizer.peek_symbol().get_identifier().unwrap_or_else(|| {
-        emit_error!(tokenizer.location(), "expected label here but found other");
-    }));
-    tokenizer.next_token();
+    let label = parse_label(tokenizer, scope.clone()).ident();
 
     if scope.borrow().find_label(label).is_some() {
         emit_error!(loc, "multiple difinition!!")
@@ -42,7 +40,7 @@ pub fn parse_label_def<'a>(
             // (":" <section> )?
             let sec = if tokenizer.peek_symbol().is(TokenKind::Colon) {
                 tokenizer.next_token();
-
+                tokenizer.skip_space();
                 // <section>
                 Some(parse_section(tokenizer))
             } else {
@@ -84,18 +82,18 @@ fn parse_section<'a>(tokenizer: &'a Tokenizer<'a>) -> Ident<'a> {
         tokenizer.next_token();
         // todo: add all reserved section
         match tokenizer.peek_token().kind {
-            TokenKind::Identifier("text") => ".text",
-            TokenKind::Identifier("data") => ".data",
-            TokenKind::Identifier("bss") => ".bss",
+            TokenKind::Identifier("text") => Ident::new("text", true),
+            TokenKind::Identifier("data") => Ident::new("data", true),
+            TokenKind::Identifier("bss") => Ident::new("bss", true),
             _ => {
                 emit_error!(tokenizer.location(), "only special token can come here")
             }
         }
     } else {
-        tokenizer.peek_symbol().get_identifier().unwrap_or_else(|| {
+        Ident::new(tokenizer.peek_symbol().get_identifier().unwrap_or_else(|| {
             emit_error!(tokenizer.location(), "expected label here but found other");
-        })
+        }), false)
     };
     tokenizer.next_token();
-    return Ident::new(s);
+    return s;
 }

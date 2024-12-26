@@ -1,85 +1,83 @@
-<prep :global> {
-    extern(printf, assert_)
-}
-<L_L_26 :global :.data> {
+extern(printf, assert_)
+<.L_L_26 :global :.data> {
     db(79, 79, 79, 79)
 }
-<L_L_25 :global :.data> {
+<.L_L_25 :global :.data> {
     db(49, 49, 49, 49, 49)
 }
-<L_L_24 :global :.data> {
+<.L_L_24 :global :.data> {
     db(49, 49, 49, 49, 49)
 }
-<L_L_23 :global :.data> {
+<.L_L_23 :global :.data> {
     db(49, 49, 49, 49, 49)
 }
-<L_L_22 :global :.data> {
+<.L_L_22 :global :.data> {
     db(49, 49, 49, 49)
 }
-<L_L_21 :global :.data> {
+<.L_L_21 :global :.data> {
     db(49, 49, 49, 49)
 }
-<L_L_20 :global :.data> {
+<.L_L_20 :global :.data> {
     db(49, 49, 49, 49)
 }
-<L_L_19 :global :.data> {
+<.L_L_19 :global :.data> {
     db(50, 50, 50, 50, 50)
 }
-<L_L_18 :global :.data> {
+<.L_L_18 :global :.data> {
     db(49, 49, 49, 49, 49)
 }
-<L_L_17 :global :.data> {
+<.L_L_17 :global :.data> {
     db(48, 48, 48, 48, 48)
 }
-<L_L_16 :global :.data> {
+<.L_L_16 :global :.data> {
     db(50, 50, 50, 50)
 }
-<L_L_15 :global :.data> {
+<.L_L_15 :global :.data> {
     db(49, 49, 49, 49)
 }
-<L_L_14 :global :.data> {
+<.L_L_14 :global :.data> {
     db(48, 48, 48, 48)
 }
-<L_L_13 :global :.data> {
+<.L_L_13 :global :.data> {
     db(52, 52, 52, 52, 52, 52, 52)
 }
-<L_L_12 :global :.data> {
+<.L_L_12 :global :.data> {
     db(48, 48, 48, 48, 48)
 }
-<L_L_11 :global :.data> {
+<.L_L_11 :global :.data> {
     db(52, 52, 52, 52, 52, 52, 52)
 }
-<L_L_10 :global :.data> {
+<.L_L_10 :global :.data> {
     db(48, 48, 48, 48, 48)
 }
-<L_L_9 :global :.data> {
+<.L_L_9 :global :.data> {
     db(45, 45, 45, 45, 45, 45, 45, 45)
 }
-<L_L_8 :global :.data> {
+<.L_L_8 :global :.data> {
     db(45, 45, 45, 45, 45, 45)
 }
-<L_L_7 :global :.data> {
+<.L_L_7 :global :.data> {
     db(45, 45, 45, 45, 45, 45, 45)
 }
-<L_L_6 :global :.data> {
+<.L_L_6 :global :.data> {
     db(40, 40, 40, 40, 40, 40, 40, 40)
 }
-<L_L_5 :global :.data> {
+<.L_L_5 :global :.data> {
     db(53, 53, 53, 53, 53, 53, 53, 53)
 }
-<L_L_4 :global :.data> {
+<.L_L_4 :global :.data> {
     db(53, 53, 53, 53, 53, 53)
 }
-<L_L_3 :global :.data> {
+<.L_L_3 :global :.data> {
     db(49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49)
 }
-<L_L_2 :global :.data> {
+<.L_L_2 :global :.data> {
     db(53, 53, 53, 53, 53, 53, 53)
 }
-<L_L_1 :global :.data> {
+<.L_L_1 :global :.data> {
     db(52, 52, 52)
 }
-<L_L_0 :global :.data> {
+<.L_L_0 :global :.data> {
     db(48, 48)
 }
 <main :global :.text> {
@@ -97,7 +95,7 @@
         mov(rax, 0)
         push(rax)
         {
-            mov(rax, L_L_0)
+            mov(rax, .L_L_0)
         }
         push(rax)
         pop(rdx)
@@ -113,7 +111,7 @@
         mov(rax, 42)
         push(rax)
         {
-            mov(rax, L_L_1)
+            mov(rax, .L_L_1)
         }
         push(rax)
         pop(rdx)
@@ -137,7 +135,7 @@
         sub(rax, rdi)
         push(rax)
         {
-            mov(rax, L_L_2)
+            mov(rax, .L_L_2)
         }
         push(rax)
         pop(rdx)
@@ -161,7 +159,7 @@
         sub(rax, rdi)
         push(rax)
         {
-            mov(rax, L_L_3)
+            mov(rax, .L_L_3)
         }
         push(rax)
         pop(rdx)
@@ -185,7 +183,7 @@
         add(rax, rdi)
         push(rax)
         {
-            mov(rax, L_L_4)
+            mov(rax, .L_L_4)
         }
         push(rax)
         pop(rdx)
@@ -209,7 +207,7 @@
         imul(rax, rdi)
         push(rax)
         {
-            mov(rax, L_L_5)
+            mov(rax, .L_L_5)
         }
         push(rax)
         pop(rdx)
@@ -233,7 +231,7 @@
         cqo(), idiv(rdi)
         push(rax)
         {
-            mov(rax, L_L_6)
+            mov(rax, .L_L_6)
         }
         push(rax)
         pop(rdx)
@@ -254,7 +252,7 @@
         add(rax, rdi)
         push(rax)
         {
-            mov(rax, L_L_7)
+            mov(rax, .L_L_7)
         }
         push(rax)
         pop(rdx)
@@ -272,7 +270,7 @@
         neg(rax)
         push(rax)
         {
-            mov(rax, L_L_8)
+            mov(rax, .L_L_8)
         }
         push(rax)
         pop(rdx)
@@ -290,7 +288,7 @@
         neg(rax)
         push(rax)
         {
-            mov(rax, L_L_9)
+            mov(rax, .L_L_9)
         }
         push(rax)
         pop(rdx)
@@ -307,10 +305,10 @@
         push(rax)
         mov(rax, 0)
         pop(rdi)
-        cmp(rax, rdi), sete(al), movzb(rax, al)
+        cmp(rax, rdi), sete(al), movzx(rax, al)
         push(rax)
         {
-            mov(rax, L_L_10)
+            mov(rax, .L_L_10)
         }
         push(rax)
         pop(rdx)
@@ -327,10 +325,10 @@
         push(rax)
         mov(rax, 42)
         pop(rdi)
-        cmp(rax, rdi), sete(al), movzb(rax, al)
+        cmp(rax, rdi), sete(al), movzx(rax, al)
         push(rax)
         {
-            mov(rax, L_L_11)
+            mov(rax, .L_L_11)
         }
         push(rax)
         pop(rdx)
@@ -347,10 +345,10 @@
         push(rax)
         mov(rax, 0)
         pop(rdi)
-        cmp(rax, rdi), setne(al), movzb(rax, al)
+        cmp(rax, rdi), setne(al), movzx(rax, al)
         push(rax)
         {
-            mov(rax, L_L_12)
+            mov(rax, .L_L_12)
         }
         push(rax)
         pop(rdx)
@@ -367,10 +365,10 @@
         push(rax)
         mov(rax, 42)
         pop(rdi)
-        cmp(rax, rdi), setne(al), movzb(rax, al)
+        cmp(rax, rdi), setne(al), movzx(rax, al)
         push(rax)
         {
-            mov(rax, L_L_13)
+            mov(rax, .L_L_13)
         }
         push(rax)
         pop(rdx)
@@ -387,10 +385,10 @@
         push(rax)
         mov(rax, 0)
         pop(rdi)
-        cmp(rax, rdi), setl(al), movzb(rax, al)
+        cmp(rax, rdi), setl(al), movzx(rax, al)
         push(rax)
         {
-            mov(rax, L_L_14)
+            mov(rax, .L_L_14)
         }
         push(rax)
         pop(rdx)
@@ -407,70 +405,10 @@
         push(rax)
         mov(rax, 1)
         pop(rdi)
-        cmp(rax, rdi), setl(al), movzb(rax, al)
+        cmp(rax, rdi), setl(al), movzx(rax, al)
         push(rax)
         {
-            mov(rax, L_L_15)
-        }
-        push(rax)
-        pop(rdx)
-        pop(rsi)
-        pop(rdi)
-        mov(rax, 0)
-        call(assert_)
-    }
-    #function-call
-    {
-        mov(rax, 0)
-        push(rax)
-        mov(rax, 1)
-        push(rax)
-        mov(rax, 2)
-        pop(rdi)
-        cmp(rax, rdi), setl(al), movzb(rax, al)
-        push(rax)
-        {
-            mov(rax, L_L_16)
-        }
-        push(rax)
-        pop(rdx)
-        pop(rsi)
-        pop(rdi)
-        mov(rax, 0)
-        call(assert_)
-    }
-    #function-call
-    {
-        mov(rax, 1)
-        push(rax)
-        mov(rax, 1)
-        push(rax)
-        mov(rax, 0)
-        pop(rdi)
-        cmp(rax, rdi), setle(al), movzb(rax, al)
-        push(rax)
-        {
-            mov(rax, L_L_17)
-        }
-        push(rax)
-        pop(rdx)
-        pop(rsi)
-        pop(rdi)
-        mov(rax, 0)
-        call(assert_)
-    }
-    #function-call
-    {
-        mov(rax, 1)
-        push(rax)
-        mov(rax, 1)
-        push(rax)
-        mov(rax, 1)
-        pop(rdi)
-        cmp(rax, rdi), setle(al), movzb(rax, al)
-        push(rax)
-        {
-            mov(rax, L_L_18)
+            mov(rax, .L_L_15)
         }
         push(rax)
         pop(rdx)
@@ -487,10 +425,10 @@
         push(rax)
         mov(rax, 2)
         pop(rdi)
-        cmp(rax, rdi), setle(al), movzb(rax, al)
+        cmp(rax, rdi), setl(al), movzx(rax, al)
         push(rax)
         {
-            mov(rax, L_L_19)
+            mov(rax, .L_L_16)
         }
         push(rax)
         pop(rdx)
@@ -507,70 +445,10 @@
         push(rax)
         mov(rax, 0)
         pop(rdi)
-        cmp(rax, rdi), setl(al), movzb(rax, al)
+        cmp(rax, rdi), setle(al), movzx(rax, al)
         push(rax)
         {
-            mov(rax, L_L_20)
-        }
-        push(rax)
-        pop(rdx)
-        pop(rsi)
-        pop(rdi)
-        mov(rax, 0)
-        call(assert_)
-    }
-    #function-call
-    {
-        mov(rax, 0)
-        push(rax)
-        mov(rax, 1)
-        push(rax)
-        mov(rax, 1)
-        pop(rdi)
-        cmp(rax, rdi), setl(al), movzb(rax, al)
-        push(rax)
-        {
-            mov(rax, L_L_21)
-        }
-        push(rax)
-        pop(rdx)
-        pop(rsi)
-        pop(rdi)
-        mov(rax, 0)
-        call(assert_)
-    }
-    #function-call
-    {
-        mov(rax, 0)
-        push(rax)
-        mov(rax, 1)
-        push(rax)
-        mov(rax, 2)
-        pop(rdi)
-        cmp(rax, rdi), setl(al), movzb(rax, al)
-        push(rax)
-        {
-            mov(rax, L_L_22)
-        }
-        push(rax)
-        pop(rdx)
-        pop(rsi)
-        pop(rdi)
-        mov(rax, 0)
-        call(assert_)
-    }
-    #function-call
-    {
-        mov(rax, 1)
-        push(rax)
-        mov(rax, 1)
-        push(rax)
-        mov(rax, 0)
-        pop(rdi)
-        cmp(rax, rdi), setle(al), movzb(rax, al)
-        push(rax)
-        {
-            mov(rax, L_L_23)
+            mov(rax, .L_L_17)
         }
         push(rax)
         pop(rdx)
@@ -587,10 +465,10 @@
         push(rax)
         mov(rax, 1)
         pop(rdi)
-        cmp(rax, rdi), setle(al), movzb(rax, al)
+        cmp(rax, rdi), setle(al), movzx(rax, al)
         push(rax)
         {
-            mov(rax, L_L_24)
+            mov(rax, .L_L_18)
         }
         push(rax)
         pop(rdx)
@@ -607,10 +485,130 @@
         push(rax)
         mov(rax, 2)
         pop(rdi)
-        cmp(rax, rdi), setle(al), movzb(rax, al)
+        cmp(rax, rdi), setle(al), movzx(rax, al)
         push(rax)
         {
-            mov(rax, L_L_25)
+            mov(rax, .L_L_19)
+        }
+        push(rax)
+        pop(rdx)
+        pop(rsi)
+        pop(rdi)
+        mov(rax, 0)
+        call(assert_)
+    }
+    #function-call
+    {
+        mov(rax, 1)
+        push(rax)
+        mov(rax, 1)
+        push(rax)
+        mov(rax, 0)
+        pop(rdi)
+        cmp(rax, rdi), setl(al), movzx(rax, al)
+        push(rax)
+        {
+            mov(rax, .L_L_20)
+        }
+        push(rax)
+        pop(rdx)
+        pop(rsi)
+        pop(rdi)
+        mov(rax, 0)
+        call(assert_)
+    }
+    #function-call
+    {
+        mov(rax, 0)
+        push(rax)
+        mov(rax, 1)
+        push(rax)
+        mov(rax, 1)
+        pop(rdi)
+        cmp(rax, rdi), setl(al), movzx(rax, al)
+        push(rax)
+        {
+            mov(rax, .L_L_21)
+        }
+        push(rax)
+        pop(rdx)
+        pop(rsi)
+        pop(rdi)
+        mov(rax, 0)
+        call(assert_)
+    }
+    #function-call
+    {
+        mov(rax, 0)
+        push(rax)
+        mov(rax, 1)
+        push(rax)
+        mov(rax, 2)
+        pop(rdi)
+        cmp(rax, rdi), setl(al), movzx(rax, al)
+        push(rax)
+        {
+            mov(rax, .L_L_22)
+        }
+        push(rax)
+        pop(rdx)
+        pop(rsi)
+        pop(rdi)
+        mov(rax, 0)
+        call(assert_)
+    }
+    #function-call
+    {
+        mov(rax, 1)
+        push(rax)
+        mov(rax, 1)
+        push(rax)
+        mov(rax, 0)
+        pop(rdi)
+        cmp(rax, rdi), setle(al), movzx(rax, al)
+        push(rax)
+        {
+            mov(rax, .L_L_23)
+        }
+        push(rax)
+        pop(rdx)
+        pop(rsi)
+        pop(rdi)
+        mov(rax, 0)
+        call(assert_)
+    }
+    #function-call
+    {
+        mov(rax, 1)
+        push(rax)
+        mov(rax, 1)
+        push(rax)
+        mov(rax, 1)
+        pop(rdi)
+        cmp(rax, rdi), setle(al), movzx(rax, al)
+        push(rax)
+        {
+            mov(rax, .L_L_24)
+        }
+        push(rax)
+        pop(rdx)
+        pop(rsi)
+        pop(rdi)
+        mov(rax, 0)
+        call(assert_)
+    }
+    #function-call
+    {
+        mov(rax, 0)
+        push(rax)
+        mov(rax, 1)
+        push(rax)
+        mov(rax, 2)
+        pop(rdi)
+        cmp(rax, rdi), setle(al), movzx(rax, al)
+        push(rax)
+        {
+            mov(rax, .L_L_25)
         }
         push(rax)
         pop(rdx)
@@ -622,7 +620,7 @@
     #function-call
     {
         {
-            mov(rax, L_L_26)
+            mov(rax, .L_L_26)
         }
         push(rax)
         pop(rdi)
@@ -631,9 +629,9 @@
     }
     {
         mov(rax, 0)
-        jmp(L_return_main)
+        jmp(.L_return_main)
     }
-    <L_return_main> {
+    <.L_return_main> {
         mov(rsp, rbp)
         pop(rbp)
         ret()

@@ -1,8 +1,10 @@
 use std::{cell::RefCell, rc::Rc};
 
-use data::{Ident, Immediate, Label, Memory, Operand, Register, Scale, Scope};
+use data::{Immediate, Memory, Operand, Register, Scale, Scope};
 use tokenizer::{TokenKind, Tokenizer};
 use util::emit_error;
+
+use crate::parse_label;
 
 // <operand> = <memory> | <register> | <immediate> | <label>
 pub fn parse_operands<'a>(
@@ -22,12 +24,8 @@ pub fn parse_operands<'a>(
 
             // <label>
             } else {
-                tokenizer.next_token();
-                return Box::new(Label::new(
-                    Ident::new(s),
-                    scope,
-                    loc,
-                ));
+                // tokenizer.next_token();
+                Box::new(parse_label(tokenizer, scope))
             }
         }
 
@@ -35,9 +33,12 @@ pub fn parse_operands<'a>(
         TokenKind::Number(_) | TokenKind::Minus => {
             return Box::new(parse_immediate(tokenizer));
         }
+        TokenKind::Dot => {
+            Box::new(parse_label(tokenizer, scope))
+        }
 
         _ => {
-            emit_error!(tokenizer.location(), "unexpected token")
+            emit_error!(loc, "unexpected token")
         }
     }
 }

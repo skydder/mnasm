@@ -1,24 +1,24 @@
 use std::{cell::RefCell, rc::Rc};
 
-use data::{Code, LabelDef, Scope};
+use data::{Code, Scope, Stmt};
 use tokenizer::{TokenKind, Tokenizer};
 
-use crate::parse_label_def;
+use crate::parse_stmt;
 
 // <code> = <label_def>*
 pub fn parse_code<'a>(tokenizer: &'a Tokenizer<'a>) -> Code<'a> {
     // <label_def>*
-    let mut labels = Vec::new();
+    let mut codes = Vec::new();
     let root = Rc::new(RefCell::new(Scope::new(None, None)));
-    parse_code_inside(tokenizer, &mut labels, root.clone());
+    parse_code_inside(tokenizer, &mut codes, root.clone());
     eprintln!("{:#?}", root.clone());
-    Code { labels: labels }
+    Code { codes: codes }
 }
 
 // <label_def>*
 fn parse_code_inside<'a>(
     tokenizer: &'a Tokenizer<'a>,
-    labels: &mut Vec<LabelDef<'a>>,
+    labels: &mut Vec<Box<dyn Stmt<'a> + 'a>>,
     root: Rc<RefCell<Scope<'a>>>,
 ) {
     // <space>*<EOF> will be error so it should be fixed
@@ -28,7 +28,7 @@ fn parse_code_inside<'a>(
     }
 
     // <label_def>
-    labels.push(parse_label_def(tokenizer, 0, root.clone()));
+    labels.push(parse_stmt(tokenizer, 0, root.clone()));
 
     // *
     parse_code_inside(tokenizer, labels, root);
