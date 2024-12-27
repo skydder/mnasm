@@ -1,4 +1,7 @@
+use std::sync::atomic::{AtomicBool, Ordering};
 use crate::Location;
+
+static IW: AtomicBool = AtomicBool::new(false);
 
 pub fn emit_msg_and_exit(msg: String) -> ! {
     eprint!("{}", msg);
@@ -24,7 +27,14 @@ macro_rules! emit_error {
     };
 }
 pub fn emit_warning(location: Location, msg: String) {
-    // eprint!("[WARNING]: {}\n-> {:?}\n", msg, location);
+    if IW.load(Ordering::Relaxed) {
+        return;
+    }
+    eprint!("[WARNING]: {}\n-> {:?}\n", msg, location);
+}
+
+pub fn set_iw() {
+    IW.fetch_or(true, Ordering::SeqCst);
 }
 
 #[macro_export]

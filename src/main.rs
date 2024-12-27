@@ -7,7 +7,7 @@ use analyzer::analyze;
 use codegen::codegen_code;
 use parser::parse_code;
 use tokenizer::Tokenizer;
-use util::{emit_msg_and_exit, Location, Source};
+use util::{emit_msg_and_exit, Location, Source, set_iw};
 
 
 fn main() {
@@ -79,7 +79,7 @@ fn parse_run_flags<'a>(args: Vec<String>) -> RunFlags {
             break;
         }
         arg_s = arg.unwrap();
-        eprintln!("{}", arg_s);
+
         if arg_s == "-S" {
             flags.is_cs = true;
             continue;
@@ -89,7 +89,14 @@ fn parse_run_flags<'a>(args: Vec<String>) -> RunFlags {
             continue;
         }
         if arg_s == "-o" {
-            flags.output = arg_iter.next().unwrap_or_else(|| help()).clone();
+            flags.output = arg_iter.next().unwrap_or_else(|| {
+                eprintln!("what?");
+                help()
+            }).clone();
+            continue;
+        }
+        if arg_s == "-iw" {
+            set_iw();
             continue;
         }
         if flags.input.len() != 0 {
