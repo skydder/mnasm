@@ -100,7 +100,7 @@ fn parse_run_flags<'a>(args: Vec<String>) -> RunFlags {
     if flags.input.len() == 0 {
         help()
     }
-    eprintln!("{:#?}", flags);
+    // eprintln!("{:#?}", flags);
     flags
 }
 

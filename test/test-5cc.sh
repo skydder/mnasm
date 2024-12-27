@@ -11,6 +11,12 @@ assembl() {
 }
 
 prepare() {
+    if [ ! -d test/target/5cc ]; then
+        mkdir test/target/5cc
+    fi
+    if [ ! -d test/5cc-n ]; then
+        git clone -b for-mnasm https://github.com/skydder/5cc-n 
+    fi
     cd test/5cc-n
     make 5cc
     cd ../..
@@ -42,6 +48,7 @@ main() {
         file_name="$(basename $file .c)"
         test_5cc $file_name
     done
+    # test_5cc fns
     echo "ALL PASS" 
 }
 

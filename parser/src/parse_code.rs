@@ -11,7 +11,7 @@ pub fn parse_code<'a>(tokenizer: &'a Tokenizer<'a>) -> Code<'a> {
     let mut codes = Vec::new();
     let root = Rc::new(RefCell::new(Scope::new(None, None)));
     parse_code_inside(tokenizer, &mut codes, root.clone());
-    eprintln!("{:#?}", root.clone());
+    // eprintln!("{:#?}", root.clone());
     Code { codes: codes }
 }
 

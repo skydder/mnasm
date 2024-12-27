@@ -24,7 +24,7 @@ macro_rules! emit_error {
     };
 }
 pub fn emit_warning(location: Location, msg: String) {
-    eprint!("[WARNING]: {}\n-> {:?}\n", msg, location);
+    // eprint!("[WARNING]: {}\n-> {:?}\n", msg, location);
 }
 
 #[macro_export]
