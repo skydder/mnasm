@@ -6,6 +6,6 @@
 /out.s
 /test/5cc-n
 /out.o
-/test/target/
+
 /.gdb_history
 /peda-session-arith.txt
