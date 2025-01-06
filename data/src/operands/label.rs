@@ -21,6 +21,8 @@ pub struct Label<'a> {
     name: Ident<'a>,
     scope: Rc<RefCell<Scope<'a>>>,
     pub location: Location<'a>,
+    is_macro: bool,
+    oprand: Option<Rc<dyn Operand>>
 }
 
 impl<'a> Label<'a> {
@@ -29,6 +31,8 @@ impl<'a> Label<'a> {
             name: name,
             scope: scope,
             location: location,
+            is_macro: false,
+            oprand: None
         }
     }
     pub fn ident(&self) -> Ident<'a> {

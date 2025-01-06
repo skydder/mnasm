@@ -12,6 +12,7 @@ pub struct Scope<'a> {
     scope_name: Option<Ident<'a>>,
     parent: Option<Rc<RefCell<Scope<'a>>>>,
     labels: RefCell<Vec<Ident<'a>>>,
+    macros: RefCell<Vec<Box<dyn Stmt<'a> + 'a>>>,
 }
 
 #[derive(Debug)]

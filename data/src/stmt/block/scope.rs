@@ -10,6 +10,7 @@ impl<'a> Scope<'a> {
             scope_name: scope_name,
             parent: parent,
             labels: RefCell::new(Vec::new()),
+            macros: RefCell::new(Vec::new()),
         }
     }
 
