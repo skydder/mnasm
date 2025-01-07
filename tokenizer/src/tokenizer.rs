@@ -78,7 +78,7 @@ impl<'a> Tokenizer<'a> {
         let current_token = self.peek_token();
         match current_token.kind {
             TokenKind::NewLine => self.advance_location_by_token(&current_token),
-            TokenKind::EOF => (),
+            TokenKind::EOS => (),
             _ => {
                 emit_error!(current_token.location, "expected new line")
             }
@@ -107,7 +107,7 @@ impl<'a> Tokenizer<'a> {
                 TokenKind::Space => {
                     self.next_token();
                 }
-                TokenKind::NewLine | TokenKind::EOF => (),
+                TokenKind::NewLine | TokenKind::EOS => (),
                 _ => {
                     emit_error!(loc, "Indent error, the number of spase must be 4");
                 }

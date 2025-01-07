@@ -1,6 +1,6 @@
 use std::{cell::RefCell, rc::Rc};
 
-use crate::Ident;
+use crate::{stmt::Macro, Ident};
 
 use super::Scope;
 
@@ -18,13 +18,33 @@ impl<'a> Scope<'a> {
         self.labels.borrow_mut().push(label);
     }
 
+    pub fn add_macro(&self, label: Ident<'a>, macros: Rc<Macro<'a>>) {
+        self.labels.borrow_mut().push(label);
+        self.macros.borrow_mut().push((label, macros));
+    }
+
+    pub fn find_macro(&self, label: Ident<'a>) -> Option<Rc<Macro<'a>>> {
+        for (l, m) in self.macros.borrow().iter() {
+            if label == *l {
+                return Some(m.clone());
+            }
+        }
+        if let Some(p) = &self.parent {
+            return p.borrow().find_macro(label);
+        }
+        None
+    }
+
     pub fn add_label_to_root(&self, label: Ident<'a>) {
         let parent: &mut Option<Rc<RefCell<Scope<'a>>>> = &mut self.parent_scope();
         if self.is_root() {
             self.add_label(label);
             return;
         }
-        while parent.clone().is_some_and(|s| !(s.clone().borrow().is_root())) {
+        while parent
+            .clone()
+            .is_some_and(|s| !(s.clone().borrow().is_root()))
+        {
             parent.replace(parent.clone().unwrap().borrow().parent_scope().unwrap());
         }
         // parent.replace(parent.clone().unwrap().borrow().parent_scope().unwrap());
@@ -74,4 +94,3 @@ impl<'a> Scope<'a> {
         }
     }
 }
-

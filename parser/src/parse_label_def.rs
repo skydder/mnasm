@@ -68,7 +68,7 @@ pub fn parse_label_def<'a>(
             indent_depth,
             Rc::new(RefCell::new(Scope::new(Some(label), Some(scope)))),
         )),
-        TokenKind::NewLine | TokenKind::EOF => None,
+        TokenKind::NewLine | TokenKind::EOS => None,
         _ => {
             todo!()
         }
@@ -90,9 +90,12 @@ fn parse_section<'a>(tokenizer: &'a Tokenizer<'a>) -> Ident<'a> {
             }
         }
     } else {
-        Ident::new(tokenizer.peek_symbol().get_identifier().unwrap_or_else(|| {
-            emit_error!(tokenizer.location(), "expected label here but found other");
-        }), false)
+        Ident::new(
+            tokenizer.peek_symbol().get_identifier().unwrap_or_else(|| {
+                emit_error!(tokenizer.location(), "expected label here but found other");
+            }),
+            false,
+        )
     };
     tokenizer.next_token();
     return s;

@@ -1,7 +1,7 @@
 use util::Location;
 
-use crate::Operand;
 use super::analyze_ins;
+use crate::Operand;
 #[derive(Debug)]
 pub struct Ins<'a> {
     pub instruction: &'a str,

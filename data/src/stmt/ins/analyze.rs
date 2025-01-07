@@ -4,17 +4,24 @@ use crate::{Operand, OperandKind};
 
 use super::{ins_analyzer::ins_analyzer, Ins};
 
-
 pub fn analyze_ins<'a>(ins: &Ins<'a>) {
     match ins_analyzer(ins.instruction, Operands::convert_operands(&ins.operands)) {
         Ok(_) => return,
         Err(_) => {
-            emit_warning!(ins.location, "unsuppoted instruction and operands. Be Carefull");
-        },
+            emit_warning!(
+                ins.location,
+                "unsuppoted instruction and operands. Be Carefull"
+            );
+        }
     }
 }
 
-pub struct Operands(pub Option<(OperandKind, usize)>, pub Option<(OperandKind, usize)> , pub Option<(OperandKind, usize)>, pub Option<(OperandKind, usize)>);
+pub struct Operands(
+    pub Option<(OperandKind, usize)>,
+    pub Option<(OperandKind, usize)>,
+    pub Option<(OperandKind, usize)>,
+    pub Option<(OperandKind, usize)>,
+);
 
 impl Operands {
     fn default() -> Self {

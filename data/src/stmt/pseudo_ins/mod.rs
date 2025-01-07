@@ -50,7 +50,7 @@ impl<'a> Codegen for PseudoIns<'a> {
     fn codegen(&self) -> String {
         match self.instruction {
             "include" => String::new(),
-            _ => format!("\t{} {}\n", self.instruction, self.codegen_operands())
+            _ => format!("\t{} {}\n", self.instruction, self.codegen_operands()),
         }
     }
 }

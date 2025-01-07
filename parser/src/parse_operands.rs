@@ -33,9 +33,7 @@ pub fn parse_operands<'a>(
         TokenKind::Number(_) | TokenKind::Minus => {
             return Box::new(parse_immediate(tokenizer));
         }
-        TokenKind::Dot => {
-            Box::new(parse_label(tokenizer, scope))
-        }
+        TokenKind::Dot => Box::new(parse_label(tokenizer, scope)),
 
         _ => {
             emit_error!(loc, "unexpected token")
@@ -104,21 +102,24 @@ fn parse_memory<'a>(tokenizer: &'a Tokenizer<'a>) -> Memory<'a> {
             TokenKind::Identifier("byte") => {
                 tokenizer.next_token();
                 8
-            },
+            }
             TokenKind::Identifier("word") => {
                 tokenizer.next_token();
                 16
-            },
+            }
             TokenKind::Identifier("dword") => {
                 tokenizer.next_token();
                 32
-            },
+            }
             TokenKind::Identifier("qword") => {
                 tokenizer.next_token();
                 64
-            },
+            }
             _ => {
-                emit_error!(tokenizer.location(), "expected size expression here, but there is not.");
+                emit_error!(
+                    tokenizer.location(),
+                    "expected size expression here, but there is not."
+                );
             }
         };
         tokenizer.expect_symbol(TokenKind::GreaterThan);

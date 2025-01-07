@@ -1,5 +1,9 @@
 use std::{
-    fs::{self, File}, io::{self, Write}, path::Path, process::Command, result::Result
+    fs::{self, File},
+    io::{self, Write},
+    path::Path,
+    process::Command,
+    result::Result,
 };
 use tempfile::NamedTempFile;
 
@@ -7,8 +11,7 @@ use analyzer::analyze;
 use codegen::codegen_code;
 use parser::parse_code;
 use tokenizer::Tokenizer;
-use util::{emit_msg_and_exit, Location, Source, set_iw};
-
+use util::{emit_msg_and_exit, set_iw, Location, Source};
 
 fn main() {
     run().unwrap_or_else(|e| eprintln!("{}", e));
@@ -46,7 +49,7 @@ fn link(obj_file: &Path, out_file: &Path) -> Result<(), io::Error> {
         .spawn()
         .expect("do you have ld?")
         .wait()?;
-    
+
     Ok(())
 }
 
@@ -54,13 +57,18 @@ fn link(obj_file: &Path, out_file: &Path) -> Result<(), io::Error> {
 struct RunFlags {
     input: String,
     output: String,
-    is_c: bool,     // -c flag
-    is_cs: bool,    // -S flag
+    is_c: bool,  // -c flag
+    is_cs: bool, // -S flag
 }
 
 impl RunFlags {
     fn default() -> Self {
-        Self { input: String::new(), output: String::new(), is_c: false, is_cs: false }
+        Self {
+            input: String::new(),
+            output: String::new(),
+            is_c: false,
+            is_cs: false,
+        }
     }
 }
 
@@ -70,8 +78,8 @@ fn help() -> ! {
 
 fn parse_run_flags<'a>(args: Vec<String>) -> RunFlags {
     let mut arg_iter = args.iter();
-    let mut arg: Option<&String>; 
-    let mut arg_s: &String; 
+    let mut arg: Option<&String>;
+    let mut arg_s: &String;
     let mut flags = RunFlags::default();
     loop {
         arg = arg_iter.next();
@@ -89,10 +97,13 @@ fn parse_run_flags<'a>(args: Vec<String>) -> RunFlags {
             continue;
         }
         if arg_s == "-o" {
-            flags.output = arg_iter.next().unwrap_or_else(|| {
-                eprintln!("what?");
-                help()
-            }).clone();
+            flags.output = arg_iter
+                .next()
+                .unwrap_or_else(|| {
+                    eprintln!("what?");
+                    help()
+                })
+                .clone();
             continue;
         }
         if arg_s == "-iw" {
@@ -115,13 +126,21 @@ fn run() -> Result<(), io::Error> {
     let flag = parse_run_flags(std::env::args().skip(1).collect());
     let nasm_code = NamedTempFile::new()?;
 
-    write!(&mut File::create(nasm_code.path())?, "{}", assemble(&flag.input)).expect("failed to write file");
+    write!(
+        &mut File::create(nasm_code.path())?,
+        "{}",
+        assemble(&flag.input)
+    )
+    .expect("failed to write file");
     if flag.is_cs {
-        fs::copy(nasm_code.path(), if flag.output.len() != 0 {
-            flag.output
-        } else {
-            "out.s".to_string()
-        })?;
+        fs::copy(
+            nasm_code.path(),
+            if flag.output.len() != 0 {
+                flag.output
+            } else {
+                "out.s".to_string()
+            },
+        )?;
         return Ok(());
     }
 
@@ -129,21 +148,27 @@ fn run() -> Result<(), io::Error> {
     assemble_by_nasm(nasm_code.path(), obj_file.path())?;
 
     if flag.is_c {
-        fs::copy(obj_file.path(), if flag.output.len() != 0 {
-            flag.output
-        } else {
-            "out.o".to_string()
-        })?;
+        fs::copy(
+            obj_file.path(),
+            if flag.output.len() != 0 {
+                flag.output
+            } else {
+                "out.o".to_string()
+            },
+        )?;
         return Ok(());
     }
 
     let exc = NamedTempFile::new()?;
     link(obj_file.path(), exc.path())?;
 
-    fs::copy(exc.path(), if flag.output.len() != 0 {
-        flag.output
-    } else {
-        "a.out".to_string()
-    })?;
+    fs::copy(
+        exc.path(),
+        if flag.output.len() != 0 {
+            flag.output
+        } else {
+            "a.out".to_string()
+        },
+    )?;
     Ok(())
 }

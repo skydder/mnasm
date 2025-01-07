@@ -21,9 +21,9 @@ fn parse_code_inside<'a>(
     labels: &mut Vec<Box<dyn Stmt<'a> + 'a>>,
     root: Rc<RefCell<Scope<'a>>>,
 ) {
-    // <space>*<EOF> will be error so it should be fixed
+    // <space>*<EOS> will be error so it should be fixed
     // => fixed, however, not good?
-    if is_eof(tokenizer) {
+    if is_EOS(tokenizer) {
         return;
     }
 
@@ -39,12 +39,12 @@ fn skip_null_line<'a>(tokenizer: &'a Tokenizer<'a>) {
     tokenizer.expect_newline();
 }
 
-fn is_eof<'a>(tokenizer: &'a Tokenizer<'a>) -> bool {
+fn is_EOS<'a>(tokenizer: &'a Tokenizer<'a>) -> bool {
     match tokenizer.peek_token().kind {
-        TokenKind::EOF => true,
+        TokenKind::EOS => true,
         TokenKind::NewLine | TokenKind::Space => {
             skip_null_line(tokenizer);
-            is_eof(tokenizer)
+            is_EOS(tokenizer)
         }
         _ => false,
     }

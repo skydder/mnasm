@@ -6,7 +6,10 @@ pub struct Ident<'a> {
 
 impl<'a> Ident<'a> {
     pub fn new(name: &'a str, with_dot: bool) -> Self {
-        Self { name: name , with_dot: with_dot}
+        Self {
+            name: name,
+            with_dot: with_dot,
+        }
     }
 
     pub fn get(&self) -> String {

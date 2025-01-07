@@ -116,7 +116,7 @@ impl<'a> Operand for Register<'a> {
     }
 
     fn analyze(&self) {}
-    
+
     fn op(&self) -> (OperandKind, usize) {
         (self.kind(), self.size)
     }

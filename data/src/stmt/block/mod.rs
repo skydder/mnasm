@@ -3,7 +3,7 @@ mod scope;
 
 use std::{cell::RefCell, rc::Rc};
 
-use super::Stmt;
+use super::{Macro, Stmt};
 use crate::Ident;
 use util::Location;
 
@@ -12,7 +12,7 @@ pub struct Scope<'a> {
     scope_name: Option<Ident<'a>>,
     parent: Option<Rc<RefCell<Scope<'a>>>>,
     labels: RefCell<Vec<Ident<'a>>>,
-    macros: RefCell<Vec<Box<dyn Stmt<'a> + 'a>>>,
+    macros: RefCell<Vec<(Ident<'a>, Rc<Macro<'a>>)>>,
 }
 
 #[derive(Debug)]

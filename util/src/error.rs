@@ -1,5 +1,5 @@
-use std::sync::atomic::{AtomicBool, Ordering};
 use crate::Location;
+use std::sync::atomic::{AtomicBool, Ordering};
 
 static IW: AtomicBool = AtomicBool::new(false);
 

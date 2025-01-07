@@ -21,7 +21,7 @@ pub enum TokenKind<'a> {
     // Reserved(&'a str),
     NewLine,
     Space,
-    EOF,
+    EOS,
 }
 
 struct TokenBuilder<'a> {
@@ -253,7 +253,7 @@ impl<'a> Token<'a> {
         } else if let Some(b) = Token::check_if_string(s) {
             b
         } else {
-            TokenBuilder::new().kind(TokenKind::EOF).len(1)
+            TokenBuilder::new().kind(TokenKind::EOS).len(1)
         };
         builder.location(location).build()
     }

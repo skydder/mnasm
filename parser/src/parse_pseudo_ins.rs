@@ -6,7 +6,10 @@ use util::emit_error;
 
 use crate::parse_operands;
 
-pub fn parse_pseudo_ins<'a>(tokenizer: &'a Tokenizer<'a>, scope: Rc<RefCell<Scope<'a>>>,) -> PseudoIns<'a> {
+pub fn parse_pseudo_ins<'a>(
+    tokenizer: &'a Tokenizer<'a>,
+    scope: Rc<RefCell<Scope<'a>>>,
+) -> PseudoIns<'a> {
     let currrent_token = tokenizer.peek_token();
     assert!(currrent_token.is_identifier());
 
@@ -19,11 +22,11 @@ pub fn parse_pseudo_ins<'a>(tokenizer: &'a Tokenizer<'a>, scope: Rc<RefCell<Scop
     let mut operands: Vec<String> = Vec::new();
     if ins == "extern" || ins == "include" {
         if tokenizer.peek_symbol().is(TokenKind::CloseParenthesis) {
-           emit_error!(tokenizer.location(), "expected label"); 
+            emit_error!(tokenizer.location(), "expected label");
         }
         parse_extern_operands_inside(tokenizer, &mut operands, scope);
     } else {
-    // <operands>?
+        // <operands>?
         if !tokenizer.peek_symbol().is(TokenKind::CloseParenthesis) {
             parse_ins_operands_inside(tokenizer, &mut operands);
         }
@@ -39,13 +42,13 @@ fn parse_ins_operands_inside<'a>(tokenizer: &'a Tokenizer<'a>, operands: &mut Ve
     let op = match tokenizer.peek_token().kind {
         TokenKind::Minus | TokenKind::Number(_) => {
             parse_operands::parse_immediate(tokenizer).codegen().clone()
-        },
+        }
 
         TokenKind::String(i) => {
             tokenizer.next_token();
             tokenizer.skip_space();
             format!("\"{}\"", i)
-        },
+        }
         _ => {
             emit_error!(
                 tokenizer.location(),
@@ -78,7 +81,11 @@ fn parse_ins_operands_inside<'a>(tokenizer: &'a Tokenizer<'a>, operands: &mut Ve
     }
 }
 
-fn parse_extern_operands_inside<'a>(tokenizer: &'a Tokenizer<'a>, operands: &mut Vec<String>, scope: Rc<RefCell<Scope<'a>>>,) {
+fn parse_extern_operands_inside<'a>(
+    tokenizer: &'a Tokenizer<'a>,
+    operands: &mut Vec<String>,
+    scope: Rc<RefCell<Scope<'a>>>,
+) {
     // <operand>
     let op = match tokenizer.peek_token().kind {
         TokenKind::Identifier(ident) => {
