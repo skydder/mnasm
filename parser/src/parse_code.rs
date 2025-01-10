@@ -1,12 +1,12 @@
 use std::{cell::RefCell, rc::Rc};
 
 use data::{Code, Scope, Stmt};
-use tokenizer::{TokenGenerator, TokenKind, Tokenizer};
+use tokenizer::{TokenGenerator, TokenKind};
 
 use crate::parse_stmt;
 
 // <code> = <label_def>*
-pub fn parse_code<'a>(tokenizer: &'a Tokenizer<'a>) -> Code<'a> {
+pub fn parse_code<'a>(tokenizer: &'a Box<dyn TokenGenerator + 'a>) -> Code<'a> {
     // <label_def>*
     let mut codes = Vec::new();
     let root = Rc::new(RefCell::new(Scope::new(None, None)));
@@ -17,7 +17,7 @@ pub fn parse_code<'a>(tokenizer: &'a Tokenizer<'a>) -> Code<'a> {
 
 // <label_def>*
 fn parse_code_inside<'a>(
-    tokenizer: &'a Tokenizer<'a>,
+    tokenizer: &'a Box<dyn TokenGenerator + 'a>,
     labels: &mut Vec<Box<dyn Stmt<'a> + 'a>>,
     root: Rc<RefCell<Scope<'a>>>,
 ) {
@@ -34,12 +34,12 @@ fn parse_code_inside<'a>(
     parse_code_inside(tokenizer, labels, root);
 }
 
-fn skip_null_line<'a>(tokenizer: &'a Tokenizer<'a>) {
+fn skip_null_line<'a>(tokenizer: &'a Box<dyn TokenGenerator + 'a>) {
     tokenizer.skip_space();
     tokenizer.consume_newline();
 }
 
-fn is_EOS<'a>(tokenizer: &'a Tokenizer<'a>) -> bool {
+fn is_EOS<'a>(tokenizer: &'a Box<dyn TokenGenerator + 'a>) -> bool {
     match tokenizer.peek_token().kind {
         TokenKind::EOS => true,
         TokenKind::NewLine | TokenKind::Space => {

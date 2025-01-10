@@ -10,7 +10,7 @@ use tempfile::NamedTempFile;
 use analyzer::analyze;
 use codegen::codegen_code;
 use parser::parse_code;
-use tokenizer::Tokenizer;
+use tokenizer::{Tokenizer, TokenGenerator};
 use util::{emit_msg_and_exit, set_iw, Location, Source};
 
 fn main() {
@@ -20,7 +20,7 @@ fn main() {
 fn assemble(file: &str) -> String {
     let source = Source::new(file);
     let loc = Location::new(&source);
-    let t = Tokenizer::new(loc);
+    let t = (|| -> Box<dyn TokenGenerator> {Box::new(Tokenizer::new(loc))} )();
     let ast = parse_code(&t);
     analyze(&ast);
     codegen_code(&ast)

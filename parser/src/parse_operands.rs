@@ -1,14 +1,14 @@
 use std::{cell::RefCell, rc::Rc};
 
 use data::{Immediate, Memory, Operand, Register, Scale, Scope};
-use tokenizer::{TokenGenerator, TokenKind, Tokenizer};
+use tokenizer::{TokenGenerator, TokenKind};
 use util::emit_error;
 
 use crate::parse_label;
 
 // <operand> = <memory> | <register> | <immediate> | <label>
 pub fn parse_operands<'a>(
-    tokenizer: &'a Tokenizer<'a>,
+    tokenizer: &'a Box<dyn TokenGenerator + 'a>,
     scope: Rc<RefCell<Scope<'a>>>,
 ) -> Box<dyn Operand + 'a> {
     let loc = tokenizer.location();
@@ -42,7 +42,7 @@ pub fn parse_operands<'a>(
 }
 
 // <immediate> = ("-")? <number>
-pub fn parse_immediate<'a>(tokenizer: &'a Tokenizer<'a>) -> Immediate<'a> {
+pub fn parse_immediate<'a>(tokenizer: &'a Box<dyn TokenGenerator + 'a>) -> Immediate<'a> {
     let current_token = tokenizer.peek_token();
     match current_token.kind {
         // <number>
@@ -78,7 +78,7 @@ pub fn parse_immediate<'a>(tokenizer: &'a Tokenizer<'a>) -> Immediate<'a> {
 }
 
 // <register>
-fn parse_register<'a>(tokenizer: &'a Tokenizer<'a>, s: &str) -> Option<Register<'a>> {
+fn parse_register<'a>(tokenizer: &'a Box<dyn TokenGenerator + 'a>, s: &str) -> Option<Register<'a>> {
     let loc = tokenizer.location();
     if let Some((kind, value, size)) = Register::is_reg(s) {
         tokenizer.next_token();
@@ -89,7 +89,7 @@ fn parse_register<'a>(tokenizer: &'a Tokenizer<'a>, s: &str) -> Option<Register<
 }
 
 // <memory> = "ptr" "(" <base> ","  <index> "," <scale> "," <disp> ")"
-fn parse_memory<'a>(tokenizer: &'a Tokenizer<'a>) -> Memory<'a> {
+fn parse_memory<'a>(tokenizer: &'a Box<dyn TokenGenerator + 'a>) -> Memory<'a> {
     let loc = tokenizer.location();
     // "ptr"
     tokenizer.consume_token(TokenKind::Identifier("ptr"));

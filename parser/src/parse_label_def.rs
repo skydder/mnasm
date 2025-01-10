@@ -1,14 +1,14 @@
 use std::{cell::RefCell, rc::Rc};
 
 use data::{Ident, LabelDef, Scope};
-use tokenizer::{TokenGenerator, TokenKind, Tokenizer};
+use tokenizer::{TokenGenerator, TokenKind};
 use util::emit_error;
 
 use crate::{parse_block, parse_label};
 
 // <label_def> = "<" <label> (":" "global")? (":" <section> )? ">" <block>?
 pub fn parse_label_def<'a>(
-    tokenizer: &'a Tokenizer<'a>,
+    tokenizer: &'a Box<dyn TokenGenerator + 'a>,
     indent_depth: usize,
     scope: Rc<RefCell<Scope<'a>>>,
 ) -> LabelDef<'a> {
@@ -81,7 +81,7 @@ pub fn parse_label_def<'a>(
     LabelDef::new(label, gen_label, is_global, section, block, loc)
 }
 
-fn parse_section<'a>(tokenizer: &'a Tokenizer<'a>) -> Ident<'a> {
+fn parse_section<'a>(tokenizer: &'a Box<dyn TokenGenerator + 'a>) -> Ident<'a> {
     let s = if tokenizer.peek_token().is(TokenKind::Dot) {
         tokenizer.next_token();
         // todo: add all reserved section
