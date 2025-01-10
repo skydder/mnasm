@@ -1,7 +1,7 @@
 use std::{cell::RefCell, rc::Rc};
 
 use data::{Ident, Label, Scope};
-use tokenizer::{TokenKind, Tokenizer};
+use tokenizer::{TokenGenerator, TokenKind, Tokenizer};
 use util::emit_error;
 
 pub fn parse_label<'a>(tokenizer: &'a Tokenizer<'a>, scope: Rc<RefCell<Scope<'a>>>) -> Label<'a> {

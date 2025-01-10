@@ -1,7 +1,7 @@
 use std::{cell::RefCell, rc::Rc};
 
 use data::{CompoundIns, Ins, Operand, Scope};
-use tokenizer::{TokenKind, Tokenizer};
+use tokenizer::{TokenGenerator, TokenKind, Tokenizer};
 use util::emit_error;
 
 use crate::parse_operands;
@@ -13,19 +13,21 @@ pub fn parse_ins<'a>(tokenizer: &'a Tokenizer<'a>, scope: Rc<RefCell<Scope<'a>>>
 
     // <instruction>
     let ins = currrent_token.get_identifier().unwrap();
-    tokenizer.next_symbol();
+    tokenizer.next_token();
+    tokenizer.skip_space();
 
     // "("
-    tokenizer.expect_symbol(TokenKind::OpenParenthesis);
+    tokenizer.consume_token(TokenKind::OpenParenthesis);
+    tokenizer.skip_space();
 
     // <operands>?
     let mut operands: Vec<Box<dyn Operand + 'a>> = Vec::new();
-    if !tokenizer.peek_symbol().is(TokenKind::CloseParenthesis) {
+    if !tokenizer.peek_token().is(TokenKind::CloseParenthesis) {
         parse_ins_operands_inside(tokenizer, &mut operands, scope);
     }
 
     // ")"
-    tokenizer.expect_symbol(TokenKind::CloseParenthesis);
+    tokenizer.consume_token(TokenKind::CloseParenthesis);
 
     Ins::new(ins, operands, currrent_token.location)
 }

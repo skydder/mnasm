@@ -1,7 +1,7 @@
 use std::{cell::RefCell, rc::Rc};
 
 use data::{Code, Scope, Stmt};
-use tokenizer::{TokenKind, Tokenizer};
+use tokenizer::{TokenGenerator, TokenKind, Tokenizer};
 
 use crate::parse_stmt;
 
@@ -36,7 +36,7 @@ fn parse_code_inside<'a>(
 
 fn skip_null_line<'a>(tokenizer: &'a Tokenizer<'a>) {
     tokenizer.skip_space();
-    tokenizer.expect_newline();
+    tokenizer.consume_newline();
 }
 
 fn is_EOS<'a>(tokenizer: &'a Tokenizer<'a>) -> bool {

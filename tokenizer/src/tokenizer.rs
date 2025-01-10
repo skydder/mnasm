@@ -1,6 +1,6 @@
 use std::cell::RefCell;
 
-use crate::{Token, TokenKind};
+use crate::{Token, TokenGenerator, TokenKind};
 use util::{emit_error, Location};
 
 pub struct Tokenizer<'a> {
@@ -14,7 +14,7 @@ impl<'a> Tokenizer<'a> {
         }
     }
 
-    pub fn location(&self) -> Location {
+    fn _location(&self) -> Location {
         *self.location.borrow()
     }
 
@@ -22,7 +22,7 @@ impl<'a> Tokenizer<'a> {
         self.location.borrow().current_slice()
     }
 
-    pub fn peek_token(&self) -> Token {
+    fn _peek_token(&self) -> Token {
         let tok = Token::tokenize(self.current_slice(), self.location.borrow().clone());
         tok
     }
@@ -37,30 +37,18 @@ impl<'a> Tokenizer<'a> {
         }
     }
 
-    pub fn next_token(&self) -> Token {
+    fn _next_token(&self) -> Token {
         let token = self.peek_token();
         self.advance_location_by_token(&token);
         token
     }
-    pub fn skip_space(&self) {
+    fn _skip_space(&self) {
         while self.peek_token().is(TokenKind::Space) {
             self.next_token();
         }
     }
 
-    pub fn peek_symbol(&self) -> Token {
-        self.skip_space();
-        self.peek_token()
-    }
-
-    pub fn next_symbol(&self) -> Token {
-        self.skip_space();
-        let token = self.peek_token();
-        self.advance_location_by_token(&token);
-        token
-    }
-
-    pub fn expect_token(&self, expecting_token: TokenKind) {
+    fn _consume_token(&self, expecting_token: TokenKind) {
         let current_token = self.peek_token();
         if current_token.is(expecting_token) {
             self.advance_location_by_token(&current_token);
@@ -74,7 +62,7 @@ impl<'a> Tokenizer<'a> {
         }
     }
 
-    pub fn expect_newline(&self) {
+    fn _consume_newline(&self) {
         let current_token = self.peek_token();
         match current_token.kind {
             TokenKind::NewLine => self.advance_location_by_token(&current_token),
@@ -85,22 +73,7 @@ impl<'a> Tokenizer<'a> {
         }
     }
 
-    pub fn expect_symbol(&self, expecting_token: TokenKind) {
-        self.skip_space();
-        let current_token = self.peek_token();
-        if current_token.is(expecting_token) {
-            self.advance_location_by_token(&current_token);
-        } else {
-            emit_error!(
-                self.location(),
-                "expected {:#?}, but found {:#?}",
-                expecting_token,
-                current_token.kind
-            )
-        }
-    }
-
-    pub fn expect_indent(&self) {
+    fn _consume_indent(&self) {
         let loc = self.location();
         for _ in 0..4 {
             match self.peek_token().kind {
@@ -113,6 +86,36 @@ impl<'a> Tokenizer<'a> {
                 }
             }
         }
+    }
+}
+
+impl<'a> TokenGenerator for Tokenizer<'a> {
+    fn location(&self) -> Location {
+        self._location()
+    }
+
+    fn peek_token(&self) -> Token {
+        self._peek_token()
+    }
+
+    fn next_token(&self) -> Token {
+        self._next_token()
+    }
+
+    fn skip_space(&self) {
+        self._skip_space();
+    }
+
+    fn consume_token(&self, consumeing_token: TokenKind) {
+        self._consume_token(consumeing_token);
+    }
+
+    fn consume_newline(&self) {
+        self._consume_newline();
+    }
+
+    fn consume_indent(&self) {
+        self._consume_indent();
     }
 }
 

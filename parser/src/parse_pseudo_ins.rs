@@ -1,7 +1,7 @@
 use std::{cell::RefCell, rc::Rc};
 
 use data::{Ident, Operand, PseudoIns, Scope};
-use tokenizer::{TokenKind, Tokenizer};
+use tokenizer::{TokenKind, Tokenizer, TokenGenerator};
 use util::emit_error;
 
 use crate::parse_operands;
@@ -15,24 +15,27 @@ pub fn parse_pseudo_ins<'a>(
 
     // <instruction>
     let ins = currrent_token.get_identifier().unwrap();
-    tokenizer.next_symbol();
+    tokenizer.next_token();
+    tokenizer.skip_space();
 
     // "("
-    tokenizer.expect_symbol(TokenKind::OpenParenthesis);
+    tokenizer.consume_token(TokenKind::OpenParenthesis);
+    tokenizer.skip_space();
     let mut operands: Vec<String> = Vec::new();
     if ins == "extern" || ins == "include" {
-        if tokenizer.peek_symbol().is(TokenKind::CloseParenthesis) {
+        if tokenizer.peek_token().is(TokenKind::CloseParenthesis) {
             emit_error!(tokenizer.location(), "expected label");
         }
         parse_extern_operands_inside(tokenizer, &mut operands, scope);
     } else {
         // <operands>?
-        if !tokenizer.peek_symbol().is(TokenKind::CloseParenthesis) {
+        if !tokenizer.peek_token().is(TokenKind::CloseParenthesis) {
             parse_ins_operands_inside(tokenizer, &mut operands);
         }
     }
     // ")"
-    tokenizer.expect_symbol(TokenKind::CloseParenthesis);
+    tokenizer.skip_space();
+    tokenizer.consume_token(TokenKind::CloseParenthesis);
 
     PseudoIns::new(ins, operands, currrent_token.location)
 }

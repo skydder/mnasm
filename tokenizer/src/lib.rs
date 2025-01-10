@@ -11,7 +11,7 @@ pub trait TokenGenerator {
     fn peek_token(&self) -> Token;
     fn next_token(&self) -> Token;
     fn skip_space(&self);
-    fn consume_token(&self, expecting_token: TokenKind);
+    fn consume_token(&self, consumeing_token: TokenKind);
     fn consume_newline(&self);
     fn consume_indent(&self);
 }

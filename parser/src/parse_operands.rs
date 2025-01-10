@@ -1,7 +1,7 @@
 use std::{cell::RefCell, rc::Rc};
 
 use data::{Immediate, Memory, Operand, Register, Scale, Scope};
-use tokenizer::{TokenKind, Tokenizer};
+use tokenizer::{TokenGenerator, TokenKind, Tokenizer};
 use util::emit_error;
 
 use crate::parse_label;
@@ -92,13 +92,15 @@ fn parse_register<'a>(tokenizer: &'a Tokenizer<'a>, s: &str) -> Option<Register<
 fn parse_memory<'a>(tokenizer: &'a Tokenizer<'a>) -> Memory<'a> {
     let loc = tokenizer.location();
     // "ptr"
-    tokenizer.expect_token(TokenKind::Identifier("ptr"));
+    tokenizer.consume_token(TokenKind::Identifier("ptr"));
+    tokenizer.skip_space();
 
     // size process
     // ============
-    let size = if tokenizer.peek_symbol().is(TokenKind::LessThan) {
+    let size = if tokenizer.peek_token().is(TokenKind::LessThan) {
         tokenizer.next_token();
-        let v = match tokenizer.peek_symbol().kind {
+        tokenizer.skip_space();
+        let v = match tokenizer.peek_token().kind {
             TokenKind::Identifier("byte") => {
                 tokenizer.next_token();
                 8
@@ -122,17 +124,19 @@ fn parse_memory<'a>(tokenizer: &'a Tokenizer<'a>) -> Memory<'a> {
                 );
             }
         };
-        tokenizer.expect_symbol(TokenKind::GreaterThan);
+        tokenizer.skip_space();
+        tokenizer.consume_token(TokenKind::GreaterThan);
+        tokenizer.skip_space();
         v
     } else {
         0
     };
 
     // "("
-    tokenizer.expect_symbol(TokenKind::OpenParenthesis);
+    tokenizer.consume_token(TokenKind::OpenParenthesis);
     tokenizer.skip_space();
     // <base> = "_" | <register>
-    let base = match tokenizer.peek_symbol().kind {
+    let base = match tokenizer.peek_token().kind {
         // "_"
         TokenKind::Identifier("_") => {
             tokenizer.next_token();
@@ -152,10 +156,12 @@ fn parse_memory<'a>(tokenizer: &'a Tokenizer<'a>) -> Memory<'a> {
     };
 
     // ","
-    tokenizer.expect_symbol(TokenKind::Comma);
+    tokenizer.skip_space();
+    tokenizer.consume_token(TokenKind::Comma);
+    tokenizer.skip_space();
 
     // <index> = "_" | <register>
-    let index = match tokenizer.peek_symbol().kind {
+    let index = match tokenizer.peek_token().kind {
         // "_"
         TokenKind::Identifier("_") => {
             tokenizer.next_token();
@@ -176,10 +182,12 @@ fn parse_memory<'a>(tokenizer: &'a Tokenizer<'a>) -> Memory<'a> {
     };
 
     // ","
-    tokenizer.expect_symbol(TokenKind::Comma);
+    tokenizer.skip_space();
+    tokenizer.consume_token(TokenKind::Comma);
+    tokenizer.skip_space();
 
     // <scale> = "1" | "2" | "4" | "8" | "_"
-    let scale = match tokenizer.peek_symbol().kind {
+    let scale = match tokenizer.peek_token().kind {
         // "_"
         TokenKind::Identifier("_") => {
             tokenizer.next_token();
@@ -215,10 +223,12 @@ fn parse_memory<'a>(tokenizer: &'a Tokenizer<'a>) -> Memory<'a> {
         }
     };
     // ","
-    tokenizer.expect_symbol(TokenKind::Comma);
+    tokenizer.skip_space();
+    tokenizer.consume_token(TokenKind::Comma);
+    tokenizer.skip_space();
 
     // <disp> = "_" | <immediate>
-    let disp = match tokenizer.peek_symbol().kind {
+    let disp = match tokenizer.peek_token().kind {
         // "_"
         TokenKind::Identifier("_") => {
             tokenizer.next_token();
@@ -233,7 +243,8 @@ fn parse_memory<'a>(tokenizer: &'a Tokenizer<'a>) -> Memory<'a> {
     };
 
     // ")"
-    tokenizer.expect_symbol(TokenKind::CloseParenthesis);
+    tokenizer.skip_space();
+    tokenizer.consume_token(TokenKind::CloseParenthesis);
 
     Memory::new((base, index, scale, disp), size, loc)
 }

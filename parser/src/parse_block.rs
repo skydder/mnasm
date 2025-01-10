@@ -1,7 +1,7 @@
 use std::{cell::RefCell, rc::Rc};
 
 use data::{Block, Scope, Stmt};
-use tokenizer::{TokenKind, Tokenizer};
+use tokenizer::{TokenGenerator, TokenKind, Tokenizer};
 
 use crate::{parse_stmt, read_indent_by_depth};
 
@@ -14,7 +14,7 @@ pub fn parse_block<'a>(
     let loc = tokenizer.location();
 
     // "{"
-    assert!(tokenizer.peek_symbol().is(TokenKind::OpenBrace));
+    assert!(tokenizer.peek_token().is(TokenKind::OpenBrace));
     tokenizer.next_token();
 
     // <stmt>*
@@ -23,7 +23,7 @@ pub fn parse_block<'a>(
     parse_inside(tokenizer, indent_depth, &mut stmts, inner_scope.clone());
 
     // "}"
-    tokenizer.expect_token(TokenKind::CloseBrace);
+    tokenizer.consume_token(TokenKind::CloseBrace);
     tokenizer.skip_space();
 
     Block::new(indent_depth, stmts, loc, inner_scope)
@@ -36,7 +36,8 @@ fn parse_inside<'a>(
     stmts: &mut Vec<Box<dyn Stmt<'a> + 'a>>,
     scope: Rc<RefCell<Scope<'a>>>,
 ) {
-    tokenizer.expect_symbol(TokenKind::NewLine);
+    tokenizer.skip_space();
+    tokenizer.consume_token(TokenKind::NewLine);
     read_indent_by_depth(tokenizer, indent_depth);
 
     match tokenizer.peek_token().kind {

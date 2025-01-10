@@ -1,7 +1,7 @@
 use std::{cell::RefCell, rc::Rc};
 
 use data::{Ident, Scope, Stmt};
-use tokenizer::{TokenKind, Tokenizer};
+use tokenizer::{TokenGenerator, TokenKind, Tokenizer};
 use util::emit_error;
 
 use crate::{parse_block, parse_compound_ins, parse_label_def, parse_let_macro, parse_pseudo_ins};

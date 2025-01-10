@@ -1,7 +1,7 @@
 use std::{cell::RefCell, rc::Rc};
 
 use data::{Ident, LabelDef, Scope};
-use tokenizer::{TokenKind, Tokenizer};
+use tokenizer::{TokenGenerator, TokenKind, Tokenizer};
 use util::emit_error;
 
 use crate::{parse_block, parse_label};
@@ -31,14 +31,17 @@ pub fn parse_label_def<'a>(
     // kimokimo-nest :<
 
     // (":" "global")? (":" <section> )?
-    let (is_global, section) = if tokenizer.peek_symbol().is(TokenKind::Colon) {
+    tokenizer.skip_space();
+    let (is_global, section) = if tokenizer.peek_token().is(TokenKind::Colon) {
         tokenizer.next_token();
+        tokenizer.skip_space();
         // "global" (":" <section> )?
-        if tokenizer.peek_symbol().is(TokenKind::Identifier("global")) {
+        if tokenizer.peek_token().is(TokenKind::Identifier("global")) {
             tokenizer.next_token();
+            tokenizer.skip_space();
 
             // (":" <section> )?
-            let sec = if tokenizer.peek_symbol().is(TokenKind::Colon) {
+            let sec = if tokenizer.peek_token().is(TokenKind::Colon) {
                 tokenizer.next_token();
                 tokenizer.skip_space();
                 // <section>
@@ -58,7 +61,8 @@ pub fn parse_label_def<'a>(
     };
 
     // ">"
-    tokenizer.expect_symbol(TokenKind::GreaterThan);
+    tokenizer.skip_space();
+    tokenizer.consume_token(TokenKind::GreaterThan);
     tokenizer.skip_space();
 
     // <block>?
@@ -90,9 +94,10 @@ fn parse_section<'a>(tokenizer: &'a Tokenizer<'a>) -> Ident<'a> {
             }
         }
     } else {
+        tokenizer.skip_space();
         Ident::new(
-            tokenizer.peek_symbol().get_identifier().unwrap_or_else(|| {
-                emit_error!(tokenizer.location(), "expected label here but found other");
+            tokenizer.peek_token().get_identifier().unwrap_or_else(|| {
+                emit_error!(tokenizer.location(), "consumeed label here but found other");
             }),
             false,
         )
