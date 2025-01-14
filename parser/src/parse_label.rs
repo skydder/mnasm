@@ -4,7 +4,7 @@ use data::{Ident, Label, Scope};
 use tokenizer::{TokenGenerator, TokenKind};
 use util::emit_error;
 
-pub fn parse_label<'a>(tokenizer: &'a Box<dyn TokenGenerator + 'a>, scope: Rc<RefCell<Scope<'a>>>) -> Label<'a> {
+pub fn parse_label<'a>(tokenizer: &'a (dyn TokenGenerator + 'a), scope: Rc<RefCell<Scope<'a>>>) -> Label<'a> {
     match tokenizer.peek_token().kind {
         TokenKind::Dot => {
             tokenizer.next_token();

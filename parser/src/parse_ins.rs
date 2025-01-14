@@ -7,7 +7,7 @@ use util::emit_error;
 use crate::parse_operands;
 
 // <ins> = <instruction(identifier)> "(" <operands>? ")"
-pub fn parse_ins<'a>(tokenizer: &'a Box<dyn TokenGenerator + 'a>, scope: Rc<RefCell<Scope<'a>>>) -> Ins<'a> {
+pub fn parse_ins<'a>(tokenizer: &'a (dyn TokenGenerator + 'a), scope: Rc<RefCell<Scope<'a>>>) -> Ins<'a> {
     let currrent_token = tokenizer.peek_token();
     assert!(currrent_token.is_identifier());
 
@@ -34,7 +34,7 @@ pub fn parse_ins<'a>(tokenizer: &'a Box<dyn TokenGenerator + 'a>, scope: Rc<RefC
 
 // <operands> = <operand> ("," <operand>)*
 fn parse_ins_operands_inside<'a>(
-    tokenizer: &'a Box<dyn TokenGenerator + 'a>,
+    tokenizer: &'a (dyn TokenGenerator + 'a),
     operands: &mut Vec<Box<dyn Operand + 'a>>,
     scope: Rc<RefCell<Scope<'a>>>,
 ) {
@@ -64,7 +64,7 @@ fn parse_ins_operands_inside<'a>(
 
 // <compound_ins> = <ins> ("," <ins>)*
 pub fn parse_compound_ins<'a>(
-    tokenizer: &'a Box<dyn TokenGenerator + 'a>,
+    tokenizer: &'a (dyn TokenGenerator + 'a),
     scope: Rc<RefCell<Scope<'a>>>,
 ) -> CompoundIns<'a> {
     // <compound_ins>
@@ -77,7 +77,7 @@ pub fn parse_compound_ins<'a>(
 
 // <compound_ins> = <ins> ("," <ins>)*
 fn parse_compound_ins_inside<'a>(
-    tokenizer: &'a Box<dyn TokenGenerator + 'a>,
+    tokenizer: &'a (dyn TokenGenerator + 'a),
     compound: &mut Vec<Ins<'a>>,
     scope: Rc<RefCell<Scope<'a>>>,
 ) {

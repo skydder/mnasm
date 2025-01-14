@@ -6,7 +6,7 @@ pub use tokenizer::Tokenizer;
 use util::Location;
 
 // todo: apply to Tokenizer and Macro
-pub trait TokenGenerator {
+pub trait TokenGenerator : Clone {
     fn location(&self) -> Location;
     fn peek_token(&self) -> Token;
     fn next_token(&self) -> Token;

@@ -86,7 +86,7 @@ impl<'a> TokenBuilder<'a> {
 //     false
 // }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub struct Token<'a> {
     pub kind: TokenKind<'a>,
     pub(crate) len: usize,
@@ -94,7 +94,7 @@ pub struct Token<'a> {
 }
 
 impl<'a> Token<'a> {
-    pub(crate) fn new(kind: TokenKind<'a>, len: usize, location: Location<'a>) -> Self {
+    pub fn new(kind: TokenKind<'a>, len: usize, location: Location<'a>) -> Self {
         Self {
             kind,
             len,

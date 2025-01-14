@@ -1,6 +1,6 @@
 use std::{cell::RefCell, rc::Rc};
 
-use data::{Immediate, Memory, Operand, Register, Scale, Scope};
+use data::{Immediate, Label, Memory, Operand, Register, Scale, Scope};
 use tokenizer::{TokenGenerator, TokenKind};
 use util::emit_error;
 
@@ -8,7 +8,7 @@ use crate::parse_label;
 
 // <operand> = <memory> | <register> | <immediate> | <label>
 pub fn parse_operands<'a>(
-    tokenizer: &'a Box<dyn TokenGenerator + 'a>,
+    tokenizer: &'a (dyn TokenGenerator + 'a),
     scope: Rc<RefCell<Scope<'a>>>,
 ) -> Box<dyn Operand + 'a> {
     let loc = tokenizer.location();
@@ -16,24 +16,30 @@ pub fn parse_operands<'a>(
         TokenKind::Identifier(s) => {
             // <memory>
             if s == "ptr" {
-                return Box::new(parse_memory(tokenizer));
+                return Box::new(parse_memory(tokenizer.as_ref()));
 
             // <register>
-            } else if let Some(reg) = parse_register(tokenizer, s) {
+            } else if let Some(reg) = parse_register(tokenizer.as_ref(), s) {
                 return Box::new(reg);
 
             // <label>
             } else {
                 // tokenizer.next_token();
-                Box::new(parse_label(tokenizer, scope))
+                let label:Label<> = parse_label(tokenizer.as_ref(), scope.clone());
+                if let Some(m) = scope.borrow().find_macro(label.ident()) {
+                    let tokenizer = m.as_ref().tokenizer();
+                    let op: Box<dyn Operand + 'a> = parse_operands(tokenizer, scope.clone());
+                    return op;
+                }
+                Box::new(label)
             }
         }
 
         // <immediate>
         TokenKind::Number(_) | TokenKind::Minus => {
-            return Box::new(parse_immediate(tokenizer));
+            return Box::new(parse_immediate(tokenizer.as_ref()));
         }
-        TokenKind::Dot => Box::new(parse_label(tokenizer, scope)),
+        TokenKind::Dot => Box::new(parse_label(tokenizer.as_ref(), scope)),
 
         _ => {
             emit_error!(loc, "unexpected token")
@@ -42,7 +48,7 @@ pub fn parse_operands<'a>(
 }
 
 // <immediate> = ("-")? <number>
-pub fn parse_immediate<'a>(tokenizer: &'a Box<dyn TokenGenerator + 'a>) -> Immediate<'a> {
+pub fn parse_immediate<'a>(tokenizer: &'a (dyn TokenGenerator + 'a)) -> Immediate<'a> {
     let current_token = tokenizer.peek_token();
     match current_token.kind {
         // <number>
@@ -78,7 +84,7 @@ pub fn parse_immediate<'a>(tokenizer: &'a Box<dyn TokenGenerator + 'a>) -> Immed
 }
 
 // <register>
-fn parse_register<'a>(tokenizer: &'a Box<dyn TokenGenerator + 'a>, s: &str) -> Option<Register<'a>> {
+fn parse_register<'a>(tokenizer: &'a (dyn TokenGenerator + 'a), s: &str) -> Option<Register<'a>> {
     let loc = tokenizer.location();
     if let Some((kind, value, size)) = Register::is_reg(s) {
         tokenizer.next_token();
@@ -89,7 +95,7 @@ fn parse_register<'a>(tokenizer: &'a Box<dyn TokenGenerator + 'a>, s: &str) -> O
 }
 
 // <memory> = "ptr" "(" <base> ","  <index> "," <scale> "," <disp> ")"
-fn parse_memory<'a>(tokenizer: &'a Box<dyn TokenGenerator + 'a>) -> Memory<'a> {
+fn parse_memory<'a>(tokenizer: &'a (dyn TokenGenerator + 'a)) -> Memory<'a> {
     let loc = tokenizer.location();
     // "ptr"
     tokenizer.consume_token(TokenKind::Identifier("ptr"));

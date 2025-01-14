@@ -3,14 +3,20 @@ use std::cell::RefCell;
 use crate::{Token, TokenGenerator, TokenKind};
 use util::{emit_error, Location};
 
+#[derive(Debug, Clone)]
 pub struct Tokenizer<'a> {
-    location: RefCell<Location<'a>>,
+    location: &'a RefCell<Location<'a>>,
 }
 
 impl<'a> Tokenizer<'a> {
-    pub fn new(location: Location<'a>) -> Self {
+    // pub fn new(location: Location<'a>) -> Self {
+    //     Self {
+    //         location: RefCell::new(location),
+    //     }
+    // }
+    pub fn new(location: &'a RefCell<Location<'a>>,) -> Self {
         Self {
-            location: RefCell::new(location),
+            location: location,
         }
     }
 
@@ -119,17 +125,3 @@ impl<'a> TokenGenerator for Tokenizer<'a> {
     }
 }
 
-#[test]
-fn test_tokenizer() {
-    use util::Source;
-    let source = Source {
-        file: "test",
-        code: "< test > {\n     \ntest()\n}".to_string(),
-    };
-    let loc = Location::new(&source);
-    let t = Tokenizer::new(loc);
-    // t.expect_indent();;
-    loop {
-        eprintln!("{:#?}", t.next_token());
-    }
-}

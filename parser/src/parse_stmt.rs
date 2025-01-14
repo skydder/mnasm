@@ -8,7 +8,7 @@ use crate::{parse_block, parse_compound_ins, parse_label_def, parse_let_macro, p
 
 // <stmt> = <compound_ins> | <block> | <label_def>
 pub fn parse_stmt<'a>(
-    tokenizer: &'a Box<dyn TokenGenerator + 'a>,
+    tokenizer: &'a (dyn TokenGenerator + 'a),
     indent_depth: usize,
     scope: Rc<RefCell<Scope<'a>>>,
 ) -> Box<dyn Stmt<'a> + 'a> {

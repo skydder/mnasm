@@ -7,7 +7,7 @@ use crate::{parse_stmt, read_indent_by_depth};
 
 // <block> = "{" <stmt>* "}"
 pub fn parse_block<'a>(
-    tokenizer: &'a Box<dyn TokenGenerator + 'a>,
+    tokenizer: &'a (dyn TokenGenerator + 'a),
     indent_depth: usize,
     scope: Rc<RefCell<Scope<'a>>>,
 ) -> Block<'a> {
@@ -31,7 +31,7 @@ pub fn parse_block<'a>(
 
 // <stmts>*
 fn parse_inside<'a>(
-    tokenizer: &'a Box<dyn TokenGenerator + 'a>,
+    tokenizer: &'a (dyn TokenGenerator + 'a),
     indent_depth: usize,
     stmts: &mut Vec<Box<dyn Stmt<'a> + 'a>>,
     scope: Rc<RefCell<Scope<'a>>>,

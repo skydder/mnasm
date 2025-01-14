@@ -4,7 +4,7 @@ use data::{Ident, Macro, Scope};
 use tokenizer::{TokenGenerator, TokenKind};
 
 pub fn parse_let_macro<'a>(
-    tokenizer: &'a Box<dyn TokenGenerator + 'a>,
+    tokenizer: &'a (dyn TokenGenerator + 'a),
     scope: Rc<RefCell<Scope<'a>>>,
 ) -> Macro<'a> {
     let loc = tokenizer.location();

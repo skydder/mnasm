@@ -6,7 +6,7 @@ use tokenizer::{TokenGenerator, TokenKind};
 use crate::parse_stmt;
 
 // <code> = <label_def>*
-pub fn parse_code<'a>(tokenizer: &'a Box<dyn TokenGenerator + 'a>) -> Code<'a> {
+pub fn parse_code<'a>(tokenizer: &'a (dyn TokenGenerator + 'a)) -> Code<'a> {
     // <label_def>*
     let mut codes = Vec::new();
     let root = Rc::new(RefCell::new(Scope::new(None, None)));
@@ -17,13 +17,13 @@ pub fn parse_code<'a>(tokenizer: &'a Box<dyn TokenGenerator + 'a>) -> Code<'a> {
 
 // <label_def>*
 fn parse_code_inside<'a>(
-    tokenizer: &'a Box<dyn TokenGenerator + 'a>,
+    tokenizer: &'a (dyn TokenGenerator + 'a),
     labels: &mut Vec<Box<dyn Stmt<'a> + 'a>>,
     root: Rc<RefCell<Scope<'a>>>,
 ) {
     // <space>*<EOS> will be error so it should be fixed
     // => fixed, however, not good?
-    if is_EOS(tokenizer) {
+    if is_eos(tokenizer) {
         return;
     }
 
@@ -34,17 +34,17 @@ fn parse_code_inside<'a>(
     parse_code_inside(tokenizer, labels, root);
 }
 
-fn skip_null_line<'a>(tokenizer: &'a Box<dyn TokenGenerator + 'a>) {
+fn skip_null_line<'a>(tokenizer: &(dyn TokenGenerator + 'a)) {
     tokenizer.skip_space();
     tokenizer.consume_newline();
 }
 
-fn is_EOS<'a>(tokenizer: &'a Box<dyn TokenGenerator + 'a>) -> bool {
+fn is_eos<'a>(tokenizer: &(dyn TokenGenerator + 'a)) -> bool {
     match tokenizer.peek_token().kind {
         TokenKind::EOS => true,
         TokenKind::NewLine | TokenKind::Space => {
             skip_null_line(tokenizer);
-            is_EOS(tokenizer)
+            is_eos(tokenizer)
         }
         _ => false,
     }

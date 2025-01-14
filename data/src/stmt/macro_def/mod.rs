@@ -1,4 +1,4 @@
-use std::{cell::RefCell,  rc::Rc};
+use std::{cell::RefCell, rc::Rc};
 
 use util::{emit_error, Location};
 
@@ -14,44 +14,45 @@ mod let_macro;
 pub struct Macro<'a> {
     stream: Rc<Vec<Token<'a>>>,
     location: Location<'a>,
-    // arg: Vec<()>
 }
 
 impl<'a> Macro<'a> {
-    pub fn new(location: Location<'a>, stream: Rc<Vec<Token<'a>>>) -> Self {
+    pub fn new(location: Location<'a>, stream: Vec<Token<'a>>) -> Self {
         Self {
-            stream: stream,
+            stream: Rc::new(stream),
             location: location,
         }
     }
 
+    fn iter(&self) -> MacroTokenizer<'a> {
+        MacroTokenizer(self.stream.to_vec(), 0)
+    }
+
     pub fn tokenizer(&self) -> Box<dyn TokenGenerator + 'a> {
-        Box::new(MacroTokenizer::new(self.stream.clone(), self.location))
+        todo!()
+        // Box::new(MacroTokenizer::new(self.stream.clone(), self.location))
     }
 }
 
-struct MacroTokenizer<'a> {
-    stream: Rc<Vec<Token<'a>>>,
-    nth: RefCell<usize>,
-    location: Location<'a>
-}
+#[derive(Clone)]
+struct MacroTokenizer<'a>(Vec<Token<'a>>, usize);
 
 impl<'a> MacroTokenizer<'a> {
     fn new(
         stream: Rc<Vec<Token<'a>>>, // RefCell<std::slice::Iter<'a, Token<'a>>>,
         location: Location<'a>
     ) -> Self {
-        Self { stream: stream, nth: RefCell::new(0), location: location }
+        Self(stream.iter())
     }
 }
 
 impl<'a> TokenGenerator for MacroTokenizer<'a> {
     fn location(&self) -> Location {
-        self.location
+        self.0[self.1].location
     }
 
     fn peek_token(&self) -> Token {
-        if *self.nth.borrow() >= self.stream.len() {
+        if self.1 >= self.stream.len() {
             return Token::new(tokenizer::TokenKind::EOS, 0, self.location);
         } 
         self.stream[*self.nth.borrow()]
