@@ -5,7 +5,7 @@ use util::{emit_error, Location};
 
 #[derive(Debug, Clone)]
 pub struct Tokenizer<'a> {
-    location: &'a RefCell<Location<'a>>,
+    location: RefCell<Location<'a>>,
 }
 
 impl<'a> Tokenizer<'a> {
@@ -14,7 +14,7 @@ impl<'a> Tokenizer<'a> {
     //         location: RefCell::new(location),
     //     }
     // }
-    pub fn new(location: &'a RefCell<Location<'a>>,) -> Self {
+    pub fn new(location:  RefCell<Location<'a>>,) -> Self {
         Self {
             location: location,
         }

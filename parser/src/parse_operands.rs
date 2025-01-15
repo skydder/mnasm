@@ -16,19 +16,18 @@ pub fn parse_operands<'a>(
         TokenKind::Identifier(s) => {
             // <memory>
             if s == "ptr" {
-                return Box::new(parse_memory(tokenizer.as_ref()));
+                return Box::new(parse_memory(tokenizer));
 
             // <register>
-            } else if let Some(reg) = parse_register(tokenizer.as_ref(), s) {
+            } else if let Some(reg) = parse_register(tokenizer, s) {
                 return Box::new(reg);
 
             // <label>
             } else {
                 // tokenizer.next_token();
-                let label:Label<> = parse_label(tokenizer.as_ref(), scope.clone());
+                let label:Label<> = parse_label(tokenizer, scope.clone());
                 if let Some(m) = scope.borrow().find_macro(label.ident()) {
-                    let tokenizer = m.as_ref().tokenizer();
-                    let op: Box<dyn Operand + 'a> = parse_operands(tokenizer, scope.clone());
+                    let op: Box<dyn Operand + 'a> = parse_operands(m.tokenizer(), scope.clone());
                     return op;
                 }
                 Box::new(label)
@@ -37,9 +36,9 @@ pub fn parse_operands<'a>(
 
         // <immediate>
         TokenKind::Number(_) | TokenKind::Minus => {
-            return Box::new(parse_immediate(tokenizer.as_ref()));
+            return Box::new(parse_immediate(tokenizer));
         }
-        TokenKind::Dot => Box::new(parse_label(tokenizer.as_ref(), scope)),
+        TokenKind::Dot => Box::new(parse_label(tokenizer, scope)),
 
         _ => {
             emit_error!(loc, "unexpected token")

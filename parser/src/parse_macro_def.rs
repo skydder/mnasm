@@ -1,6 +1,6 @@
 use std::{cell::RefCell, rc::Rc};
 
-use data::{Ident, Macro, Scope};
+use data::{Ident, Macro, MacroTokenizer, Scope};
 use tokenizer::{TokenGenerator, TokenKind};
 
 pub fn parse_let_macro<'a>(
@@ -30,8 +30,9 @@ pub fn parse_let_macro<'a>(
     tokenizer.consume_token(TokenKind::CloseParenthesis);
     let macros = Rc::new(macros);
 
+    let binding = MacroTokenizer::new(macros.to_vec());
     scope
         .borrow_mut()
-        .add_macro(ident, Rc::new(Macro::new(loc, macros.clone())));
-    Macro::new(loc, macros)
+        .add_macro(ident, Rc::new(Macro::new(loc, macros.to_vec(), &binding)));
+    Macro::new(loc, macros.to_vec(), &binding)
 }

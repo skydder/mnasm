@@ -9,7 +9,7 @@ pub use operands::{
     Immediate, Label, LabelState, Memory, Operand, OperandKind, Register, RegisterKind, Scale,
 };
 pub use stmt::{
-    Block, CompoundIns, Ins, LabelDef, LabelInfo, Macro, PseudoIns, Scope, Stmt, StmtKind,
+    Block, CompoundIns, Ins, LabelDef, LabelInfo, Macro, PseudoIns, Scope, Stmt, StmtKind, MacroTokenizer
 };
 
 pub trait Analyze {

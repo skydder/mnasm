@@ -12,55 +12,66 @@ mod let_macro;
 
 #[derive(Debug)]
 pub struct Macro<'a> {
-    stream: Rc<Vec<Token<'a>>>,
+    stream: Box<Vec<Token<'a>>>,
     location: Location<'a>,
+    tokenizer: &'a (dyn TokenGenerator + 'a)
 }
 
 impl<'a> Macro<'a> {
-    pub fn new(location: Location<'a>, stream: Vec<Token<'a>>) -> Self {
+    pub fn new(location: Location<'a>, stream: Vec<Token<'a>>, tokenizer: &'a MacroTokenizer<'a>) -> Self {
         Self {
-            stream: Rc::new(stream),
+            stream: Box::new(stream.clone()),
             location: location,
+            tokenizer: tokenizer,
         }
     }
 
-    fn iter(&self) -> MacroTokenizer<'a> {
-        MacroTokenizer(self.stream.to_vec(), 0)
-    }
+    // fn iter(&self) -> MacroTokenizer<'a> {
+    //     MacroTokenizer::new(self.stream.to_vec())
+    // }
 
-    pub fn tokenizer(&self) -> Box<dyn TokenGenerator + 'a> {
-        todo!()
-        // Box::new(MacroTokenizer::new(self.stream.clone(), self.location))
+    pub fn tokenizer(&self) -> &'a (dyn TokenGenerator + 'a) {
+        self.tokenizer
     }
 }
 
-#[derive(Clone)]
-struct MacroTokenizer<'a>(Vec<Token<'a>>, usize);
+// impl<'a> std::iter::IntoIterator for Macro<'a> {
+//     type Item = Token<'a>;
+
+//     type IntoIter = MacroTokenizer<'a>;
+
+//     fn into_iter(self) -> Self::IntoIter {
+//         self.iter()
+//     }
+// }
+
+
+#[derive(Debug)]
+pub struct MacroTokenizer<'a>(Vec<Token<'a>>, RefCell<usize>);
 
 impl<'a> MacroTokenizer<'a> {
-    fn new(
-        stream: Rc<Vec<Token<'a>>>, // RefCell<std::slice::Iter<'a, Token<'a>>>,
-        location: Location<'a>
+    pub fn new(
+        stream: Vec<Token<'a>>
     ) -> Self {
-        Self(stream.iter())
+        Self(stream, RefCell::new(0))
     }
 }
 
 impl<'a> TokenGenerator for MacroTokenizer<'a> {
     fn location(&self) -> Location {
-        self.0[self.1].location
+        self.0[*self.1.borrow()].location
     }
 
     fn peek_token(&self) -> Token {
-        if self.1 >= self.stream.len() {
-            return Token::new(tokenizer::TokenKind::EOS, 0, self.location);
+        if *self.1.borrow() >= self.0.len() {
+            return Token::new(tokenizer::TokenKind::EOS, 0, self.0.last().unwrap().location);
         } 
-        self.stream[*self.nth.borrow()]
+        self.0[*self.1.borrow()]
     }
 
     fn next_token(&self) -> Token {
         let token = self.peek_token();
-        *self.nth.borrow_mut() += 1;
+        *self.1.borrow_mut() += 1;
         return token;
     }
 
@@ -113,6 +124,15 @@ impl<'a> TokenGenerator for MacroTokenizer<'a> {
     }
 }
 
+// impl<'a> std::iter::Iterator for MacroTokenizer<'a> {
+//     type Item = Token<'a>;
+
+//     fn next(&mut self) -> Option<Self::Item> {
+//         let item = self.0.get(*self.1.borrow());
+//         *self.1.borrow_mut() += 1;
+//         item.copied()
+//     }
+// }
 
 
 impl<'a> Object for Macro<'a> {}
