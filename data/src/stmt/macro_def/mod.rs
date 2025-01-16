@@ -2,7 +2,7 @@ use std::{cell::RefCell, rc::Rc};
 
 use util::{emit_error, Location};
 
-use tokenizer::{self, Token, TokenGenerator, TokenKind};
+use tokenizer::{self, Token, TokenGenerator, TokenKind, Tokenizer};
 
 use crate::{Analyze, Codegen, Object};
 
@@ -12,15 +12,17 @@ mod let_macro;
 
 #[derive(Debug)]
 pub struct Macro<'a> {
-    stream: Box<Vec<Token<'a>>>,
+    stream: (Location<'a>, Location<'a>),
+    // stream: Box<Vec<Token<'a>>>,
     location: Location<'a>,
     tokenizer: &'a (dyn TokenGenerator + 'a)
 }
 
 impl<'a> Macro<'a> {
-    pub fn new(location: Location<'a>, stream: Vec<Token<'a>>, tokenizer: &'a MacroTokenizer<'a>) -> Self {
+    pub fn new(location: Location<'a>, stream: (Location<'a>, Location<'a>), tokenizer: &'a MacroTokenizer2<'a>) -> Self {
         Self {
-            stream: Box::new(stream.clone()),
+            // stream: Box::new(stream.clone()),
+            stream: stream,
             location: location,
             tokenizer: tokenizer,
         }
@@ -45,6 +47,65 @@ impl<'a> Macro<'a> {
 //     }
 // }
 
+#[derive(Debug, Clone, Copy)]
+pub struct MacroTokenizer2<'a> {
+    tokenizer: Tokenizer<'a>,
+    end: Location<'a>,
+}
+
+impl<'a> MacroTokenizer2<'a> {
+    pub fn new(
+        stream: (Tokenizer<'a>, Location<'a>) 
+    ) -> Self {
+        Self {
+            tokenizer: stream.0,
+            end: stream.1,
+        }
+    }
+}
+
+impl<'a> TokenGenerator for MacroTokenizer2<'a> {
+    fn location(&self) -> Location {
+        self.tokenizer.location()
+    }
+
+    fn peek_token(&self) -> Token {
+        let current = self.tokenizer.peek_token();
+        if current.location >= self.end {
+            return Token::new(TokenKind::EOS, 0, self.end);
+        } else {
+            current
+        }
+    }
+
+    fn next_token(&self) -> Token {
+        let current = self.peek_token();
+        if current.kind != TokenKind::EOS {
+            self.tokenizer.next_token();
+        }
+        current
+    }
+
+    fn skip_space(&self) {
+        self.tokenizer.skip_space();
+    }
+
+    fn consume_token(&self, consumeing_token: TokenKind) {
+        self.tokenizer.consume_token(consumeing_token);
+    }
+
+    fn consume_newline(&self) {
+        self.tokenizer.consume_newline();
+    }
+
+    fn consume_indent(&self) {
+        self.tokenizer.consume_indent();
+    }
+    
+    fn kind(&self) -> tokenizer::GenKind {
+        tokenizer::GenKind::MacroTokenizer
+    }
+}
 
 #[derive(Debug)]
 pub struct MacroTokenizer<'a>(Vec<Token<'a>>, RefCell<usize>);
@@ -122,18 +183,11 @@ impl<'a> TokenGenerator for MacroTokenizer<'a> {
             }
         }
     }
+    
+    fn kind(&self) -> tokenizer::GenKind {
+        tokenizer::GenKind::MacroTokenizer
+    }
 }
-
-// impl<'a> std::iter::Iterator for MacroTokenizer<'a> {
-//     type Item = Token<'a>;
-
-//     fn next(&mut self) -> Option<Self::Item> {
-//         let item = self.0.get(*self.1.borrow());
-//         *self.1.borrow_mut() += 1;
-//         item.copied()
-//     }
-// }
-
 
 impl<'a> Object for Macro<'a> {}
 impl<'a> Analyze for Macro<'a> {

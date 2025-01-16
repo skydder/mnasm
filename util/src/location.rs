@@ -2,6 +2,7 @@ use std::io::Read;
 
 use crate::{emit_msg_and_exit, open_safely};
 
+#[derive(Debug, PartialEq)]
 pub struct Source<'a> {
     pub code: String,
     pub file: &'a str,
@@ -78,5 +79,18 @@ impl<'a> Location<'a> {
     }
     pub fn current_slice(&self) -> &'a str {
         self.source.nth(self.nth)
+    }
+}
+
+impl<'a> std::cmp::PartialEq for Location<'a> {
+    fn eq(&self, other: &Self) -> bool {
+        self.source == other.source && self.nth == other.nth
+    }
+}
+
+impl<'a> std::cmp::PartialOrd for Location<'a> {
+    
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        self.nth.partial_cmp(&other.nth)
     }
 }

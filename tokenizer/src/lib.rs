@@ -16,4 +16,10 @@ pub trait TokenGenerator: Debug {
     fn consume_token(&self, consumeing_token: TokenKind);
     fn consume_newline(&self);
     fn consume_indent(&self);
+    fn kind(&self) -> GenKind;
+}
+
+pub enum GenKind {
+    Tokenizer,
+    MacroTokenizer
 }

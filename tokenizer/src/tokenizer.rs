@@ -3,9 +3,9 @@ use std::cell::RefCell;
 use crate::{Token, TokenGenerator, TokenKind};
 use util::{emit_error, Location};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub struct Tokenizer<'a> {
-    location: RefCell<Location<'a>>,
+    location: &'a RefCell<Location<'a>>,
 }
 
 impl<'a> Tokenizer<'a> {
@@ -14,7 +14,7 @@ impl<'a> Tokenizer<'a> {
     //         location: RefCell::new(location),
     //     }
     // }
-    pub fn new(location:  RefCell<Location<'a>>,) -> Self {
+    pub fn new(location:  &'a RefCell<Location<'a>>,) -> Self {
         Self {
             location: location,
         }
@@ -122,6 +122,10 @@ impl<'a> TokenGenerator for Tokenizer<'a> {
 
     fn consume_indent(&self) {
         self._consume_indent();
+    }
+    
+    fn kind(&self) -> crate::GenKind {
+        crate::GenKind::Tokenizer
     }
 }
 
