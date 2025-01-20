@@ -3,8 +3,10 @@ use std::{cell::RefCell, rc::Rc};
 use data::{Ident, Macro, MacroTokenizer2, Scope};
 use tokenizer::{TokenGenerator, TokenKind};
 
+use crate::tokenizer::Tokenizer2;
+
 pub fn parse_let_macro<'a>(
-    tokenizer: &'a (dyn TokenGenerator + 'a),
+    tokenizer: &'a mut Tokenizer2,
     scope: Rc<RefCell<Scope<'a>>>,
 ) -> Macro<'a> {
     let loc = tokenizer.location();

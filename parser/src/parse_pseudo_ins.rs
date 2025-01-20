@@ -4,10 +4,10 @@ use data::{Ident, Operand, PseudoIns, Scope};
 use tokenizer::{TokenKind, TokenGenerator};
 use util::emit_error;
 
-use crate::parse_operands;
+use crate::{parse_operands, tokenizer::Tokenizer2};
 
 pub fn parse_pseudo_ins<'a>(
-    tokenizer: &'a (dyn TokenGenerator + 'a),
+    tokenizer: &'a mut Tokenizer2,
     scope: Rc<RefCell<Scope<'a>>>,
 ) -> PseudoIns<'a> {
     let currrent_token = tokenizer.peek_token();
@@ -40,7 +40,7 @@ pub fn parse_pseudo_ins<'a>(
     PseudoIns::new(ins, operands, currrent_token.location)
 }
 
-fn parse_ins_operands_inside<'a>(tokenizer: &(dyn TokenGenerator + 'a), operands: &mut Vec<String>) {
+fn parse_ins_operands_inside<'a>(tokenizer: &'a mut Tokenizer2, operands: &mut Vec<String>) {
     // <operand>
     let op = match tokenizer.peek_token().kind {
         TokenKind::Minus | TokenKind::Number(_) => {
@@ -85,7 +85,7 @@ fn parse_ins_operands_inside<'a>(tokenizer: &(dyn TokenGenerator + 'a), operands
 }
 
 fn parse_extern_operands_inside<'a>(
-    tokenizer: &'a (dyn TokenGenerator + 'a),
+    tokenizer: &'a mut Tokenizer2,
     operands: &mut Vec<String>,
     scope: Rc<RefCell<Scope<'a>>>,
 ) {

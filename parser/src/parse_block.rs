@@ -3,11 +3,11 @@ use std::{cell::RefCell, rc::Rc};
 use data::{Block, Scope, Stmt};
 use tokenizer::{TokenGenerator, TokenKind};
 
-use crate::{parse_stmt, read_indent_by_depth};
+use crate::{parse_stmt, read_indent_by_depth, tokenizer::Tokenizer2};
 
 // <block> = "{" <stmt>* "}"
 pub fn parse_block<'a>(
-    tokenizer: &'a (dyn TokenGenerator + 'a),
+    tokenizer: &'a mut Tokenizer2,
     indent_depth: usize,
     scope: Rc<RefCell<Scope<'a>>>,
 ) -> Block<'a> {
@@ -31,7 +31,7 @@ pub fn parse_block<'a>(
 
 // <stmts>*
 fn parse_inside<'a>(
-    tokenizer: &'a (dyn TokenGenerator + 'a),
+    tokenizer: &'a mut Tokenizer2,
     indent_depth: usize,
     stmts: &mut Vec<Box<dyn Stmt<'a> + 'a>>,
     scope: Rc<RefCell<Scope<'a>>>,

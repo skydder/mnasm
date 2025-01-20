@@ -4,11 +4,11 @@ use data::{Ident, LabelDef, Scope};
 use tokenizer::{TokenGenerator, TokenKind};
 use util::emit_error;
 
-use crate::{parse_block, parse_label};
+use crate::{parse_block, parse_label, tokenizer::Tokenizer2};
 
 // <label_def> = "<" <label> (":" "global")? (":" <section> )? ">" <block>?
 pub fn parse_label_def<'a>(
-    tokenizer: &'a (dyn TokenGenerator + 'a),
+    tokenizer: &'a mut Tokenizer2,
     indent_depth: usize,
     scope: Rc<RefCell<Scope<'a>>>,
 ) -> LabelDef<'a> {
@@ -81,7 +81,7 @@ pub fn parse_label_def<'a>(
     LabelDef::new(label, gen_label, is_global, section, block, loc)
 }
 
-fn parse_section<'a>(tokenizer: &'a (dyn TokenGenerator + 'a)) -> Ident<'a> {
+fn parse_section<'a>(tokenizer: &'a mut Tokenizer2) -> Ident<'a> {
     let s = if tokenizer.peek_token().is(TokenKind::Dot) {
         tokenizer.next_token();
         // todo: add all reserved section

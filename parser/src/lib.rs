@@ -8,6 +8,7 @@ mod parse_macro_def;
 mod parse_operands;
 mod parse_pseudo_ins;
 mod parse_stmt;
+mod tokenizer;
 
 pub use parse_block::parse_block;
 pub use parse_code::parse_code;
@@ -18,4 +19,5 @@ pub use parse_label_def::parse_label_def;
 pub use parse_operands::parse_operands;
 pub use parse_pseudo_ins::parse_pseudo_ins;
 pub use parse_stmt::parse_stmt;
-pub use parse_macro_def::parse_let_macro;
+pub use parse_macro_def::parse_let_macro; 
+

@@ -15,7 +15,7 @@ pub struct Macro<'a> {
     stream: (Location<'a>, Location<'a>),
     // stream: Box<Vec<Token<'a>>>,
     location: Location<'a>,
-    tokenizer: &'a (dyn TokenGenerator + 'a)
+    tokenizer: &'a mut Tokenizer2
 }
 
 impl<'a> Macro<'a> {
@@ -32,7 +32,7 @@ impl<'a> Macro<'a> {
     //     MacroTokenizer::new(self.stream.to_vec())
     // }
 
-    pub fn tokenizer(&self) -> &'a (dyn TokenGenerator + 'a) {
+    pub fn tokenizer(&self) -> &'a mut Tokenizer2 {
         self.tokenizer
     }
 }
@@ -49,17 +49,20 @@ impl<'a> Macro<'a> {
 
 #[derive(Debug, Clone, Copy)]
 pub struct MacroTokenizer2<'a> {
-    tokenizer: Tokenizer<'a>,
+    pub tokenizer: Tokenizer<'a>,
     end: Location<'a>,
+    pub ret: Location<'a>
 }
 
 impl<'a> MacroTokenizer2<'a> {
     pub fn new(
-        stream: (Tokenizer<'a>, Location<'a>) 
+        stream: (Tokenizer<'a>, Location<'a>),
+        ret: Location<'a> 
     ) -> Self {
         Self {
             tokenizer: stream.0,
             end: stream.1,
+            ret: ret
         }
     }
 }

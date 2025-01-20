@@ -93,6 +93,10 @@ impl<'a> Tokenizer<'a> {
             }
         }
     }
+
+    pub fn swap(&self, location:  Location<'a>) -> Location<'a> {
+        self.location.replace(location)
+    }
 }
 
 impl<'a> TokenGenerator for Tokenizer<'a> {
