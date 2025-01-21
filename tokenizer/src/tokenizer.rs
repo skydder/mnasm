@@ -20,15 +20,15 @@ impl<'a> Tokenizer<'a> {
         }
     }
 
-    fn _location(&self) -> Location {
-        *self.location.borrow()
+    fn _location(&self) -> Location<'a> {
+        self.location.borrow().clone()
     }
 
     fn current_slice(&self) -> &'a str {
         self.location.borrow().current_slice()
     }
 
-    fn _peek_token(&self) -> Token {
+    fn _peek_token(&self) -> Token<'a> {
         let tok = Token::tokenize(self.current_slice(), self.location.borrow().clone());
         tok
     }
@@ -43,7 +43,7 @@ impl<'a> Tokenizer<'a> {
         }
     }
 
-    fn _next_token(&self) -> Token {
+    fn _next_token(&self) -> Token<'a> {
         let token = self.peek_token();
         self.advance_location_by_token(&token);
         token
@@ -99,16 +99,16 @@ impl<'a> Tokenizer<'a> {
     }
 }
 
-impl<'a> TokenGenerator for Tokenizer<'a> {
-    fn location(&self) -> Location {
+impl<'a> TokenGenerator<'a> for Tokenizer<'a> {
+    fn location(&self) -> Location<'a> {
         self._location()
     }
 
-    fn peek_token(&self) -> Token {
+    fn peek_token(&self) -> Token<'a> {
         self._peek_token()
     }
 
-    fn next_token(&self) -> Token {
+    fn next_token(&self) -> Token<'a> {
         self._next_token()
     }
 

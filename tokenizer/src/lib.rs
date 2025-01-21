@@ -8,10 +8,10 @@ pub use tokenizer::Tokenizer;
 use util::Location;
 
 // todo: apply to Tokenizer and Macro
-pub trait TokenGenerator: Debug {
-    fn location(&self) -> Location;
-    fn peek_token(&self) -> Token;
-    fn next_token(&self) -> Token;
+pub trait TokenGenerator<'a>: Debug{
+    fn location(&self) -> Location<'a>;
+    fn peek_token(&self) -> Token<'a>;
+    fn next_token(&self) -> Token<'a>;
     fn skip_space(&self);
     fn consume_token(&self, consumeing_token: TokenKind);
     fn consume_newline(&self);

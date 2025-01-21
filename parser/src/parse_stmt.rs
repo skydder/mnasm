@@ -1,14 +1,14 @@
 use std::{cell::RefCell, rc::Rc};
 
 use data::{Ident, Scope, Stmt};
-use tokenizer::{TokenGenerator, TokenKind};
+use tokenizer::TokenKind;
 use util::emit_error;
 
 use crate::{parse_block, parse_compound_ins, parse_label_def, parse_let_macro, parse_pseudo_ins, tokenizer::Tokenizer2};
 
 // <stmt> = <compound_ins> | <block> | <label_def>
 pub fn parse_stmt<'a>(
-    tokenizer: &'a mut Tokenizer2,
+    tokenizer: &'a Tokenizer2<'a>,
     indent_depth: usize,
     scope: Rc<RefCell<Scope<'a>>>,
 ) -> Box<dyn Stmt<'a> + 'a> {

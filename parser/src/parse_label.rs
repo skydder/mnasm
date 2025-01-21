@@ -1,12 +1,12 @@
 use std::{cell::RefCell, rc::Rc};
 
 use data::{Ident, Label, Scope};
-use tokenizer::{TokenGenerator, TokenKind};
+use tokenizer::TokenKind;
 use util::emit_error;
 
 use crate::tokenizer::Tokenizer2;
 
-pub fn parse_label<'a>(tokenizer: &'a mut Tokenizer2, scope: Rc<RefCell<Scope<'a>>>) -> Label<'a> {
+pub fn parse_label<'a>(tokenizer: &'a Tokenizer2<'a>, scope: Rc<RefCell<Scope<'a>>>) -> Label<'a> {
     match tokenizer.peek_token().kind {
         TokenKind::Dot => {
             tokenizer.next_token();
@@ -21,12 +21,12 @@ pub fn parse_label<'a>(tokenizer: &'a mut Tokenizer2, scope: Rc<RefCell<Scope<'a
                 tokenizer.location(),
             );
             tokenizer.next_token();
-            label
+            label.clone()
         }
         TokenKind::Identifier(ident) => {
             let label = Label::new(Ident::new(ident, false), scope, tokenizer.location());
             tokenizer.next_token();
-            label
+            label.clone()
         }
         _ => {
             emit_error!(tokenizer.location(), "expected label here but found other");

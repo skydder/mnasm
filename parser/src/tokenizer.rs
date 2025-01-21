@@ -1,4 +1,4 @@
-use std::cell::RefCell;
+use std::cell::Cell;
 
 use tokenizer::{Token, Tokenizer, TokenGenerator};
 use data::MacroTokenizer2;
@@ -10,87 +10,95 @@ enum TokenizerKind<'a> {
     MacroTokenizer(MacroTokenizer2<'a>),
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
 pub struct Tokenizer2<'a> {
-    tokenizer: TokenizerKind<'a>,
+    tokenizer: Cell<TokenizerKind<'a>>,
 }
 
 impl<'a> Tokenizer2<'a> {
-    fn enter_macro(&'a mut self, stream: (Location<'a>, Location<'a>)) {
-        let tokenizer = if let TokenizerKind::Tokenizer(t)= self.tokenizer {
+    pub fn new_tokenizer(tokenizer: Tokenizer<'a>) -> Self {
+        Self { tokenizer: Cell::new(TokenizerKind::Tokenizer(tokenizer)) }
+    }
+
+    pub fn enter_macro(&self, stream: (Location<'a>, Location<'a>)) {
+        let tokenizer = if let TokenizerKind::Tokenizer(t)= self.tokenizer.get() {
             t
         } else {
             todo!()
         };
         let ret = tokenizer.swap(stream.0);
-        self.tokenizer = TokenizerKind::MacroTokenizer(MacroTokenizer2::new((tokenizer, stream.1), ret));
+        self.tokenizer.set(TokenizerKind::MacroTokenizer(MacroTokenizer2::new((tokenizer, stream.1), ret)));
     }
 
-    fn leave_macro(&'a mut self) {
-        let tokenizer = if let TokenizerKind::MacroTokenizer(t)= self.tokenizer {
+    pub fn leave_macro(&'a mut self) {
+        let tokenizer = if let TokenizerKind::MacroTokenizer(t)= self.tokenizer.get() {
             t
         } else {
             todo!()
         };
-        let ret = tokenizer.tokenizer.swap(tokenizer.ret);
-        self.tokenizer = TokenizerKind::Tokenizer(tokenizer.tokenizer);
+        let _ = tokenizer.tokenizer.swap(tokenizer.ret);
+        self.tokenizer.set(TokenizerKind::Tokenizer(tokenizer.tokenizer));
     }
 }
 
 impl<'a> Tokenizer2<'a> {
-    pub fn location(&self) -> util::Location {
-        self.tokenizer.location()
+    pub fn location(&self) -> util::Location<'a> {
+        self.tokenizer.get().location()
     }
 
     pub fn peek_token(&self) -> Token {
-        self.tokenizer.peek_token()
+        self.tokenizer.get().peek_token()
     }
 
     pub fn next_token(&self) -> Token {
-        self.tokenizer.peek_token()
+        self.tokenizer.get().next_token()
     }
 
     pub fn skip_space(&self) {
-        self.tokenizer.skip_space()
+        self.tokenizer.get().skip_space()
     }
 
     pub fn consume_token(&self, consumeing_token: tokenizer::TokenKind) {
-        self.tokenizer.consume_token(consumeing_token)
+        self.tokenizer.get().consume_token(consumeing_token)
     }
 
     pub fn consume_newline(&self) {
-        self.tokenizer.consume_newline()
+        self.tokenizer.get().consume_newline()
     }
 
     pub fn consume_indent(&self) {
-        self.tokenizer.consume_indent()
+        self.tokenizer.get().consume_indent()
     }
 
     pub fn kind(&self) -> tokenizer::GenKind {
-        self.tokenizer.kind()
+        self.tokenizer.get().kind()
     }
 }
 
-impl<'a> TokenGenerator for TokenizerKind<'a> {
-    fn location(&self) -> util::Location {
+impl<'a> TokenGenerator<'a> for TokenizerKind<'a> {
+    fn location(&self) -> util::Location<'a> {
         match self {
             TokenizerKind::MacroTokenizer(tok) => tok.location(),
             TokenizerKind::Tokenizer(tok ) => tok.location(),
         }
     }
 
-    fn peek_token(&self) -> Token {
-        match self {
+    fn peek_token(&self) -> Token<'a> {
+        let tok = match self {
             TokenizerKind::MacroTokenizer(tok) => tok.peek_token(),
             TokenizerKind::Tokenizer(tok ) => tok.peek_token(),
-        }
+        };
+        eprintln!("tok: {:#?}", tok);
+        tok
     }
 
-    fn next_token(&self) -> Token {
-        match self {
+    fn next_token(&self) -> Token<'a> {
+        let tok = match self {
             TokenizerKind::MacroTokenizer(tok) => tok.next_token(),
             TokenizerKind::Tokenizer(tok ) => tok.next_token(),
-        }
+        };
+        eprintln!("tok: {:#?}", tok);
+        tok
     }
 
     fn skip_space(&self) {

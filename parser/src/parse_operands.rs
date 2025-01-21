@@ -1,14 +1,14 @@
 use std::{cell::RefCell, rc::Rc};
 
 use data::{Immediate, Label, Memory, Operand, Register, Scale, Scope};
-use tokenizer::{TokenGenerator, TokenKind};
+use tokenizer::TokenKind;
 use util::emit_error;
 
 use crate::{parse_label, tokenizer::Tokenizer2};
 
 // <operand> = <memory> | <register> | <immediate> | <label>
 pub fn parse_operands<'a>(
-    tokenizer: &'a mut Tokenizer2,
+    tokenizer: &'a Tokenizer2<'a>,
     scope: Rc<RefCell<Scope<'a>>>,
 ) -> Box<dyn Operand + 'a> {
     let loc = tokenizer.location();
@@ -27,8 +27,8 @@ pub fn parse_operands<'a>(
                 // tokenizer.next_token();
                 let label:Label<> = parse_label(tokenizer, scope.clone());
                 if let Some(m) = scope.borrow().find_macro(label.ident()) {
-                    let op: Box<dyn Operand + 'a> = parse_operands(m.tokenizer(), scope.clone());
-                    return op;
+                    // let op: Box<dyn Operand + 'a> = parse_operands(m.tokenizer(), scope.clone());
+                    // return op;
                 }
                 Box::new(label)
             }
@@ -47,13 +47,13 @@ pub fn parse_operands<'a>(
 }
 
 // <immediate> = ("-")? <number>
-pub fn parse_immediate<'a>(tokenizer: &'a mut Tokenizer2) -> Immediate<'a> {
+pub fn parse_immediate<'a>(tokenizer: &'a Tokenizer2<'a>) -> Immediate<'a> {
     let current_token = tokenizer.peek_token();
     match current_token.kind {
         // <number>
         TokenKind::Number(imm) => {
             tokenizer.next_token();
-            return Immediate::new(imm, false, 32, current_token.location);
+            return Immediate::new(imm, false, 32, current_token.location.clone());
         }
         // "-" <number>
         TokenKind::Minus => {
@@ -83,7 +83,7 @@ pub fn parse_immediate<'a>(tokenizer: &'a mut Tokenizer2) -> Immediate<'a> {
 }
 
 // <register>
-fn parse_register<'a>(tokenizer: &'a mut Tokenizer2, s: &str) -> Option<Register<'a>> {
+fn parse_register<'a>(tokenizer: &'a Tokenizer2<'a>, s: &str) -> Option<Register<'a>> {
     let loc = tokenizer.location();
     if let Some((kind, value, size)) = Register::is_reg(s) {
         tokenizer.next_token();
@@ -94,7 +94,7 @@ fn parse_register<'a>(tokenizer: &'a mut Tokenizer2, s: &str) -> Option<Register
 }
 
 // <memory> = "ptr" "(" <base> ","  <index> "," <scale> "," <disp> ")"
-fn parse_memory<'a>(tokenizer: &'a mut Tokenizer2) -> Memory<'a> {
+fn parse_memory<'a>(tokenizer: &'a Tokenizer2<'a>) -> Memory<'a> {
     let loc = tokenizer.location();
     // "ptr"
     tokenizer.consume_token(TokenKind::Identifier("ptr"));

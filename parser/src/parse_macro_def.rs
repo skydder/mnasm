@@ -1,12 +1,12 @@
 use std::{cell::RefCell, rc::Rc};
 
-use data::{Ident, Macro, MacroTokenizer2, Scope};
-use tokenizer::{TokenGenerator, TokenKind};
+use data::{Ident, Macro, Scope};
+use tokenizer::TokenKind;
 
 use crate::tokenizer::Tokenizer2;
 
 pub fn parse_let_macro<'a>(
-    tokenizer: &'a mut Tokenizer2,
+    tokenizer: &'a Tokenizer2<'a>,
     scope: Rc<RefCell<Scope<'a>>>,
 ) -> Macro<'a> {
     let loc = tokenizer.location();
@@ -37,9 +37,10 @@ pub fn parse_let_macro<'a>(
     tokenizer.consume_token(TokenKind::CloseParenthesis);
     let macros = Rc::new(macros);
 
-    let binding = MacroTokenizer2::new((start, end));
-    scope
-        .borrow_mut()
-        .add_macro(ident, Rc::new(Macro::new(loc, (start_loc, end), &binding)));
-    Macro::new(loc, (start_loc, end), &binding)
+    // let binding = MacroTokenizer2::new((start, end));
+    // scope
+    //     .borrow_mut()
+    //     .add_macro(ident, Rc::new(Macro::new(loc, (start_loc, end), &binding)));
+    // Macro::new(loc, (start_loc, end), &binding)
+    todo!()
 }

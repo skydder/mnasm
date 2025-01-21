@@ -1,16 +1,12 @@
 use std::{
-    fs::{self, File},
-    io::{self, Write},
-    path::Path,
-    process::Command,
-    result::Result,
+    cell::RefCell, fs::{self, File}, io::{self, Write}, path::Path, process::Command, result::Result
 };
 use tempfile::NamedTempFile;
 
 use analyzer::analyze;
 use codegen::codegen_code;
-use parser::parse_code;
-use tokenizer::{Tokenizer, TokenGenerator};
+use parser::{parse_code, Tokenizer2};
+use tokenizer::Tokenizer;
 use util::{emit_msg_and_exit, set_iw, Location, Source};
 
 fn main() {
@@ -19,8 +15,8 @@ fn main() {
 
 fn assemble(file: &str) -> String {
     let source = Source::new(file);
-    let loc = Location::new(&source);
-    let t = (|| -> Box<dyn TokenGenerator> {Box::new(Tokenizer::new(loc))} )();
+    let loc = RefCell::new(Location::new(&source));
+    let t = Tokenizer2::new_tokenizer(Tokenizer::new(&loc));
     let ast = parse_code(&t);
     analyze(&ast);
     codegen_code(&ast)
