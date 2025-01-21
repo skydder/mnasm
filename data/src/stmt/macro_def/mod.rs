@@ -23,6 +23,14 @@ impl<'a> Macro<'a> {
             location: location
         }
     }
+
+    pub fn ingredients_of_tokenizer(&self) -> (Location<'a>, Location<'a>) {
+        self.stream
+    }
+
+    pub fn location(&self) -> Location<'a> {
+        self.location
+    }
 }
 
 #[derive(Debug, Clone, Copy)]

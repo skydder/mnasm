@@ -15,6 +15,7 @@ pub enum TokenKind<'a> {
     Comma,
     Minus,
     Dot,
+    At,
     Number(u64),
     String(&'a str),
     Identifier(&'a str),
@@ -75,16 +76,6 @@ impl<'a> TokenBuilder<'a> {
         }
     }
 }
-
-// const RESERVED: &[&str] = &["rax", "ra"];
-// fn is_reserved(s: &str) -> bool {
-//     for i in RESERVED {
-//         if s == *i {
-//             return true;
-//         }
-//     }
-//     false
-// }
 
 #[derive(Debug, Clone, Copy)]
 pub struct Token<'a> {
@@ -166,6 +157,8 @@ impl<'a> Token<'a> {
             Some(builder.kind(TokenKind::Minus).len(1))
         } else if s.starts_with(".") {
             Some(builder.kind(TokenKind::Dot).len(1))
+        } else if s.starts_with("@") {
+            Some(builder.kind(TokenKind::At).len(1))
         } else {
             None
         }

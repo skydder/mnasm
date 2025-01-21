@@ -24,23 +24,20 @@ pub fn parse_let_macro<'a>(
     tokenizer.skip_space();
     tokenizer.consume_token(TokenKind::Comma);
     tokenizer.skip_space();
-    let start = tokenizer;
+
     let start_loc = tokenizer.location();
-    let mut end ;
-    let mut macros = Vec::new();
-    while !tokenizer.peek_token().is(TokenKind::CloseParenthesis) {
-        end = tokenizer.location();
-        macros.push(tokenizer.next_token());
+    let mut end = tokenizer.location();
+    while !tokenizer.peek_token().is(TokenKind::At) {
+        tokenizer.next_token();
         tokenizer.skip_space();
-
+        end = tokenizer.location();
     }
+    
+    tokenizer.consume_token(TokenKind::At);
+    tokenizer.skip_space();
     tokenizer.consume_token(TokenKind::CloseParenthesis);
-    let macros = Rc::new(macros);
-
-    // let binding = MacroTokenizer2::new((start, end));
-    // scope
-    //     .borrow_mut()
-    //     .add_macro(ident, Rc::new(Macro::new(loc, (start_loc, end), &binding)));
-    // Macro::new(loc, (start_loc, end), &binding)
-    todo!()
+    scope
+        .borrow_mut()
+        .add_macro(ident, Rc::new(Macro::new(loc, (start_loc, end))));
+    Macro::new(loc, (start_loc, end))
 }

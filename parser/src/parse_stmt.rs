@@ -22,7 +22,7 @@ pub fn parse_stmt<'a>(
         TokenKind::Identifier("let") => Box::new(parse_let_macro(tokenizer, scope)),
         // <compound_stmt>
         TokenKind::Identifier(ident) => {
-            if let Some(macros) = scope.borrow().find_macro(Ident::new(ident, false)) {
+            if let Some(_) = scope.borrow().find_macro(Ident::new(ident, false)) {
                 todo!();
             }
 

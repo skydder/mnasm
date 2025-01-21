@@ -30,7 +30,7 @@ impl<'a> Tokenizer2<'a> {
         self.tokenizer.set(TokenizerKind::MacroTokenizer(MacroTokenizer2::new((tokenizer, stream.1), ret)));
     }
 
-    pub fn leave_macro(&'a mut self) {
+    pub fn leave_macro(&self) {
         let tokenizer = if let TokenizerKind::MacroTokenizer(t)= self.tokenizer.get() {
             t
         } else {
@@ -88,7 +88,7 @@ impl<'a> TokenGenerator<'a> for TokenizerKind<'a> {
             TokenizerKind::MacroTokenizer(tok) => tok.peek_token(),
             TokenizerKind::Tokenizer(tok ) => tok.peek_token(),
         };
-        eprintln!("tok: {:#?}", tok);
+        // eprintln!("tok: {:#?}", tok);
         tok
     }
 
@@ -97,7 +97,7 @@ impl<'a> TokenGenerator<'a> for TokenizerKind<'a> {
             TokenizerKind::MacroTokenizer(tok) => tok.next_token(),
             TokenizerKind::Tokenizer(tok ) => tok.next_token(),
         };
-        eprintln!("tok: {:#?}", tok);
+        eprintln!("next: {:#?}", tok);
         tok
     }
 
