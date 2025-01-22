@@ -1,5 +1,4 @@
 use std::cell::RefCell;
-
 use crate::{Token, TokenGenerator, TokenKind};
 use util::{emit_error, Location};
 
@@ -9,11 +8,6 @@ pub struct Tokenizer<'a> {
 }
 
 impl<'a> Tokenizer<'a> {
-    // pub fn new(location: Location<'a>) -> Self {
-    //     Self {
-    //         location: RefCell::new(location),
-    //     }
-    // }
     pub fn new(location:  &'a RefCell<Location<'a>>,) -> Self {
         Self {
             location: location,

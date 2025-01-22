@@ -1,6 +1,6 @@
-use std::cell::Cell;
+use std::cell::{Cell, RefCell};
 
-use tokenizer::{Token, Tokenizer, TokenGenerator};
+use tokenizer::{Token, TokenGenerator, TokenKind, Tokenizer};
 use data::MacroTokenizer2;
 use util::Location;
 
@@ -13,11 +13,12 @@ enum TokenizerKind<'a> {
 #[derive(Debug, Clone)]
 pub struct Tokenizer2<'a> {
     tokenizer: Cell<TokenizerKind<'a>>,
+    code: RefCell<Vec<TokenKind<'a>>>,      // code itself doesn't need location
 }
 
 impl<'a> Tokenizer2<'a> {
     pub fn new_tokenizer(tokenizer: Tokenizer<'a>) -> Self {
-        Self { tokenizer: Cell::new(TokenizerKind::Tokenizer(tokenizer)) }
+        Self { tokenizer: Cell::new(TokenizerKind::Tokenizer(tokenizer)), code: RefCell::new(Vec::new()) }
     }
 
     pub fn enter_macro(&self, stream: (Location<'a>, Location<'a>)) {
@@ -39,6 +40,10 @@ impl<'a> Tokenizer2<'a> {
         let _ = tokenizer.tokenizer.swap(tokenizer.ret);
         self.tokenizer.set(TokenizerKind::Tokenizer(tokenizer.tokenizer));
     }
+
+    pub fn code(&self) -> String {
+        self.code.borrow().iter().map(|c| format!("{}", c)).collect()
+    }
 }
 
 impl<'a> Tokenizer2<'a> {
@@ -51,22 +56,32 @@ impl<'a> Tokenizer2<'a> {
     }
 
     pub fn next_token(&self) -> Token {
-        self.tokenizer.get().next_token()
+        let tok = self.tokenizer.get().next_token();
+        self.code.borrow_mut().push(tok.kind);
+        // self.tokenizer.get().next_token()
+        tok
     }
 
     pub fn skip_space(&self) {
+        self.code.borrow_mut().push(TokenKind::Space);
         self.tokenizer.get().skip_space()
     }
 
-    pub fn consume_token(&self, consumeing_token: tokenizer::TokenKind) {
+    pub fn consume_token(&self, consumeing_token: TokenKind<'a>) {
+        self.code.borrow_mut().push(consumeing_token);
         self.tokenizer.get().consume_token(consumeing_token)
     }
 
     pub fn consume_newline(&self) {
+        self.code.borrow_mut().push(TokenKind::NewLine);
         self.tokenizer.get().consume_newline()
     }
 
     pub fn consume_indent(&self) {
+        self.code.borrow_mut().push(TokenKind::Space);
+        self.code.borrow_mut().push(TokenKind::Space);
+        self.code.borrow_mut().push(TokenKind::Space);
+        self.code.borrow_mut().push(TokenKind::Space);
         self.tokenizer.get().consume_indent()
     }
 

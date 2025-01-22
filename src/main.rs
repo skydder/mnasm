@@ -13,10 +13,13 @@ fn main() {
     run().unwrap_or_else(|e| eprintln!("{}", e));
 }
 
-fn assemble(file: &str) -> String {
+fn assemble(file: &str, flag: &RunFlags) -> String {
     let source = Source::new(file);
     let loc = RefCell::new(Location::new(&source));
     let t = Tokenizer2::new_tokenizer(Tokenizer::new(&loc));
+    if flag.is_e {
+        print!("{}", t.code());
+    }
     let ast = parse_code(&t);
     analyze(&ast);
     codegen_code(&ast)
@@ -55,6 +58,7 @@ struct RunFlags {
     output: String,
     is_c: bool,  // -c flag
     is_cs: bool, // -S flag
+    is_e: bool
 }
 
 impl RunFlags {
@@ -64,6 +68,7 @@ impl RunFlags {
             output: String::new(),
             is_c: false,
             is_cs: false,
+            is_e: false,
         }
     }
 }
@@ -90,6 +95,10 @@ fn parse_run_flags<'a>(args: Vec<String>) -> RunFlags {
         }
         if arg_s == "-c" {
             flags.is_c = true;
+            continue;
+        }
+        if arg_s == "-e" {
+            flags.is_e = true;
             continue;
         }
         if arg_s == "-o" {
@@ -125,7 +134,7 @@ fn run() -> Result<(), io::Error> {
     write!(
         &mut File::create(nasm_code.path())?,
         "{}",
-        assemble(&flag.input)
+        assemble(&flag.input, &flag)
     )
     .expect("failed to write file");
     if flag.is_cs {
