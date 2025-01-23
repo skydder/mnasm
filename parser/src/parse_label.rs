@@ -1,10 +1,8 @@
 use std::{cell::RefCell, rc::Rc};
 
 use data::{Ident, Label, Scope};
-use tokenizer::TokenKind;
+use tokenizer::{TokenKind, Tokenizer2};
 use util::emit_error;
-
-use crate::tokenizer::Tokenizer2;
 
 pub fn parse_label<'a>(tokenizer: &'a Tokenizer2<'a>, scope: Rc<RefCell<Scope<'a>>>) -> Label<'a> {
     match tokenizer.peek_token().kind {

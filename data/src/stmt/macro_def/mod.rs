@@ -1,6 +1,5 @@
 use util::Location;
 
-use tokenizer::{self, Token, TokenGenerator, TokenKind, Tokenizer};
 
 use crate::{Analyze, Codegen, Label, Object};
 
@@ -35,66 +34,6 @@ impl<'a> Macro<'a> {
 
     pub fn location(&self) -> Location<'a> {
         self.location
-    }
-}
-
-#[derive(Debug, Clone, Copy)]
-pub struct MacroTokenizer2<'a> {
-    pub tokenizer: Tokenizer<'a>,
-    end: Location<'a>,
-    pub ret: Location<'a>,
-}
-
-impl<'a> MacroTokenizer2<'a> {
-    pub fn new(stream: (Tokenizer<'a>, Location<'a>), ret: Location<'a>) -> Self {
-        Self {
-            tokenizer: stream.0,
-            end: stream.1,
-            ret: ret,
-        }
-    }
-}
-
-impl<'a> TokenGenerator<'a> for MacroTokenizer2<'a> {
-    fn location(&self) -> Location<'a> {
-        self.tokenizer.clone().location()
-    }
-
-    fn peek_token(&self) -> Token<'a> {
-        let current = self.tokenizer.peek_token();
-        if current.location >= self.end {
-            return Token::new(TokenKind::EOS, 0, self.end);
-        } else {
-            current
-        }
-    }
-
-    fn next_token(&self) -> Token<'a> {
-        let current = self.peek_token();
-        if current.kind != TokenKind::EOS {
-            self.tokenizer.next_token();
-        }
-        current
-    }
-
-    fn skip_space(&self) {
-        self.tokenizer.skip_space();
-    }
-
-    fn consume_token(&self, consumeing_token: TokenKind) {
-        self.tokenizer.consume_token(consumeing_token);
-    }
-
-    fn consume_newline(&self) {
-        self.tokenizer.consume_newline();
-    }
-
-    fn consume_indent(&self) {
-        self.tokenizer.consume_indent();
-    }
-
-    fn kind(&self) -> tokenizer::GenKind {
-        tokenizer::GenKind::MacroTokenizer
     }
 }
 

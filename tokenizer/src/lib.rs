@@ -1,11 +1,9 @@
 mod token;
-mod tokenizer;
 mod tokenizer2;
 
 use std::fmt::Debug;
 
 pub use token::{Token, TokenKind};
-pub use tokenizer::Tokenizer;
 pub use tokenizer2::Tokenizer2;
 use util::Location;
 

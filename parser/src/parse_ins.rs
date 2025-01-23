@@ -1,10 +1,10 @@
 use std::{cell::RefCell, rc::Rc};
 
 use data::{CompoundIns, Ins, Operand, Scope};
-use tokenizer::TokenKind;
+use tokenizer::{TokenKind, Tokenizer2};
 use util::emit_error;
 
-use crate::{parse_operands, tokenizer::Tokenizer2};
+use crate::parse_operands;
 
 // <ins> = <instruction(identifier)> "(" <operands>? ")"
 pub fn parse_ins<'a>(tokenizer: &'a Tokenizer2<'a>, scope: Rc<RefCell<Scope<'a>>>) -> Ins<'a> {

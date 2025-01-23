@@ -1,9 +1,9 @@
 use std::{cell::RefCell, rc::Rc};
 
 use data::{Block, Scope, Stmt};
-use tokenizer::TokenKind;
+use tokenizer::{TokenKind, Tokenizer2};
 
-use crate::{parse_stmt, read_indent_by_depth, tokenizer::Tokenizer2};
+use crate::{parse_stmt, read_indent_by_depth};
 
 // <block> = "{" <stmt>* "}"
 pub fn parse_block<'a>(

@@ -1,10 +1,10 @@
 use std::{cell::RefCell, rc::Rc};
 
 use data::{Ident, LabelDef, Scope};
-use tokenizer::TokenKind;
+use tokenizer::{TokenKind, Tokenizer2};
 use util::emit_error;
 
-use crate::{parse_block, parse_label, tokenizer::Tokenizer2};
+use crate::{parse_block, parse_label};
 
 // <label_def> = "<" <label> (":" "global")? (":" <section> )? ">" <block>?
 pub fn parse_label_def<'a>(

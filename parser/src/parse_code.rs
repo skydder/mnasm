@@ -1,9 +1,9 @@
 use std::{cell::RefCell, rc::Rc};
 
 use data::{Code, Scope, Stmt};
-use tokenizer::TokenKind;
+use tokenizer::{TokenKind, Tokenizer2};
 
-use crate::{parse_stmt, tokenizer::Tokenizer2};
+use crate::parse_stmt;
 
 // <code> = <label_def>*
 pub fn parse_code<'a>(tokenizer: &'a Tokenizer2<'a>) -> Code<'a> {

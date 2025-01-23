@@ -1,10 +1,10 @@
 use std::{cell::RefCell, rc::Rc};
 
 use data::{Immediate, Label, Memory, Operand, Register, Scale, Scope};
-use tokenizer::TokenKind;
+use tokenizer::{TokenKind, Tokenizer2};
 use util::emit_error;
 
-use crate::{parse_label, tokenizer::Tokenizer2};
+use crate::parse_label;
 
 // <operand> = <memory> | <register> | <immediate> | <label>
 pub fn parse_operands<'a>(
@@ -27,7 +27,7 @@ pub fn parse_operands<'a>(
                 // tokenizer.next_token();
                 let label: Label = parse_label(tokenizer, scope.clone());
                 if let Some(m) = scope.borrow().find_macro(label.ident()) {
-                    tokenizer.enter_macro(m.ingredients_of_tokenizer());
+                    tokenizer.enter_macro(m.ingredients_of_tokenizer(), Vec::new());
                     let op = parse_operands(tokenizer, scope.clone());
                     tokenizer.leave_macro();
                     return op;

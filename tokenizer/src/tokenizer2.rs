@@ -11,7 +11,9 @@ struct InnerTokenizer<'a> {
 
 impl<'a> InnerTokenizer<'a> {
     fn new(location: Location<'a>) -> Self {
-        Self { location: RefCell::new(location) }
+        Self {
+            location: RefCell::new(location),
+        }
     }
 
     fn location(&self) -> Location<'a> {
@@ -97,7 +99,7 @@ impl<'a> InnerTokenizer<'a> {
 pub struct Tokenizer2<'a> {
     tokenizer: RefCell<InnerTokenizer<'a>>,
     eos: Cell<Location<'a>>,
-    stack: RefCell<Vec<Location<'a>>>, // where the location to return after macro-expansion is saved 
+    stack: RefCell<Vec<Location<'a>>>, // where the location to return after macro-expansion is saved
     macro_args: RefCell<Vec<&'a str>>, // ad hoc Ident
     code: RefCell<Vec<TokenKind<'a>>>, // code itself doesn't need location
     args_stack: RefCell<Vec<Vec<&'a str>>>,
@@ -111,7 +113,7 @@ impl<'a> Tokenizer2<'a> {
             code: RefCell::new(Vec::new()),
             stack: RefCell::new(Vec::new()),
             macro_args: RefCell::new(Vec::new()),
-            args_stack: RefCell::new(Vec::new())
+            args_stack: RefCell::new(Vec::new()),
         }
     }
 
@@ -120,7 +122,9 @@ impl<'a> Tokenizer2<'a> {
         self.stack.borrow_mut().push(self.eos.get());
         let ret = self.location();
         self.stack.borrow_mut().push(ret);
-        self.args_stack.borrow_mut().push(self.macro_args.replace(args));
+        self.args_stack
+            .borrow_mut()
+            .push(self.macro_args.replace(args));
         self.eos.set(stream.1);
         self.tokenizer.borrow_mut().swap(stream.0);
         self.code.borrow_mut().push(TokenKind::OpenParenthesis);
@@ -128,9 +132,10 @@ impl<'a> Tokenizer2<'a> {
 
     pub fn leave_macro(&self) {
         // todo
-        let ret = self.stack.borrow_mut().pop().unwrap();   // todo
+        let ret = self.stack.borrow_mut().pop().unwrap(); // todo
         let eos = self.stack.borrow_mut().pop().unwrap();
-        self.macro_args.replace(self.args_stack.borrow_mut().pop().unwrap());
+        self.macro_args
+            .replace(self.args_stack.borrow_mut().pop().unwrap());
         self.eos.set(eos);
         self.tokenizer.borrow_mut().swap(ret);
         self.code.borrow_mut().push(TokenKind::CloseParenthesis);

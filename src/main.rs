@@ -1,5 +1,4 @@
 use std::{
-    cell::RefCell,
     fs::{self, File},
     io::{self, Write},
     path::Path,
@@ -10,8 +9,8 @@ use tempfile::NamedTempFile;
 
 use analyzer::analyze;
 use codegen::codegen_code;
-use parser::{parse_code, Tokenizer2};
-use tokenizer::Tokenizer;
+use parser::parse_code;
+use tokenizer::Tokenizer2;
 use util::{emit_msg_and_exit, set_iw, Location, Source};
 
 fn main() {
@@ -20,11 +19,11 @@ fn main() {
 
 fn assemble(file: &str, flag: &RunFlags) -> String {
     let source = Source::new(file);
-    let loc = RefCell::new(Location::new(&source));
-    let t = Tokenizer2::new_tokenizer(Tokenizer::new(&loc));
+    let loc = Location::new(&source);
+    let t = Tokenizer2::new_tokenizer(loc);
     let ast = parse_code(&t);
     if flag.is_e {
-        print!("{}", t.code());
+        println!("{}", t.code());
     }
     analyze(&ast);
     codegen_code(&ast)

@@ -1,9 +1,7 @@
 use std::{cell::RefCell, rc::Rc};
 
 use data::{Ident, Macro, Scope};
-use tokenizer::TokenKind;
-
-use crate::tokenizer::Tokenizer2;
+use tokenizer::{TokenKind, Tokenizer2};
 
 pub fn parse_let_macro<'a>(
     tokenizer: &'a Tokenizer2<'a>,
