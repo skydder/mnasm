@@ -1,5 +1,10 @@
 use std::{
-    cell::RefCell, fs::{self, File}, io::{self, Write}, path::Path, process::Command, result::Result
+    cell::RefCell,
+    fs::{self, File},
+    io::{self, Write},
+    path::Path,
+    process::Command,
+    result::Result,
 };
 use tempfile::NamedTempFile;
 
@@ -58,7 +63,7 @@ struct RunFlags {
     output: String,
     is_c: bool,  // -c flag
     is_cs: bool, // -S flag
-    is_e: bool
+    is_e: bool,
 }
 
 impl RunFlags {

@@ -25,6 +25,10 @@ impl<'a> Source<'a> {
     pub fn nth(&self, n: usize) -> &str {
         &self.code[n..]
     }
+
+    pub fn end(&self) -> usize {
+        self.code.len()
+    }
 }
 
 #[derive(Clone, Copy)]
@@ -54,6 +58,15 @@ impl<'a> Location<'a> {
             line: 1,
             column: 1,
             nth: 0,
+        }
+    }
+
+    pub fn end(&self) -> Self {
+        Self {
+            source: self.source,
+            line: 0,
+            column: 0,
+            nth: self.source.end(),
         }
     }
 
@@ -89,7 +102,6 @@ impl<'a> std::cmp::PartialEq for Location<'a> {
 }
 
 impl<'a> std::cmp::PartialOrd for Location<'a> {
-    
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
         self.nth.partial_cmp(&other.nth)
     }

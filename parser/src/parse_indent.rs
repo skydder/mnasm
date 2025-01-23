@@ -1,4 +1,3 @@
-
 use crate::tokenizer::Tokenizer2;
 
 pub fn read_indent_by_depth<'a>(tokenizer: &'a Tokenizer2<'a>, depth: usize) {

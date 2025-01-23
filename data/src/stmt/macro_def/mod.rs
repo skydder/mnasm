@@ -2,7 +2,7 @@ use util::Location;
 
 use tokenizer::{self, Token, TokenGenerator, TokenKind, Tokenizer};
 
-use crate::{Analyze, Codegen, Object};
+use crate::{Analyze, Codegen, Label, Object};
 
 use super::Stmt;
 
@@ -11,16 +11,21 @@ mod let_macro;
 #[derive(Debug)]
 pub struct Macro<'a> {
     stream: (Location<'a>, Location<'a>),
-    // stream: Box<Vec<Token<'a>>>,
-    location: Location<'a>
+    args: Vec<Label<'a>>,
+    location: Location<'a>,
 }
 
 impl<'a> Macro<'a> {
-    pub fn new(location: Location<'a>, stream: (Location<'a>, Location<'a>)) -> Self {
+    pub fn new(
+        location: Location<'a>,
+        args: Vec<Label<'a>>,
+        stream: (Location<'a>, Location<'a>),
+    ) -> Self {
         Self {
             // stream: Box::new(stream.clone()),
             stream: stream,
-            location: location
+            args: args,
+            location: location,
         }
     }
 
@@ -37,18 +42,15 @@ impl<'a> Macro<'a> {
 pub struct MacroTokenizer2<'a> {
     pub tokenizer: Tokenizer<'a>,
     end: Location<'a>,
-    pub ret: Location<'a>
+    pub ret: Location<'a>,
 }
 
 impl<'a> MacroTokenizer2<'a> {
-    pub fn new(
-        stream: (Tokenizer<'a>, Location<'a>),
-        ret: Location<'a> 
-    ) -> Self {
+    pub fn new(stream: (Tokenizer<'a>, Location<'a>), ret: Location<'a>) -> Self {
         Self {
             tokenizer: stream.0,
             end: stream.1,
-            ret: ret
+            ret: ret,
         }
     }
 }
@@ -90,7 +92,7 @@ impl<'a> TokenGenerator<'a> for MacroTokenizer2<'a> {
     fn consume_indent(&self) {
         self.tokenizer.consume_indent();
     }
-    
+
     fn kind(&self) -> tokenizer::GenKind {
         tokenizer::GenKind::MacroTokenizer
     }

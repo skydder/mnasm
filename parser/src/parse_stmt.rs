@@ -4,7 +4,10 @@ use data::{Ident, Scope, Stmt};
 use tokenizer::TokenKind;
 use util::emit_error;
 
-use crate::{parse_block, parse_compound_ins, parse_label_def, parse_let_macro, parse_pseudo_ins, tokenizer::Tokenizer2};
+use crate::{
+    parse_block, parse_compound_ins, parse_label_def, parse_let_macro, parse_pseudo_ins,
+    tokenizer::Tokenizer2,
+};
 
 // <stmt> = <compound_ins> | <block> | <label_def>
 pub fn parse_stmt<'a>(

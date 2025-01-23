@@ -1,5 +1,5 @@
-use std::cell::RefCell;
 use crate::{Token, TokenGenerator, TokenKind};
+use std::cell::RefCell;
 use util::{emit_error, Location};
 
 #[derive(Debug, Clone, Copy)]
@@ -8,10 +8,8 @@ pub struct Tokenizer<'a> {
 }
 
 impl<'a> Tokenizer<'a> {
-    pub fn new(location:  &'a RefCell<Location<'a>>,) -> Self {
-        Self {
-            location: location,
-        }
+    pub fn new(location: &'a RefCell<Location<'a>>) -> Self {
+        Self { location: location }
     }
 
     fn _location(&self) -> Location<'a> {
@@ -88,7 +86,7 @@ impl<'a> Tokenizer<'a> {
         }
     }
 
-    pub fn swap(&self, location:  Location<'a>) -> Location<'a> {
+    pub fn swap(&self, location: Location<'a>) -> Location<'a> {
         self.location.replace(location)
     }
 }
@@ -121,9 +119,8 @@ impl<'a> TokenGenerator<'a> for Tokenizer<'a> {
     fn consume_indent(&self) {
         self._consume_indent();
     }
-    
+
     fn kind(&self) -> crate::GenKind {
         crate::GenKind::Tokenizer
     }
 }
-

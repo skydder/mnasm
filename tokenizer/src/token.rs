@@ -27,26 +27,30 @@ pub enum TokenKind<'a> {
 
 impl<'a> std::fmt::Display for TokenKind<'a> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", match *self {
-            TokenKind::LessThan => format!("<"),
-            TokenKind::GreaterThan => format!(">"),
-            TokenKind::OpenParenthesis => format!("("),
-            TokenKind::CloseParenthesis => format!(")"),
-            TokenKind::OpenBrace => format!("{{"),
-            TokenKind::CloseBrace => format!("}}"),
-            TokenKind::Colon => format!(":"),
-            TokenKind::Semicolon => format!(";"),
-            TokenKind::Comma => format!(","),
-            TokenKind::Minus => format!("-"),
-            TokenKind::Dot => format!("."),
-            TokenKind::At => format!("@"),
-            TokenKind::Number(i) => format!("{}", i),
-            TokenKind::String(s) => format!("{}", s),
-            TokenKind::Identifier(i) => format!("{}", i),
-            TokenKind::NewLine => format!("\n"),
-            TokenKind::Space => format!(" "),
-            TokenKind::EOS => format!("\n"),
-        })
+        write!(
+            f,
+            "{}",
+            match *self {
+                TokenKind::LessThan => format!("<"),
+                TokenKind::GreaterThan => format!(">"),
+                TokenKind::OpenParenthesis => format!("("),
+                TokenKind::CloseParenthesis => format!(")"),
+                TokenKind::OpenBrace => format!("{{"),
+                TokenKind::CloseBrace => format!("}}"),
+                TokenKind::Colon => format!(":"),
+                TokenKind::Semicolon => format!(";"),
+                TokenKind::Comma => format!(","),
+                TokenKind::Minus => format!("-"),
+                TokenKind::Dot => format!("."),
+                TokenKind::At => format!("@"),
+                TokenKind::Number(i) => format!("{}", i),
+                TokenKind::String(s) => format!("{}", s),
+                TokenKind::Identifier(i) => format!("{}", i),
+                TokenKind::NewLine => format!("\n"),
+                TokenKind::Space => format!(" "),
+                TokenKind::EOS => format!("\n"),
+            }
+        )
     }
 }
 

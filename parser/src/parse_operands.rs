@@ -25,7 +25,7 @@ pub fn parse_operands<'a>(
             // <label>
             } else {
                 // tokenizer.next_token();
-                let label:Label = parse_label(tokenizer, scope.clone());
+                let label: Label = parse_label(tokenizer, scope.clone());
                 if let Some(m) = scope.borrow().find_macro(label.ident()) {
                     tokenizer.enter_macro(m.ingredients_of_tokenizer());
                     let op = parse_operands(tokenizer, scope.clone());

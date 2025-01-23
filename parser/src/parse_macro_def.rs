@@ -32,19 +32,17 @@ pub fn parse_let_macro<'a>(
         tokenizer.skip_space();
         end = tokenizer.location();
     }
-    
+
     tokenizer.consume_token(TokenKind::At);
     tokenizer.skip_space();
     tokenizer.consume_token(TokenKind::CloseParenthesis);
-    scope
-        .borrow_mut()
-        .add_macro(ident, Rc::new(Macro::new(loc, (start_loc, end))));
-    Macro::new(loc, (start_loc, end))
+    scope.borrow_mut().add_macro(
+        ident,
+        Rc::new(Macro::new(loc, Vec::new(), (start_loc, end))),
+    );
+    Macro::new(loc, Vec::new(), (start_loc, end))
 }
 
-fn fn_like_macro<'a>(
-    tokenizer: &'a Tokenizer2<'a>,
-    scope: Rc<RefCell<Scope<'a>>>,
-) -> Macro<'a> {
+fn fn_like_macro<'a>(tokenizer: &'a Tokenizer2<'a>, scope: Rc<RefCell<Scope<'a>>>) -> Macro<'a> {
     todo!();
 }
