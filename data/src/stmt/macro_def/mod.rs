@@ -99,7 +99,7 @@ impl<'a> TokenGenerator<'a> for MacroTokenizer2<'a> {
 impl<'a> Object for Macro<'a> {}
 impl<'a> Analyze for Macro<'a> {
     fn analyze(&self) {
-        eprintln!("analyzed");
+        // eprintln!("analyzed");
     }
 }
 impl<'a> Codegen for Macro<'a> {

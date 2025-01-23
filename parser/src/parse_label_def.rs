@@ -18,7 +18,6 @@ pub fn parse_label_def<'a>(
     assert!(tokenizer.peek_token().is(TokenKind::LessThan));
     tokenizer.next_token();
     tokenizer.skip_space();
-    eprintln!("wtf");
 
     // <label>
     let label = parse_label(tokenizer, scope.clone()).ident();

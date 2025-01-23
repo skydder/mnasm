@@ -41,3 +41,10 @@ pub fn parse_let_macro<'a>(
         .add_macro(ident, Rc::new(Macro::new(loc, (start_loc, end))));
     Macro::new(loc, (start_loc, end))
 }
+
+fn fn_like_macro<'a>(
+    tokenizer: &'a Tokenizer2<'a>,
+    scope: Rc<RefCell<Scope<'a>>>,
+) -> Macro<'a> {
+    todo!();
+}

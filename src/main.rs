@@ -17,10 +17,10 @@ fn assemble(file: &str, flag: &RunFlags) -> String {
     let source = Source::new(file);
     let loc = RefCell::new(Location::new(&source));
     let t = Tokenizer2::new_tokenizer(Tokenizer::new(&loc));
+    let ast = parse_code(&t);
     if flag.is_e {
         print!("{}", t.code());
     }
-    let ast = parse_code(&t);
     analyze(&ast);
     codegen_code(&ast)
 }

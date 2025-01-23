@@ -29,6 +29,7 @@ impl<'a> Tokenizer2<'a> {
         };
         let ret = tokenizer.swap(stream.0);
         self.tokenizer.set(TokenizerKind::MacroTokenizer(MacroTokenizer2::new((tokenizer, stream.1), ret)));
+        self.code.borrow_mut().push(TokenKind::OpenParenthesis);
     }
 
     pub fn leave_macro(&self) {
@@ -39,6 +40,7 @@ impl<'a> Tokenizer2<'a> {
         };
         let _ = tokenizer.tokenizer.swap(tokenizer.ret);
         self.tokenizer.set(TokenizerKind::Tokenizer(tokenizer.tokenizer));
+        self.code.borrow_mut().push(TokenKind::CloseParenthesis);
     }
 
     pub fn code(&self) -> String {
@@ -112,7 +114,7 @@ impl<'a> TokenGenerator<'a> for TokenizerKind<'a> {
             TokenizerKind::MacroTokenizer(tok) => tok.next_token(),
             TokenizerKind::Tokenizer(tok ) => tok.next_token(),
         };
-        eprintln!("next: {:#?}", tok);
+        // eprintln!("next: {:#?}", tok);
         tok
     }
 
