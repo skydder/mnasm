@@ -20,8 +20,9 @@ pub fn parse_label_def<'a>(
     tokenizer.skip_space();
 
     // <label>
-    let label = parse_label(tokenizer, scope.clone()).ident();
-
+    let label_data = parse_label(tokenizer, scope.clone());
+    let label = label_data.0.ident();
+    tokenizer.add_to_code(label_data.1);
     if scope.borrow().find_label(label).is_some() {
         emit_error!(loc, "multiple difinition!!")
     }

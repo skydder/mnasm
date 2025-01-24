@@ -76,7 +76,7 @@ impl<'a> InnerTokenizer<'a> {
     }
 
     fn consume_indent(&self) {
-        let loc = self.location();
+        // let loc = self.location();
         for _ in 0..4 {
             match self.peek_token().kind {
                 TokenKind::Space => {
@@ -84,7 +84,7 @@ impl<'a> InnerTokenizer<'a> {
                 }
                 TokenKind::NewLine | TokenKind::EOS => (),
                 _ => {
-                    emit_error!(loc, "Indent error, the number of spase must be 4");
+                    // emit_error!(loc, "Indent error, the number of spase must be 4");
                 }
             }
         }
@@ -99,10 +99,11 @@ impl<'a> InnerTokenizer<'a> {
 pub struct Tokenizer2<'a> {
     tokenizer: RefCell<InnerTokenizer<'a>>,
     eos: Cell<Location<'a>>,
+    is_auto_leave: Cell<bool>,
     stack: RefCell<Vec<Location<'a>>>, // where the location to return after macro-expansion is saved
-    macro_args: RefCell<Vec<&'a str>>, // ad hoc Ident
+    macro_args: RefCell<Vec<(&'a str, (Location<'a>, Location<'a>))>>, // ad hoc Ident
     code: RefCell<Vec<TokenKind<'a>>>, // code itself doesn't need location
-    args_stack: RefCell<Vec<Vec<&'a str>>>,
+    args_stack: RefCell<Vec<Vec<(&'a str, (Location<'a>, Location<'a>))>>>,
 }
 
 impl<'a> Tokenizer2<'a> {
@@ -114,10 +115,15 @@ impl<'a> Tokenizer2<'a> {
             stack: RefCell::new(Vec::new()),
             macro_args: RefCell::new(Vec::new()),
             args_stack: RefCell::new(Vec::new()),
+            is_auto_leave: Cell::new(false),
         }
     }
 
-    pub fn enter_macro(&self, stream: (Location<'a>, Location<'a>), args: Vec<&'a str>) {
+    pub fn enter_macro(
+        &self,
+        stream: (Location<'a>, Location<'a>),
+        args: Vec<(&'a str, (Location<'a>, Location<'a>))>,
+    ) {
         // todo
         self.stack.borrow_mut().push(self.eos.get());
         let ret = self.location();
@@ -127,7 +133,7 @@ impl<'a> Tokenizer2<'a> {
             .push(self.macro_args.replace(args));
         self.eos.set(stream.1);
         self.tokenizer.borrow_mut().swap(stream.0);
-        self.code.borrow_mut().push(TokenKind::OpenParenthesis);
+        // self.code.borrow_mut().push(TokenKind::OpenParenthesis);
     }
 
     pub fn leave_macro(&self) {
@@ -138,7 +144,7 @@ impl<'a> Tokenizer2<'a> {
             .replace(self.args_stack.borrow_mut().pop().unwrap());
         self.eos.set(eos);
         self.tokenizer.borrow_mut().swap(ret);
-        self.code.borrow_mut().push(TokenKind::CloseParenthesis);
+        // self.code.borrow_mut().push(TokenKind::CloseParenthesis);
     }
 
     pub fn code(&self) -> String {
@@ -147,6 +153,15 @@ impl<'a> Tokenizer2<'a> {
             .iter()
             .map(|c| format!("{}", c))
             .collect()
+    }
+
+    fn match_arg(&self, arg: &'a str) -> Option<(Location<'a>, Location<'a>)> {
+        for a in self.macro_args.borrow().iter() {
+            if a.0 == arg {
+                return Some(a.1);
+            }
+        }
+        None
     }
 }
 
@@ -159,15 +174,39 @@ impl<'a> Tokenizer2<'a> {
         let current = self.tokenizer.borrow().peek_token();
         if current.location >= self.eos.get() {
             return Token::new(TokenKind::EOS, 0, self.eos.get());
+        } else if current.is(TokenKind::BackQuote) {
+            self.tokenizer.borrow().next_token();
+            let arg_tok = self.tokenizer.borrow().peek_token();
+            self.enter_macro(
+                self.match_arg(
+                    arg_tok
+                        .get_identifier()
+                        .unwrap_or_else(|| emit_error!(arg_tok.location, "expected label here")),
+                )
+                .unwrap_or_else(|| emit_error!(arg_tok.location, "unexpected argment")),
+                Vec::new(),
+            );
+            self.tokenizer.borrow().peek_token()
         } else {
             current
         }
     }
 
-    pub fn next_token(&self) -> Token<'a> {
+    pub fn next_token_with_out_record(&self) -> Token<'a> {
         let current = self.peek_token();
         if current.kind != TokenKind::EOS {
             self.tokenizer.borrow().next_token();
+        }
+        current
+    }
+
+    pub fn next_token(&self) -> Token<'a> {
+        let mut current = self.peek_token();
+        if current.kind != TokenKind::EOS {
+            self.tokenizer.borrow().next_token();
+        } else if self.is_auto_leave.get() {
+            self.leave_macro();
+            current = self.tokenizer.borrow().next_token();
         }
         self.code.borrow_mut().push(current.kind);
         current
@@ -176,6 +215,19 @@ impl<'a> Tokenizer2<'a> {
     pub fn skip_space(&self) {
         self.code.borrow_mut().push(TokenKind::Space);
         self.tokenizer.borrow().skip_space()
+    }
+
+    pub fn skip_token(&self) {
+        self.tokenizer.borrow().next_token();
+    }
+
+    pub fn peek_token_silently(&self) -> Token<'a> {
+        let current = self.tokenizer.borrow().peek_token();
+        if current.location >= self.eos.get() {
+            return Token::new(TokenKind::EOS, 0, self.eos.get());
+        } else {
+            current
+        }
     }
 
     pub fn consume_token(&self, consumeing_token: TokenKind<'a>) {
@@ -194,5 +246,9 @@ impl<'a> Tokenizer2<'a> {
         self.code.borrow_mut().push(TokenKind::Space);
         self.code.borrow_mut().push(TokenKind::Space);
         self.tokenizer.borrow().consume_indent()
+    }
+
+    pub fn add_to_code(&self, tokenkind: TokenKind<'a>) {
+        self.code.borrow_mut().push(tokenkind);
     }
 }

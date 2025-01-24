@@ -1,5 +1,6 @@
 mod parse_block;
 mod parse_code;
+mod parse_fn_like_macro;
 mod parse_indent;
 mod parse_ins;
 mod parse_label;
@@ -15,7 +16,7 @@ pub use parse_indent::read_indent_by_depth;
 pub use parse_ins::parse_compound_ins;
 pub use parse_label::parse_label;
 pub use parse_label_def::parse_label_def;
-pub use parse_macro_def::parse_let_macro;
+pub use parse_macro_def::{parse_fn_like_macro_def, parse_let_macro};
 pub use parse_operands::parse_operands;
 pub use parse_pseudo_ins::parse_pseudo_ins;
 pub use parse_stmt::parse_stmt;

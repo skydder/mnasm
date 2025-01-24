@@ -16,6 +16,7 @@ pub enum TokenKind<'a> {
     Minus,
     Dot,
     At,
+    BackQuote,
     Number(u64),
     String(&'a str),
     Identifier(&'a str),
@@ -43,6 +44,7 @@ impl<'a> std::fmt::Display for TokenKind<'a> {
                 TokenKind::Minus => format!("-"),
                 TokenKind::Dot => format!("."),
                 TokenKind::At => format!("@"),
+                TokenKind::BackQuote => format!("`"),
                 TokenKind::Number(i) => format!("{}", i),
                 TokenKind::String(s) => format!("{}", s),
                 TokenKind::Identifier(i) => format!("{}", i),
@@ -188,6 +190,8 @@ impl<'a> Token<'a> {
             Some(builder.kind(TokenKind::Dot).len(1))
         } else if s.starts_with("@") {
             Some(builder.kind(TokenKind::At).len(1))
+        } else if s.starts_with("`") {
+            Some(builder.kind(TokenKind::BackQuote).len(1))
         } else {
             None
         }

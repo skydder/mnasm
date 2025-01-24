@@ -25,14 +25,15 @@ pub fn parse_operands<'a>(
             // <label>
             } else {
                 // tokenizer.next_token();
-                let label: Label = parse_label(tokenizer, scope.clone());
-                if let Some(m) = scope.borrow().find_macro(label.ident()) {
+                let label = parse_label(tokenizer, scope.clone());
+                if let Some(m) = scope.borrow().find_macro(label.0.ident()) {
                     tokenizer.enter_macro(m.ingredients_of_tokenizer(), Vec::new());
                     let op = parse_operands(tokenizer, scope.clone());
                     tokenizer.leave_macro();
                     return op;
                 }
-                Box::new(label)
+                tokenizer.add_to_code(label.1);
+                Box::new(label.0)
             }
         }
 
@@ -40,7 +41,7 @@ pub fn parse_operands<'a>(
         TokenKind::Number(_) | TokenKind::Minus => {
             return Box::new(parse_immediate(tokenizer));
         }
-        TokenKind::Dot => Box::new(parse_label(tokenizer, scope)),
+        TokenKind::Dot => Box::new(parse_label(tokenizer, scope).0),
 
         _ => {
             emit_error!(loc, "unexpected token, {:#?}", tokenizer.peek_token().kind)

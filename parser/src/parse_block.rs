@@ -50,7 +50,7 @@ fn parse_inside<'a>(
         // <stmt>*
         _ => {
             read_indent_by_depth(tokenizer, 1);
-
+            tokenizer.skip_space();
             // <stmt>
             if !(tokenizer.peek_token().is(TokenKind::Space)
                 || tokenizer.peek_token().is(TokenKind::NewLine))

@@ -1,5 +1,15 @@
 let(a, rax@)
 let(b, helloworld@)
+macro if(cond, then, else) {
+    `cond
+    jne(else)
+    `then
+    jmp(end)
+    <else:_:_>
+    `else
+    <end:_:_>
+}
+
 <helloworld:.data> {
     db("Hello world!")
 }
@@ -12,5 +22,6 @@ let(b, helloworld@)
     syscall()
     mov(rax, 60)
     mov(rdi, 0)
-    syscall()
+        syscall()
+    if(mov(a, 1)@, mov(a, 1)@, mov(a, 1)@)
 }

@@ -1,7 +1,6 @@
 use util::Location;
 
-
-use crate::{Analyze, Codegen, Label, Object};
+use crate::{Analyze, Codegen, Ident, Label, Object};
 
 use super::Stmt;
 
@@ -10,14 +9,14 @@ mod let_macro;
 #[derive(Debug)]
 pub struct Macro<'a> {
     stream: (Location<'a>, Location<'a>),
-    args: Vec<Label<'a>>,
+    pub args: Vec<&'a str>,
     location: Location<'a>,
 }
 
 impl<'a> Macro<'a> {
     pub fn new(
         location: Location<'a>,
-        args: Vec<Label<'a>>,
+        args: Vec<&'a str>,
         stream: (Location<'a>, Location<'a>),
     ) -> Self {
         Self {
