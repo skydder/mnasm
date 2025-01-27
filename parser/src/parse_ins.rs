@@ -57,7 +57,7 @@ fn parse_ins_operands_inside<'a>(
             parse_ins_operands_inside(tokenizer, operands, scope);
         }
         _ => {
-            emit_error!(tokenizer.location(), "invalid expression");
+            emit_error!(tokenizer.location(), "invalid expression\n{}", tokenizer.code());
         }
     }
 }
@@ -99,7 +99,7 @@ fn parse_compound_ins_inside<'a>(
             parse_compound_ins_inside(tokenizer, compound, scope);
         }
         _ => {
-            emit_error!(tokenizer.location(), "invalid expression");
+            emit_error!(tokenizer.location(), "invalid expression: {:?}\n{}", tokenizer.peek_token(),tokenizer.code());
         }
     }
 }

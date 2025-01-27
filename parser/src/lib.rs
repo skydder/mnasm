@@ -20,3 +20,4 @@ pub use parse_macro_def::{parse_fn_like_macro_def, parse_let_macro};
 pub use parse_operands::parse_operands;
 pub use parse_pseudo_ins::parse_pseudo_ins;
 pub use parse_stmt::parse_stmt;
+pub use parse_fn_like_macro::parse_fn_like_macro;

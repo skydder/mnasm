@@ -5,9 +5,9 @@ macro if(cond, then, else) {
     jne(else)
     `then
     jmp(end)
-    <else:_:_>
+    <else:_>
     `else
-    <end:_:_>
+    <end:_>
 }
 
 <helloworld:.data> {
@@ -23,5 +23,5 @@ macro if(cond, then, else) {
     mov(rax, 60)
     mov(rdi, 0)
         syscall()
-    if(mov(a, 1)@, mov(a, 1)@, mov(a, 1)@)
+    @if(mov(a, 1)@, mov(a, 1)@, mov(a, 1)@)
 }

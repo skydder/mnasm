@@ -81,8 +81,8 @@ pub fn parse_fn_like_macro_def<'a>(
         tokenizer.skip_token();
         tokenizer.skip_space();
     }
-    let m_end = tokenizer.location();
     tokenizer.consume_token(TokenKind::CloseBrace);
+    let m_end = tokenizer.location();
     scope.borrow_mut().add_macro(
         ident,
         Rc::new(Macro::new(loc, args.clone(), (m_start, m_end))),

@@ -103,7 +103,7 @@ pub struct Tokenizer2<'a> {
     stack: RefCell<Vec<Location<'a>>>, // where the location to return after macro-expansion is saved
     macro_args: RefCell<Vec<(&'a str, (Location<'a>, Location<'a>))>>, // ad hoc Ident
     code: RefCell<Vec<TokenKind<'a>>>, // code itself doesn't need location
-    args_stack: RefCell<Vec<Vec<(&'a str, (Location<'a>, Location<'a>))>>>,
+    tok_stack: RefCell<Vec<(bool, Vec<(&'a str, (Location<'a>, Location<'a>))>)>>,
 }
 
 impl<'a> Tokenizer2<'a> {
@@ -114,7 +114,7 @@ impl<'a> Tokenizer2<'a> {
             code: RefCell::new(Vec::new()),
             stack: RefCell::new(Vec::new()),
             macro_args: RefCell::new(Vec::new()),
-            args_stack: RefCell::new(Vec::new()),
+            tok_stack: RefCell::new(Vec::new()),
             is_auto_leave: Cell::new(false),
         }
     }
@@ -127,10 +127,12 @@ impl<'a> Tokenizer2<'a> {
         // todo
         self.stack.borrow_mut().push(self.eos.get());
         let ret = self.location();
+        let old = self.macro_args.replace(args);
         self.stack.borrow_mut().push(ret);
-        self.args_stack
+        self.tok_stack
             .borrow_mut()
-            .push(self.macro_args.replace(args));
+            .push((self.is_auto_leave.get(), old));
+        
         self.eos.set(stream.1);
         self.tokenizer.borrow_mut().swap(stream.0);
         // self.code.borrow_mut().push(TokenKind::OpenParenthesis);
@@ -140,8 +142,10 @@ impl<'a> Tokenizer2<'a> {
         // todo
         let ret = self.stack.borrow_mut().pop().unwrap(); // todo
         let eos = self.stack.borrow_mut().pop().unwrap();
+        let recover = self.tok_stack.borrow_mut().pop().unwrap();
         self.macro_args
-            .replace(self.args_stack.borrow_mut().pop().unwrap());
+            .replace(recover.1);
+        self.is_auto_leave.replace(recover.0);
         self.eos.set(eos);
         self.tokenizer.borrow_mut().swap(ret);
         // self.code.borrow_mut().push(TokenKind::CloseParenthesis);
@@ -157,11 +161,15 @@ impl<'a> Tokenizer2<'a> {
 
     fn match_arg(&self, arg: &'a str) -> Option<(Location<'a>, Location<'a>)> {
         for a in self.macro_args.borrow().iter() {
-            if a.0 == arg {
+            if arg == a.0 {
                 return Some(a.1);
             }
         }
         None
+    }
+
+    fn set_auto_leave(&self) {
+        self.is_auto_leave.set(true);
     }
 }
 
@@ -173,10 +181,14 @@ impl<'a> Tokenizer2<'a> {
     pub fn peek_token(&self) -> Token<'a> {
         let current = self.tokenizer.borrow().peek_token();
         if current.location >= self.eos.get() {
+            if self.is_auto_leave.get() {
+                self.leave_macro();
+                return self.tokenizer.borrow().peek_token();
+            }
             return Token::new(TokenKind::EOS, 0, self.eos.get());
         } else if current.is(TokenKind::BackQuote) {
             self.tokenizer.borrow().next_token();
-            let arg_tok = self.tokenizer.borrow().peek_token();
+            let arg_tok = self.tokenizer.borrow().next_token();
             self.enter_macro(
                 self.match_arg(
                     arg_tok
@@ -186,6 +198,7 @@ impl<'a> Tokenizer2<'a> {
                 .unwrap_or_else(|| emit_error!(arg_tok.location, "unexpected argment")),
                 Vec::new(),
             );
+            self.set_auto_leave();
             self.tokenizer.borrow().peek_token()
         } else {
             current
