@@ -15,8 +15,7 @@ macro if(cond, then, else) {
 }
 
 <_start:global:.text> {
-    mov(a, 1)
-    mov(rdi, 1)
+    mov(a, 1);mov(rdi, 1);
     mov(rsi, b)
     mov(rdx, 13)
     syscall()

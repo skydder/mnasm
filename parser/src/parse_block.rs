@@ -37,7 +37,7 @@ fn parse_inside<'a>(
     scope: Rc<RefCell<Scope<'a>>>,
 ) {
     tokenizer.skip_space();
-    tokenizer.consume_token(TokenKind::NewLine);
+    tokenizer.consume_newline();
     read_indent_by_depth(tokenizer, indent_depth);
 
     match tokenizer.peek_token().kind {
@@ -47,13 +47,17 @@ fn parse_inside<'a>(
         TokenKind::NewLine => {
             parse_inside(tokenizer, indent_depth, stmts, scope);
         }
+        TokenKind::Semicolon => {
+            parse_inside(tokenizer, indent_depth, stmts, scope);
+        }
         // <stmt>*
         _ => {
             read_indent_by_depth(tokenizer, 1);
             tokenizer.skip_space();
             // <stmt>
             if !(tokenizer.peek_token().is(TokenKind::Space)
-                || tokenizer.peek_token().is(TokenKind::NewLine))
+                || tokenizer.peek_token().is(TokenKind::NewLine)
+                || tokenizer.peek_token().is(TokenKind::Semicolon))
             {
                 stmts.push(parse_stmt(tokenizer, indent_depth + 1, scope.clone()));
             }

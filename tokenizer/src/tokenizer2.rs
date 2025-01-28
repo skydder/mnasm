@@ -68,6 +68,7 @@ impl<'a> InnerTokenizer<'a> {
         let current_token = self.peek_token();
         match current_token.kind {
             TokenKind::NewLine => self.advance_location_by_token(&current_token),
+            TokenKind::Semicolon => self.advance_location_by_token(&current_token),
             TokenKind::EOS => (),
             _ => {
                 emit_error!(current_token.location, "expected new line")
@@ -100,10 +101,35 @@ pub struct Tokenizer2<'a> {
     tokenizer: RefCell<InnerTokenizer<'a>>,
     eos: Cell<Location<'a>>,
     is_auto_leave: Cell<bool>,
-    stack: RefCell<Vec<Location<'a>>>, // where the location to return after macro-expansion is saved
-    macro_args: RefCell<Vec<(&'a str, (Location<'a>, Location<'a>))>>, // ad hoc Ident
+    macro_args: RefCell<Vec<(&'a str, (Location<'a>, Location<'a>))>>,
+
     code: RefCell<Vec<TokenKind<'a>>>, // code itself doesn't need location
+
     tok_stack: RefCell<Vec<(bool, Vec<(&'a str, (Location<'a>, Location<'a>))>)>>,
+    ret_stack: RefCell<Vec<Location<'a>>>, // where the location to return after macro-expansion is saved
+}
+
+struct TokenizerStatus<'a> {
+    current_location: Location<'a>,
+    eos: Location<'a>,
+    is_auto_leave: bool,
+    macro_args: Vec<(&'a str, (Location<'a>, Location<'a>))>,
+}
+
+impl<'a> TokenizerStatus<'a> {
+    fn new(
+        current_location: Location<'a>,
+        eos: Location<'a>,
+        is_auto_leave: bool,
+        macro_args: Vec<(&'a str, (Location<'a>, Location<'a>))>,
+    ) -> Self {
+        Self {
+            current_location: current_location,
+            eos: eos,
+            is_auto_leave: is_auto_leave,
+            macro_args: macro_args,
+        }
+    }
 }
 
 impl<'a> Tokenizer2<'a> {
@@ -112,7 +138,7 @@ impl<'a> Tokenizer2<'a> {
             tokenizer: RefCell::new(InnerTokenizer::new(location)),
             eos: Cell::new(location.end()),
             code: RefCell::new(Vec::new()),
-            stack: RefCell::new(Vec::new()),
+            ret_stack: RefCell::new(Vec::new()),
             macro_args: RefCell::new(Vec::new()),
             tok_stack: RefCell::new(Vec::new()),
             is_auto_leave: Cell::new(false),
@@ -124,31 +150,26 @@ impl<'a> Tokenizer2<'a> {
         stream: (Location<'a>, Location<'a>),
         args: Vec<(&'a str, (Location<'a>, Location<'a>))>,
     ) {
-        // todo
-        self.stack.borrow_mut().push(self.eos.get());
+        self.ret_stack.borrow_mut().push(self.eos.get());
         let ret = self.location();
         let old = self.macro_args.replace(args);
-        self.stack.borrow_mut().push(ret);
+        self.ret_stack.borrow_mut().push(ret);
         self.tok_stack
             .borrow_mut()
             .push((self.is_auto_leave.get(), old));
-        
+
         self.eos.set(stream.1);
         self.tokenizer.borrow_mut().swap(stream.0);
-        // self.code.borrow_mut().push(TokenKind::OpenParenthesis);
     }
 
     pub fn leave_macro(&self) {
-        // todo
-        let ret = self.stack.borrow_mut().pop().unwrap(); // todo
-        let eos = self.stack.borrow_mut().pop().unwrap();
+        let ret = self.ret_stack.borrow_mut().pop().unwrap();
+        let eos = self.ret_stack.borrow_mut().pop().unwrap();
         let recover = self.tok_stack.borrow_mut().pop().unwrap();
-        self.macro_args
-            .replace(recover.1);
+        self.macro_args.replace(recover.1);
         self.is_auto_leave.replace(recover.0);
         self.eos.set(eos);
         self.tokenizer.borrow_mut().swap(ret);
-        // self.code.borrow_mut().push(TokenKind::CloseParenthesis);
     }
 
     pub fn code(&self) -> String {
@@ -214,13 +235,14 @@ impl<'a> Tokenizer2<'a> {
     }
 
     pub fn next_token(&self) -> Token<'a> {
-        let mut current = self.peek_token();
+        let current = self.peek_token();
         if current.kind != TokenKind::EOS {
             self.tokenizer.borrow().next_token();
-        } else if self.is_auto_leave.get() {
-            self.leave_macro();
-            current = self.tokenizer.borrow().next_token();
         }
+        // } else if self.is_auto_leave.get() {
+        //     self.leave_macro();
+        //     current = self.tokenizer.borrow().next_token();
+        // }
         self.code.borrow_mut().push(current.kind);
         current
     }

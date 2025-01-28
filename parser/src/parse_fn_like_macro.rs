@@ -27,7 +27,6 @@ pub fn parse_fn_like_macro<'a>(
     // <operands>?
     let mut args: Vec<(Location<'a>, Location<'a>)> = Vec::new();
     read_args(tokenizer, &mut args);
-    // eprintln!("ee:{:#?}", args);
     // ")"
     tokenizer.consume_token(TokenKind::CloseParenthesis);
     tokenizer.add_to_code(TokenKind::At);
@@ -36,7 +35,6 @@ pub fn parse_fn_like_macro<'a>(
             m.ingredients_of_tokenizer(),
             m.args.iter().map(|a| *a).zip(args).collect(),
         );
-        eprintln!("test: {:?}", tokenizer.peek_token());
         let op = parse_stmt(tokenizer, indent_depth, scope.clone());
         tokenizer.leave_macro();
         return op;
@@ -70,7 +68,7 @@ fn read_args<'a>(tokenizer: &'a Tokenizer2<'a>, args: &mut Vec<(Location<'a>, Lo
             tokenizer.skip_space();
             current = tokenizer.peek_token();
             if !(current.is(TokenKind::CloseParenthesis) || current.is(TokenKind::Comma)) {
-                emit_error!(current.location, "unexpected token");
+                emit_error!(current.location, "unexpected token?");
             }
             read_args(tokenizer, args);
         }

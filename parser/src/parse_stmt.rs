@@ -1,11 +1,12 @@
 use std::{cell::RefCell, rc::Rc};
 
-use data::{Ident, Scope, Stmt};
+use data::{Scope, Stmt};
 use tokenizer::{TokenKind, Tokenizer2};
 use util::emit_error;
 
 use crate::{
-    parse_block, parse_compound_ins, parse_fn_like_macro, parse_fn_like_macro_def, parse_label, parse_label_def, parse_let_macro, parse_pseudo_ins
+    parse_block, parse_compound_ins, parse_fn_like_macro, parse_fn_like_macro_def, parse_label_def,
+    parse_let_macro, parse_pseudo_ins,
 };
 
 // <stmt> = <compound_ins> | <block> | <label_def>
@@ -24,10 +25,8 @@ pub fn parse_stmt<'a>(
         TokenKind::Identifier("let") => Box::new(parse_let_macro(tokenizer, scope)),
         TokenKind::Identifier("macro") => Box::new(parse_fn_like_macro_def(tokenizer, scope)),
         // <compound_stmt>
-        TokenKind::Identifier(ident) => Box::new(parse_compound_ins(tokenizer, scope)),
-        TokenKind::At => {
-            parse_fn_like_macro(tokenizer, indent_depth, scope)
-        }
+        TokenKind::Identifier(_) => Box::new(parse_compound_ins(tokenizer, scope)),
+        TokenKind::At => parse_fn_like_macro(tokenizer, indent_depth, scope),
 
         // <block>
         TokenKind::OpenBrace => Box::new(parse_block(
@@ -39,7 +38,12 @@ pub fn parse_stmt<'a>(
         // <label_def>
         TokenKind::LessThan => Box::new(parse_label_def(tokenizer, indent_depth, scope)),
         _ => {
-            emit_error!(currrent_token.location, "expected stmt, but found other!:{:?}\n{}",tokenizer.peek_token(), tokenizer.code())
+            emit_error!(
+                currrent_token.location,
+                "expected stmt, but found other!:{:?}\n{}",
+                tokenizer.peek_token(),
+                tokenizer.code()
+            )
         }
     }
 }

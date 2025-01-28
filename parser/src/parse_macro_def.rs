@@ -1,4 +1,4 @@
-use std::{cell::RefCell, f32::EPSILON, rc::Rc};
+use std::{cell::RefCell, rc::Rc};
 
 use data::{Ident, Macro, Scope};
 use tokenizer::{TokenKind, Tokenizer2};
@@ -87,9 +87,7 @@ pub fn parse_fn_like_macro_def<'a>(
         ident,
         Rc::new(Macro::new(loc, args.clone(), (m_start, m_end))),
     );
-    let m = Macro::new(loc, args, (m_start, m_end));
-    eprintln!("{:#?}", m);
-    m
+    Macro::new(loc, args, (m_start, m_end))
 }
 
 fn read_args<'a>(tokenizer: &'a Tokenizer2<'a>, args: &mut Vec<&'a str>) {

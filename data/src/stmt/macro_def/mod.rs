@@ -1,6 +1,6 @@
 use util::Location;
 
-use crate::{Analyze, Codegen, Ident, Label, Object};
+use crate::{Analyze, Codegen, Object};
 
 use super::Stmt;
 

@@ -15,11 +15,11 @@ pub fn parse_ins<'a>(tokenizer: &'a Tokenizer2<'a>, scope: Rc<RefCell<Scope<'a>>
     let ins = currrent_token.get_identifier().unwrap();
     tokenizer.next_token();
     tokenizer.skip_space();
-
+    print!("{}", ins);
     // "("
     tokenizer.consume_token(TokenKind::OpenParenthesis);
     tokenizer.skip_space();
-
+    println!("(");
     // <operands>?
     let mut operands: Vec<Box<dyn Operand + 'a>> = Vec::new();
     if !tokenizer.peek_token().is(TokenKind::CloseParenthesis) {
@@ -57,7 +57,12 @@ fn parse_ins_operands_inside<'a>(
             parse_ins_operands_inside(tokenizer, operands, scope);
         }
         _ => {
-            emit_error!(tokenizer.location(), "invalid expression\n{}", tokenizer.code());
+            emit_error!(
+                tokenizer.location(),
+                "invalid expression: {:?}\n{}",
+                tokenizer.peek_token(),
+                tokenizer.code()
+            );
         }
     }
 }
@@ -86,7 +91,7 @@ fn parse_compound_ins_inside<'a>(
     tokenizer.skip_space();
 
     match tokenizer.peek_token().kind {
-        TokenKind::NewLine => {
+        TokenKind::NewLine | TokenKind::Semicolon => {
             return;
         }
         // ("," <ins>)*
@@ -99,7 +104,12 @@ fn parse_compound_ins_inside<'a>(
             parse_compound_ins_inside(tokenizer, compound, scope);
         }
         _ => {
-            emit_error!(tokenizer.location(), "invalid expression: {:?}\n{}", tokenizer.peek_token(),tokenizer.code());
+            emit_error!(
+                tokenizer.location(),
+                "invalid expression: {:?}\n{}",
+                tokenizer.peek_token(),
+                tokenizer.code()
+            );
         }
     }
 }

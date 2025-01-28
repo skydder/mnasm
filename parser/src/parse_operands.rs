@@ -1,6 +1,6 @@
 use std::{cell::RefCell, rc::Rc};
 
-use data::{Immediate, Label, Memory, Operand, Register, Scale, Scope};
+use data::{Immediate, Memory, Operand, Register, Scale, Scope};
 use tokenizer::{TokenKind, Tokenizer2};
 use util::emit_error;
 
