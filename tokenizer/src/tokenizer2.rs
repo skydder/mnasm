@@ -96,19 +96,8 @@ impl<'a> InnerTokenizer<'a> {
     }
 }
 
-#[derive(Debug, Clone)]
-pub struct Tokenizer2<'a> {
-    tokenizer: RefCell<InnerTokenizer<'a>>,
-    eos: Cell<Location<'a>>,
-    is_auto_leave: Cell<bool>,
-    macro_args: RefCell<Vec<(&'a str, (Location<'a>, Location<'a>))>>,
-
-    code: RefCell<Vec<TokenKind<'a>>>, // code itself doesn't need location
-
-    tok_stack: RefCell<Vec<(bool, Vec<(&'a str, (Location<'a>, Location<'a>))>)>>,
-    ret_stack: RefCell<Vec<Location<'a>>>, // where the location to return after macro-expansion is saved
-}
-
+#[derive(Debug,Clone)]
+// use stream
 struct TokenizerStatus<'a> {
     current_location: Location<'a>,
     eos: Location<'a>,
@@ -131,17 +120,28 @@ impl<'a> TokenizerStatus<'a> {
         }
     }
 }
+// delete auto leave, since macro auto leaves.
+#[derive(Debug, Clone)]
+pub struct Tokenizer2<'a> {
+    tokenizer: RefCell<InnerTokenizer<'a>>,
+    eos: Cell<Location<'a>>,
+    is_auto_leave: Cell<bool>,
+    macro_args: RefCell<Vec<(&'a str, (Location<'a>, Location<'a>))>>,
+
+    status_stack: RefCell<Vec<TokenizerStatus<'a>>>,
+
+    code: RefCell<Vec<TokenKind<'a>>>, // code itself doesn't need location
+}
 
 impl<'a> Tokenizer2<'a> {
     pub fn new_tokenizer(location: Location<'a>) -> Self {
         Self {
             tokenizer: RefCell::new(InnerTokenizer::new(location)),
             eos: Cell::new(location.end()),
-            code: RefCell::new(Vec::new()),
-            ret_stack: RefCell::new(Vec::new()),
             macro_args: RefCell::new(Vec::new()),
-            tok_stack: RefCell::new(Vec::new()),
             is_auto_leave: Cell::new(false),
+            status_stack: RefCell::new(Vec::new()),
+            code: RefCell::new(Vec::new()),
         }
     }
 
@@ -150,26 +150,25 @@ impl<'a> Tokenizer2<'a> {
         stream: (Location<'a>, Location<'a>),
         args: Vec<(&'a str, (Location<'a>, Location<'a>))>,
     ) {
-        self.ret_stack.borrow_mut().push(self.eos.get());
-        let ret = self.location();
-        let old = self.macro_args.replace(args);
-        self.ret_stack.borrow_mut().push(ret);
-        self.tok_stack
-            .borrow_mut()
-            .push((self.is_auto_leave.get(), old));
+        let current_location = self.location();
+        let eos = self.eos.get();
+        let is_auto_leave = self.is_auto_leave.get();
+        let macro_args = self.macro_args.replace(args);
+        let status = TokenizerStatus::new(current_location, eos, is_auto_leave, macro_args);
+        
+        self.status_stack.borrow_mut().push(status);
 
         self.eos.set(stream.1);
         self.tokenizer.borrow_mut().swap(stream.0);
     }
 
     pub fn leave_macro(&self) {
-        let ret = self.ret_stack.borrow_mut().pop().unwrap();
-        let eos = self.ret_stack.borrow_mut().pop().unwrap();
-        let recover = self.tok_stack.borrow_mut().pop().unwrap();
-        self.macro_args.replace(recover.1);
-        self.is_auto_leave.replace(recover.0);
-        self.eos.set(eos);
-        self.tokenizer.borrow_mut().swap(ret);
+        let status = self.status_stack.borrow_mut().pop().unwrap();
+
+        self.macro_args.replace(status.macro_args);
+        self.is_auto_leave.replace(status.is_auto_leave);
+        self.eos.set(status.eos);
+        self.tokenizer.borrow_mut().swap(status.current_location);
     }
 
     pub fn code(&self) -> String {
@@ -239,10 +238,6 @@ impl<'a> Tokenizer2<'a> {
         if current.kind != TokenKind::EOS {
             self.tokenizer.borrow().next_token();
         }
-        // } else if self.is_auto_leave.get() {
-        //     self.leave_macro();
-        //     current = self.tokenizer.borrow().next_token();
-        // }
         self.code.borrow_mut().push(current.kind);
         current
     }

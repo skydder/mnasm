@@ -1,11 +1,17 @@
 mod token;
 mod tokenizer2;
+mod macro_related;
 
 use std::fmt::Debug;
 
 pub use token::{Token, TokenKind};
 pub use tokenizer2::Tokenizer2;
 use util::Location;
+
+pub struct Stream<'a> {
+    begin:  Location<'a>,
+    end: Location<'a>
+}
 
 // todo: apply to Tokenizer and Macro
 pub trait TokenGenerator<'a>: Debug {
