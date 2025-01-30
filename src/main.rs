@@ -14,6 +14,7 @@ use tokenizer::Tokenizer2;
 use util::{emit_msg_and_exit, set_iw, Location, Source};
 
 fn main() {
+    unsafe { backtrace_on_stack_overflow::enable() };
     run().unwrap_or_else(|e| eprintln!("{}", e));
 }
 

@@ -15,3 +15,4 @@ codegen = {path = "./codegen"}
 data = {path = "./data"}
 analyzer = {path = "./analyzer"}
 tempfile = "3.14.0"
+backtrace-on-stack-overflow = "0.3.0"

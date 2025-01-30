@@ -8,7 +8,7 @@ macro if(cond, then, else) {
     <else:_>
     `else
     <end:_>
-}
+}@:
 
 <helloworld:.data> {
     db("Hello world!")
@@ -22,5 +22,5 @@ macro if(cond, then, else) {
     mov(rax, 60)
     mov(rdi, 0)
         syscall()
-    @if(mov(a, 1)@, mov(a, 1)@, mov(a, 1)@)
+    @if(mov(a, 1)@: mov(a, 1)@: mov(a, 1)@:)
 }

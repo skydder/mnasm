@@ -1,8 +1,7 @@
-use std::cell::{Cell, RefCell};
+use std::{cell::{Cell, RefCell}, collections::HashMap};
 
 use util::{emit_error, Location};
-
-use crate::{Token, TokenKind};
+use crate::{read_macro_call, read_macro_def, Macro, Stream, Token, TokenKind};
 
 #[derive(Debug, Clone)]
 struct InnerTokenizer<'a> {
@@ -102,7 +101,7 @@ struct TokenizerStatus<'a> {
     current_location: Location<'a>,
     eos: Location<'a>,
     is_auto_leave: bool,
-    macro_args: Vec<(&'a str, (Location<'a>, Location<'a>))>,
+    macro_args: Vec<(&'a str, Stream<'a>)>,
 }
 
 impl<'a> TokenizerStatus<'a> {
@@ -110,7 +109,7 @@ impl<'a> TokenizerStatus<'a> {
         current_location: Location<'a>,
         eos: Location<'a>,
         is_auto_leave: bool,
-        macro_args: Vec<(&'a str, (Location<'a>, Location<'a>))>,
+        macro_args: Vec<(&'a str, Stream<'a>)>,
     ) -> Self {
         Self {
             current_location: current_location,
@@ -126,9 +125,11 @@ pub struct Tokenizer2<'a> {
     tokenizer: RefCell<InnerTokenizer<'a>>,
     eos: Cell<Location<'a>>,
     is_auto_leave: Cell<bool>,
-    macro_args: RefCell<Vec<(&'a str, (Location<'a>, Location<'a>))>>,
+    macro_args: RefCell<Vec<(&'a str, Stream<'a>)>>,
 
-    status_stack: RefCell<Vec<TokenizerStatus<'a>>>,
+    status_stack: RefCell<Vec<TokenizerStatus<'a>>>, 
+
+    macro_data: RefCell<HashMap<&'a str, Macro<'a>>>,
 
     code: RefCell<Vec<TokenKind<'a>>>, // code itself doesn't need location
 }
@@ -142,13 +143,14 @@ impl<'a> Tokenizer2<'a> {
             is_auto_leave: Cell::new(false),
             status_stack: RefCell::new(Vec::new()),
             code: RefCell::new(Vec::new()),
+            macro_data: RefCell::new(HashMap::new()),
         }
     }
 
     pub fn enter_macro(
         &self,
-        stream: (Location<'a>, Location<'a>),
-        args: Vec<(&'a str, (Location<'a>, Location<'a>))>,
+        stream: Stream<'a>,
+        args: Vec<(&'a str, Stream<'a>)>,
     ) {
         let current_location = self.location();
         let eos = self.eos.get();
@@ -158,8 +160,8 @@ impl<'a> Tokenizer2<'a> {
         
         self.status_stack.borrow_mut().push(status);
 
-        self.eos.set(stream.1);
-        self.tokenizer.borrow_mut().swap(stream.0);
+        self.eos.set(stream.end);
+        self.tokenizer.borrow_mut().swap(stream.begin);
     }
 
     pub fn leave_macro(&self) {
@@ -179,7 +181,7 @@ impl<'a> Tokenizer2<'a> {
             .collect()
     }
 
-    fn match_arg(&self, arg: &'a str) -> Option<(Location<'a>, Location<'a>)> {
+    fn match_arg(&self, arg: &'a str) -> Option<Stream<'a>> {
         for a in self.macro_args.borrow().iter() {
             if arg == a.0 {
                 return Some(a.1);
@@ -206,22 +208,28 @@ impl<'a> Tokenizer2<'a> {
                 return self.tokenizer.borrow().peek_token();
             }
             return Token::new(TokenKind::EOS, 0, self.eos.get());
-        } else if current.is(TokenKind::BackQuote) {
-            self.tokenizer.borrow().next_token();
-            let arg_tok = self.tokenizer.borrow().next_token();
-            self.enter_macro(
-                self.match_arg(
-                    arg_tok
-                        .get_identifier()
-                        .unwrap_or_else(|| emit_error!(arg_tok.location, "expected label here")),
-                )
-                .unwrap_or_else(|| emit_error!(arg_tok.location, "unexpected argment")),
-                Vec::new(),
-            );
-            self.set_auto_leave();
-            self.tokenizer.borrow().peek_token()
-        } else {
-            current
+        }
+        match current.kind {
+            TokenKind::BackQuote => {
+                self.next_token_with_out_record();
+                let name = self.next_token_with_out_record().get_identifier().unwrap();
+                self.enter_macro(self.match_arg(name).unwrap(), Vec::new());
+                self.peek_token()
+            },
+            TokenKind::At => {
+                let data = read_macro_call(self);
+                let m = self.macro_data.borrow();
+                let m = m.get(data.0).unwrap(); //todo
+                let args: Vec<(&'a str, Stream<'a>)> = m.args.iter().map(|a| *a).zip(data.1).collect();
+                self.enter_macro(m.stream, args);
+                self.peek_token()
+            },
+            TokenKind::Identifier("macro") => {
+                let m = read_macro_def(self);
+                self.macro_data.borrow_mut().insert(m.name, m);
+                self.peek_token()
+            },
+            _ => current
         }
     }
 
@@ -239,10 +247,16 @@ impl<'a> Tokenizer2<'a> {
             self.tokenizer.borrow().next_token();
         }
         self.code.borrow_mut().push(current.kind);
+        eprintln!("{:#?}", current);
         current
     }
 
     pub fn skip_space(&self) {
+        self.code.borrow_mut().push(TokenKind::Space);
+        self.tokenizer.borrow().skip_space()
+    }
+
+    pub fn skip_space_silently(&self) {
         self.code.borrow_mut().push(TokenKind::Space);
         self.tokenizer.borrow().skip_space()
     }
@@ -262,6 +276,10 @@ impl<'a> Tokenizer2<'a> {
 
     pub fn consume_token(&self, consumeing_token: TokenKind<'a>) {
         self.code.borrow_mut().push(consumeing_token);
+        self.tokenizer.borrow().consume_token(consumeing_token)
+    }
+
+    pub fn consume_token_silently(&self, consumeing_token: TokenKind<'a>) {
         self.tokenizer.borrow().consume_token(consumeing_token)
     }
 

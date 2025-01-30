@@ -6,11 +6,13 @@ use std::fmt::Debug;
 
 pub use token::{Token, TokenKind};
 pub use tokenizer2::Tokenizer2;
+pub(crate) use macro_related::{Macro, read_macro_call, read_macro_def};
 use util::Location;
 
+#[derive(Debug, Clone, Copy)]
 pub struct Stream<'a> {
-    begin:  Location<'a>,
-    end: Location<'a>
+    pub begin:  Location<'a>,
+    pub end: Location<'a>
 }
 
 // todo: apply to Tokenizer and Macro

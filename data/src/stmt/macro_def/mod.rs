@@ -1,3 +1,4 @@
+use tokenizer::Stream;
 use util::Location;
 
 use crate::{Analyze, Codegen, Object};
@@ -27,8 +28,11 @@ impl<'a> Macro<'a> {
         }
     }
 
-    pub fn ingredients_of_tokenizer(&self) -> (Location<'a>, Location<'a>) {
-        self.stream
+    pub fn ingredients_of_tokenizer(&self) -> Stream<'a> {
+        Stream {
+            begin: self.stream.0,
+            end: self.stream.1,
+        }
     }
 
     pub fn location(&self) -> Location<'a> {
