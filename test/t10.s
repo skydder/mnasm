@@ -44,13 +44,14 @@ macro divide(a, b,) {
     mov(r8, 1)
     <loop:_> {
         @divide(r8@: 3@:)
+
         @if(cmp(rdx, 0)@: {
             @print(fizz@: 6@:)
         }@: {
             @divide(r8@: 5@:)
             @if(cmp(rdx, 0)@: {
                 @print(buzz@: 6@:)
-            }@: {;}@:)
+            }@:@:)
         }@:)
         add(r8, 1)
         cmp(r8, 15)

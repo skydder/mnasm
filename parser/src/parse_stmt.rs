@@ -5,8 +5,8 @@ use tokenizer::{TokenKind, Tokenizer2};
 use util::emit_error;
 
 use crate::{
-    parse_block, parse_compound_ins, parse_fn_like_macro_def, parse_label_def,
-    parse_let_macro, parse_pseudo_ins,
+    parse_block, parse_compound_ins, parse_label_def, parse_let_macro,
+    parse_pseudo_ins,
 };
 
 // <stmt> = <compound_ins> | <block> | <label_def>
@@ -23,7 +23,6 @@ pub fn parse_stmt<'a>(
             Box::new(parse_pseudo_ins(tokenizer, scope))
         }
         TokenKind::Identifier("let") => Box::new(parse_let_macro(tokenizer, scope)),
-        TokenKind::Identifier("macro") => Box::new(parse_fn_like_macro_def(tokenizer, scope)),
         // <compound_stmt>
         TokenKind::Identifier(_) => Box::new(parse_compound_ins(tokenizer, scope)),
 

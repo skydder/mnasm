@@ -29,10 +29,7 @@ impl<'a> Macro<'a> {
     }
 
     pub fn ingredients_of_tokenizer(&self) -> Stream<'a> {
-        Stream {
-            begin: self.stream.0,
-            end: self.stream.1,
-        }
+        Stream::new(self.stream.0, self.stream.1)
     }
 
     pub fn location(&self) -> Location<'a> {

@@ -21,11 +21,11 @@ pub fn parse_label<'a>(
                 scope,
                 tokenizer.location(),
             );
-            (label.clone(), tokenizer.next_token_with_out_record().kind)
+            (label.clone(), tokenizer.next_token_silently().kind)
         }
         TokenKind::Identifier(ident) => {
             let label = Label::new(Ident::new(ident, false), scope, tokenizer.location());
-            (label.clone(), tokenizer.next_token_with_out_record().kind)
+            (label.clone(), tokenizer.next_token_silently().kind)
         }
         _ => {
             emit_error!(tokenizer.location(), "expected label here but found other");

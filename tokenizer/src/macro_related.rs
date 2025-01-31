@@ -6,11 +6,10 @@
 // macro data
 // - name
 // - args(name)
-// - stream 
+// - stream
 
 // peek get messy!!
 // macro marker: @<label> ("(" (<stream>"@,")*")")?
-
 
 use crate::{Stream, TokenKind, Tokenizer2};
 
@@ -33,24 +32,28 @@ pub fn read_macro_def<'a>(tokenizer: &Tokenizer2<'a>) -> Macro<'a> {
     read_macro_def_args(tokenizer, &mut args);
     tokenizer.consume_token_silently(TokenKind::CloseParenthesis);
     tokenizer.skip_space_silently();
-    
+
     let m_begin = tokenizer.peek_token().location;
-    let mut m_end= tokenizer.peek_token_silently().location;
-    while !tokenizer.peek_token_silently().is(TokenKind::MacroEnd) {
+    let mut m_end = tokenizer.peek_token_sme().location;
+    while !tokenizer.peek_token_sme().is(TokenKind::MacroEnd) {
         tokenizer.skip_token();
-        m_end = tokenizer.peek_token_silently().location;
+        m_end = tokenizer.peek_token_sme().location;
     }
 
     tokenizer.consume_token_silently(TokenKind::MacroEnd);
-    
-    Macro { name: name, args: args, stream: Stream { begin: m_begin, end: m_end } }
+
+    Macro {
+        name: name,
+        args: args,
+        stream: Stream::new(m_begin, m_end),
+    }
 }
 
 fn read_macro_def_args<'a>(tokenizer: &Tokenizer2<'a>, args: &mut Vec<&'a str>) {
     if tokenizer.peek_token().is(TokenKind::CloseParenthesis) {
         return;
     }
-    let arg = tokenizer.next_token_with_out_record().get_identifier().unwrap();
+    let arg = tokenizer.next_token_silently().get_identifier().unwrap();
     tokenizer.skip_space_silently();
     tokenizer.consume_token_silently(TokenKind::Comma);
     args.push(arg);
@@ -61,7 +64,6 @@ fn read_macro_def_args<'a>(tokenizer: &Tokenizer2<'a>, args: &mut Vec<&'a str>) 
 // macro marker: @<label> ("(" (<stream>"@,")*")")?
 pub fn read_macro_call<'a>(tokenizer: &Tokenizer2<'a>) -> (&'a str, Vec<Stream<'a>>) {
     tokenizer.skip_token();
-    eprintln!("2{:#?}", tokenizer.peek_token());
     let name = tokenizer.peek_token().get_identifier().unwrap(); // todo
     tokenizer.skip_token();
     tokenizer.consume_token_silently(TokenKind::OpenParenthesis);
@@ -82,10 +84,8 @@ fn read_macro_call_args<'a>(tokenizer: &Tokenizer2<'a>, args: &mut Vec<Stream<'a
         tokenizer.skip_token();
     }
     let m_end = tokenizer.peek_token().location;
-    // eprintln!("test: {:#?}", current_token);
-    eprintln!("test: {:#?}", tokenizer.peek_token_silently());
     tokenizer.consume_token_silently(TokenKind::MacroEnd);
-    args.push(Stream { begin: m_begin, end: m_end });
+    args.push(Stream::new(m_begin, m_end));
     tokenizer.skip_space_silently();
     read_macro_call_args(tokenizer, args);
 }
