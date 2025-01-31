@@ -32,13 +32,13 @@ pub fn parse_let_macro<'a>(
 
     let start_loc = tokenizer.location();
     let mut end = tokenizer.location();
-    while !tokenizer.peek_token().is(TokenKind::At) {
+    while !tokenizer.peek_token().is(TokenKind::MacroEnd) {
         tokenizer.next_token();
         tokenizer.skip_space();
         end = tokenizer.location();
     }
 
-    tokenizer.consume_token(TokenKind::At);
+    tokenizer.consume_token(TokenKind::MacroEnd);
     tokenizer.skip_space();
     tokenizer.consume_token(TokenKind::CloseParenthesis);
     scope.borrow_mut().add_macro(

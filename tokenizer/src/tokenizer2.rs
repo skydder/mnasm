@@ -63,18 +63,6 @@ impl<'a> InnerTokenizer<'a> {
         }
     }
 
-    fn consume_newline(&self) {
-        let current_token = self.peek_token();
-        match current_token.kind {
-            TokenKind::NewLine => self.advance_location_by_token(&current_token),
-            TokenKind::Semicolon => self.advance_location_by_token(&current_token),
-            TokenKind::EOS => (),
-            _ => {
-                emit_error!(current_token.location, "expected new line")
-            }
-        }
-    }
-
     fn consume_indent(&self) {
         // let loc = self.location();
         for _ in 0..4 {
@@ -211,9 +199,12 @@ impl<'a> Tokenizer2<'a> {
         }
         match current.kind {
             TokenKind::BackQuote => {
-                self.next_token_with_out_record();
-                let name = self.next_token_with_out_record().get_identifier().unwrap();
+                self.skip_token();
+                let name = self.peek_token().get_identifier().unwrap();
+                self.skip_token();
+                eprintln!("{:#?}", self.macro_args);
                 self.enter_macro(self.match_arg(name).unwrap(), Vec::new());
+                self.set_auto_leave();
                 self.peek_token()
             },
             TokenKind::At => {
@@ -222,10 +213,12 @@ impl<'a> Tokenizer2<'a> {
                 let m = m.get(data.0).unwrap(); //todo
                 let args: Vec<(&'a str, Stream<'a>)> = m.args.iter().map(|a| *a).zip(data.1).collect();
                 self.enter_macro(m.stream, args);
+                self.set_auto_leave();
                 self.peek_token()
             },
             TokenKind::Identifier("macro") => {
                 let m = read_macro_def(self);
+                eprintln!("{:#?}", m);
                 self.macro_data.borrow_mut().insert(m.name, m);
                 self.peek_token()
             },
@@ -247,7 +240,6 @@ impl<'a> Tokenizer2<'a> {
             self.tokenizer.borrow().next_token();
         }
         self.code.borrow_mut().push(current.kind);
-        eprintln!("{:#?}", current);
         current
     }
 
@@ -262,7 +254,7 @@ impl<'a> Tokenizer2<'a> {
     }
 
     pub fn skip_token(&self) {
-        self.tokenizer.borrow().next_token();
+        let _ = self.tokenizer.borrow().next_token();
     }
 
     pub fn peek_token_silently(&self) -> Token<'a> {
@@ -284,8 +276,21 @@ impl<'a> Tokenizer2<'a> {
     }
 
     pub fn consume_newline(&self) {
-        self.code.borrow_mut().push(TokenKind::NewLine);
-        self.tokenizer.borrow().consume_newline()
+        let current_token = self.peek_token();
+        match current_token.kind {
+            TokenKind::NewLine => {
+                self.next_token_with_out_record();
+            },
+            TokenKind::Semicolon => {
+                self.next_token_with_out_record();
+            },
+            TokenKind::EOS => (),
+            _ => {
+                emit_error!(current_token.location, "expected new line: {:#?}", current_token)
+            }
+        }
+        // self.code.borrow_mut().push(TokenKind::NewLine);
+        // self.tokenizer.borrow().consume_newline()
     }
 
     pub fn consume_indent(&self) {

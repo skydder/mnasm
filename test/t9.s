@@ -1,6 +1,6 @@
-let(a, rax@)
-let(b, helloworld@)
-macro if(cond, then, else) {
+let(a, rax@:)
+let(b, helloworld@:)
+macro if(cond, then, else,) {
     `cond
     jne(else)
     `then

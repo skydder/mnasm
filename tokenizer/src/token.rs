@@ -190,10 +190,10 @@ impl<'a> Token<'a> {
             Some(builder.kind(TokenKind::Minus).len(1))
         } else if s.starts_with(".") {
             Some(builder.kind(TokenKind::Dot).len(1))
-        } else if s.starts_with("@") {
-            Some(builder.kind(TokenKind::At).len(1))
         } else if s.starts_with("@:") {
             Some(builder.kind(TokenKind::MacroEnd).len(2))
+        } else if s.starts_with("@") {
+            Some(builder.kind(TokenKind::At).len(1))
         } else if s.starts_with("`") {
             Some(builder.kind(TokenKind::BackQuote).len(1))
         } else {

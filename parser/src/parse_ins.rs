@@ -15,11 +15,9 @@ pub fn parse_ins<'a>(tokenizer: &'a Tokenizer2<'a>, scope: Rc<RefCell<Scope<'a>>
     let ins = currrent_token.get_identifier().unwrap();
     tokenizer.next_token();
     tokenizer.skip_space();
-    print!("{}", ins);
     // "("
     tokenizer.consume_token(TokenKind::OpenParenthesis);
     tokenizer.skip_space();
-    println!("(");
     // <operands>?
     let mut operands: Vec<Box<dyn Operand + 'a>> = Vec::new();
     if !tokenizer.peek_token().is(TokenKind::CloseParenthesis) {
