@@ -19,14 +19,17 @@ pub fn parse_block<'a>(
 
     // <stmt>*
     let mut stmts: Vec<Box<dyn Stmt + 'a>> = Vec::new();
-    let inner_scope = Rc::new(RefCell::new(Scope::new(None, Some(scope))));
-    parse_inside(tokenizer, indent_depth, &mut stmts, inner_scope.clone());
+    // let inner_scope = Rc::new(RefCell::new(Scope::new(None, Some(scope))));
+    // parse_inside(tokenizer, indent_depth, &mut stmts, inner_scope.clone());
+
+    parse_inside(tokenizer, indent_depth, &mut stmts, scope.clone());
 
     // "}"
     tokenizer.consume_token(TokenKind::CloseBrace);
     tokenizer.skip_space();
 
-    Block::new(indent_depth, stmts, loc, inner_scope)
+    // Block::new(indent_depth, stmts, loc, inner_scope)
+    Block::new(indent_depth, stmts, loc, scope)
 }
 
 // <stmts>*

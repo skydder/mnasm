@@ -2,7 +2,7 @@ use std::{cell::RefCell, rc::Rc};
 
 use util::{emit_error, Location};
 
-use crate::{Ident, Scope};
+use crate::{Ident, Path, Scope};
 
 use super::{Operand, OperandKind};
 
@@ -16,16 +16,18 @@ pub enum LabelState {
 #[derive(Debug, Clone)]
 pub struct Label<'a> {
     name: Ident<'a>,
+    path: Path<'a>,
     scope: Rc<RefCell<Scope<'a>>>,
     pub location: Location<'a>,
 }
 
 impl<'a> Label<'a> {
-    pub fn new(name: Ident<'a>, scope: Rc<RefCell<Scope<'a>>>, location: Location<'a>) -> Self {
+    pub fn new(name: Ident<'a>, scope: Rc<RefCell<Scope<'a>>>, location: Location<'a>, path: Path<'a>) -> Self {
         Self {
             name: name,
             scope: scope,
             location: location,
+            path: path,
         }
     }
     pub fn ident(&self) -> Ident<'a> {

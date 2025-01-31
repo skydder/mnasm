@@ -5,9 +5,9 @@ macro if(cond, then, else,) {
     jne(else)
     `then
     jmp(end)
-    <else:_>
+    <else>
     `else
-    <end:_>
+    <end>
 }@:
 
 <helloworld:.data> {

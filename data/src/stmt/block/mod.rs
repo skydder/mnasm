@@ -9,7 +9,7 @@ use util::Location;
 
 #[derive(Debug)]
 pub struct Scope<'a> {
-    scope_name: Option<Ident<'a>>,
+    scope_name: Ident<'a>,
     parent: Option<Rc<RefCell<Scope<'a>>>>,
     labels: RefCell<Vec<Ident<'a>>>,
     macros: RefCell<Vec<(Ident<'a>, Rc<Macro<'a>>)>>,

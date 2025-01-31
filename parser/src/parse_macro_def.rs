@@ -16,7 +16,7 @@ pub fn parse_let_macro<'a>(
     tokenizer.consume_token(TokenKind::OpenParenthesis);
     tokenizer.skip_space();
     let ident = match tokenizer.peek_token().kind {
-        TokenKind::Identifier(ident) => Ident::new(ident, false),
+        TokenKind::Identifier(ident) => Ident::new(ident),
         _ => {
             todo!();
         }

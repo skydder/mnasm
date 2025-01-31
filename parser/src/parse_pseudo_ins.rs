@@ -92,7 +92,7 @@ fn parse_extern_operands_inside<'a>(
     // <operand>
     let op = match tokenizer.peek_token().kind {
         TokenKind::Identifier(ident) => {
-            scope.borrow().add_label_to_root(Ident::new(ident, false));
+            scope.borrow().add_label_to_root(Ident::new(ident));
             tokenizer.next_token();
             ident.to_string()
         }

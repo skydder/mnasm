@@ -27,7 +27,7 @@ pub fn parse_label_def<'a>(
         emit_error!(loc, "multiple difinition!!")
     }
 
-    let gen_label = scope.borrow().gen_label(label);
+    let gen_label = scope.borrow().gen_label(label, false);
     scope.borrow_mut().add_label(label);
     // kimokimo-nest :<
 
@@ -87,9 +87,9 @@ fn parse_section<'a>(tokenizer: &'a Tokenizer2<'a>) -> Ident<'a> {
         tokenizer.next_token();
         // todo: add all reserved section
         match tokenizer.peek_token().kind {
-            TokenKind::Identifier("text") => Ident::new("text", true),
-            TokenKind::Identifier("data") => Ident::new("data", true),
-            TokenKind::Identifier("bss") => Ident::new("bss", true),
+            TokenKind::Identifier("text") => Ident::new(".text"),
+            TokenKind::Identifier("data") => Ident::new(".data"),
+            TokenKind::Identifier("bss") => Ident::new(".bss"),
             _ => {
                 emit_error!(tokenizer.location(), "only special token can come here")
             }
@@ -99,8 +99,7 @@ fn parse_section<'a>(tokenizer: &'a Tokenizer2<'a>) -> Ident<'a> {
         Ident::new(
             tokenizer.peek_token().get_identifier().unwrap_or_else(|| {
                 emit_error!(tokenizer.location(), "consumeed label here but found other");
-            }),
-            false,
+            })
         )
     };
     tokenizer.next_token();
