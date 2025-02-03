@@ -13,6 +13,7 @@ pub struct Scope<'a> {
     parent: Option<Rc<RefCell<Scope<'a>>>>,
     labels: RefCell<Vec<Ident<'a>>>,
     macros: RefCell<Vec<(Ident<'a>, Rc<Macro<'a>>)>>,
+    path_name: String,
 }
 
 #[derive(Debug)]

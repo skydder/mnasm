@@ -21,6 +21,10 @@ impl<'a> Path<'a> {
         name
     }
 
+    pub fn name(&self) -> Ident<'a> {
+        *self.path.last().unwrap() // todo
+    }
+
     fn _path_name(&self, name: &mut String, nth: usize) {
         if nth == self.path.len() - 1 {
             name.push_str(&self.path[nth].get());

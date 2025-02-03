@@ -1,6 +1,6 @@
 use std::{cell::RefCell, rc::Rc};
 
-use crate::{stmt::Macro, Ident};
+use crate::{stmt::Macro, Ident, Path};
 
 use super::Scope;
 
@@ -13,9 +13,10 @@ impl<'a> Scope<'a> {
         };
         Self {
             scope_name: scope_name,
-            parent: parent,
+            parent: parent.clone(),
             labels: RefCell::new(Vec::new()),
             macros: RefCell::new(Vec::new()),
+            path_name: parent.map_or(format!("{}", scope_name), |p| format!("{}__{}", p.borrow().path_name.clone(), scope_name))
         }
     }
 
@@ -63,10 +64,10 @@ impl<'a> Scope<'a> {
         self.parent.clone()
     }
 
-    pub fn find_label(&self, label: Ident<'a>) -> Option<String> {
+    pub fn find_label(&self, label: &Path<'a>) -> Option<String> {
         for l in self.labels.borrow().iter() {
-            if label == *l {
-                return Some(self.gen_label(label, false));
+            if label.path_name() == self.gen_label(*l) {
+                return Some(label.path_name());
             }
         }
         if let Some(p) = &self.parent {
@@ -79,35 +80,8 @@ impl<'a> Scope<'a> {
         self.scope_name
     }
 
-    pub fn gen_label(&self, label: Ident<'a>, is_global: bool) -> String {
-        let mut l = String::new();
-        if !is_global {
-            self.gen_label_scope(&mut l);
-            l.push_str("__");
-            l.push_str(&label.get());
-        } else {
-            l.push_str(&label.get());
-        }
-        
-        l
+    pub fn gen_label(&self, label: Ident<'a>) -> String {
+        format!("{}__{}", self.path_name, label)
     }
 
-    pub fn gen_label_scope(&self, name: &mut String) {
-        // if self.parent.is_some() {
-        //     format!(
-        //         "{}__{}",
-        //         self.parent.clone().unwrap().borrow().gen_label_scope(),
-        //         self.scope_name().get(),
-        //     )
-        // } else {
-        //     String::new()
-        // }
-        if self.parent.is_none() {
-            return ;
-        } else {
-            self.parent.clone().unwrap().borrow().gen_label_scope(name);
-            name.push_str("__");
-            name.push_str(&self.scope_name().get());
-        }
-    }
 }

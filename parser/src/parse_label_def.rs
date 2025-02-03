@@ -21,13 +21,12 @@ pub fn parse_label_def<'a>(
 
     // <label>
     let label_data = parse_label(tokenizer, scope.clone());
-    let label = label_data.0.ident();
-    tokenizer.add_to_code(label_data.1);
-    if scope.borrow().find_label(label).is_some() {
+    let label = label_data.ident();
+    if scope.borrow().find_label(&label_data.path).is_some() {
         emit_error!(loc, "multiple difinition!!")
     }
 
-    let gen_label = scope.borrow().gen_label(label, false);
+    let gen_label = scope.borrow().gen_label(label);
     scope.borrow_mut().add_label(label);
     // kimokimo-nest :<
 

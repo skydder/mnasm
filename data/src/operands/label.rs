@@ -16,7 +16,7 @@ pub enum LabelState {
 #[derive(Debug, Clone)]
 pub struct Label<'a> {
     name: Ident<'a>,
-    path: Path<'a>,
+    pub path: Path<'a>,
     scope: Rc<RefCell<Scope<'a>>>,
     pub location: Location<'a>,
 }
@@ -38,7 +38,7 @@ impl<'a> Label<'a> {
 impl<'a> Operand for Label<'a> {
     fn codegen(&self) -> String {
         // should be run after analyzed
-        format!("{}", self.scope.borrow().find_label(self.name).unwrap())
+        format!("{}", self.scope.borrow().find_label(&self.path).unwrap())
     }
 
     fn size(&self) -> usize {
@@ -52,7 +52,7 @@ impl<'a> Operand for Label<'a> {
     fn analyze(&self) {
         self.scope
             .borrow()
-            .find_label(self.name)
+            .find_label(&self.path)
             .unwrap_or_else(|| emit_error!(self.location, "undefined label"));
     }
 
