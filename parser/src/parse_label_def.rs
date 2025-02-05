@@ -22,12 +22,11 @@ pub fn parse_label_def<'a>(
     // <label>
     let label_data = parse_label(tokenizer, scope.clone());
     let label = label_data.ident();
-    if scope.borrow().find_label(&label_data.path).is_some() {
+    if scope.borrow().find_label_local(&label_data.path).is_some() {
         emit_error!(loc, "multiple difinition!!")
     }
 
     let gen_label = scope.borrow().gen_label(label);
-    scope.borrow_mut().add_label(label);
     // kimokimo-nest :<
 
     // (":" "global")? (":" <section> )?
@@ -67,17 +66,23 @@ pub fn parse_label_def<'a>(
 
     // <block>?
     let block = match tokenizer.peek_token().kind {
-        TokenKind::OpenBrace => Some(parse_block(
-            tokenizer,
-            indent_depth,
-            Rc::new(RefCell::new(Scope::new(Some(label), Some(scope)))),
-        )),
-        TokenKind::NewLine | TokenKind::EOS => None,
+        TokenKind::OpenBrace => {
+            let s = Rc::new(RefCell::new(Scope::new(Some(label), Some(scope.clone()))));
+            scope.borrow_mut().add_label(label, Some(s.clone()));
+            Some(parse_block(
+                tokenizer,
+                indent_depth,
+                s,
+            ))
+        },
+        TokenKind::NewLine | TokenKind::EOS => {
+            scope.borrow_mut().add_label(label, None);
+            None
+        },
         _ => {
             todo!()
         }
     };
-
     LabelDef::new(label, gen_label, is_global, section, block, loc)
 }
 

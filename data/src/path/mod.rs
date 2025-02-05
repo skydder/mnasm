@@ -3,7 +3,7 @@ use crate::Ident;
 #[derive(Debug, Clone)]
 pub struct Path<'a> {
     is_relative: bool,
-    path: Vec<Ident<'a>>,
+    pub path: Vec<Ident<'a>>,
 }
 
 impl<'a> Path<'a> {
@@ -33,6 +33,14 @@ impl<'a> Path<'a> {
             name.push_str(&self.path[nth].get());
             name.push_str("__");
             self._path_name(name, nth + 1);
+        }
+    }
+
+    pub fn split(&self) -> Option<(Ident<'a>, Path<'a>)> {
+        if let Some(i) = self.path.first() {
+            Some((*i, Path::new(false, self.path[1..].to_vec())))
+        } else {
+            None   
         }
     }
 }

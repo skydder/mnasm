@@ -11,7 +11,7 @@ use util::Location;
 pub struct Scope<'a> {
     scope_name: Ident<'a>,
     parent: Option<Rc<RefCell<Scope<'a>>>>,
-    labels: RefCell<Vec<Ident<'a>>>,
+    labels: RefCell<Vec<(Ident<'a>, Option<Rc<RefCell<Scope<'a>>>>)>>,
     macros: RefCell<Vec<(Ident<'a>, Rc<Macro<'a>>)>>,
     path_name: String,
 }

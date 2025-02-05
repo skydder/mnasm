@@ -53,7 +53,7 @@ impl<'a> Operand for Label<'a> {
         self.scope
             .borrow()
             .find_label(&self.path)
-            .unwrap_or_else(|| emit_error!(self.location, "undefined label"));
+            .unwrap_or_else(|| emit_error!(self.location, "undefined label: {} {:?}", self.name, self.path));
     }
 
     fn op(&self) -> (OperandKind, usize) {
