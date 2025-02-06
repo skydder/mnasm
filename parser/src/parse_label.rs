@@ -4,10 +4,7 @@ use data::{Ident, Label, Path, Scope};
 use tokenizer::{TokenKind, Tokenizer2};
 
 // "."? <ident> ("." <ident>)*
-pub fn parse_label<'a>(
-    tokenizer: &'a Tokenizer2<'a>,
-    scope: Rc<RefCell<Scope<'a>>>,
-) -> Label<'a> {
+pub fn parse_label<'a>(tokenizer: &'a Tokenizer2<'a>, scope: Rc<RefCell<Scope<'a>>>) -> Label<'a> {
     let location = tokenizer.location();
     let is_relative = if tokenizer.peek_token().is(TokenKind::Dot) {
         tokenizer.next_token();
@@ -25,5 +22,10 @@ pub fn parse_label<'a>(
         tokenizer.next_token();
     }
 
-    Label::new(*path.last().unwrap(), scope, location, Path::new(is_relative, path))
+    Label::new(
+        *path.last().unwrap(),
+        scope,
+        location,
+        Path::new(is_relative, path),
+    )
 }

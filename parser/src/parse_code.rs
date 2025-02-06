@@ -29,7 +29,6 @@ fn parse_code_inside<'a>(
 
     // <label_def>
     labels.push(parse_stmt(tokenizer, 0, root.clone()));
-
     // *
     parse_code_inside(tokenizer, labels, root);
 }
@@ -46,6 +45,9 @@ fn is_eos<'a>(tokenizer: &'a Tokenizer2<'a>) -> bool {
             skip_null_line(tokenizer);
             is_eos(tokenizer)
         }
-        _ => false,
+        _ => {
+            tokenizer.add_to_code(TokenKind::NewLine);
+            false
+        },
     }
 }

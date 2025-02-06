@@ -41,7 +41,7 @@ impl<'a> std::fmt::Display for TokenKind<'a> {
                 TokenKind::CloseBrace => format!("}}"),
                 TokenKind::Colon => format!(":"),
                 TokenKind::Semicolon => format!(";"),
-                TokenKind::Comma => format!(","),
+                TokenKind::Comma => format!(", "),
                 TokenKind::Minus => format!("-"),
                 TokenKind::Dot => format!("."),
                 TokenKind::At => format!("@"),

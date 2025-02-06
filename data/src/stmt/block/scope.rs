@@ -21,19 +21,15 @@ impl<'a> Scope<'a> {
             parent: parent.clone(),
             labels: RefCell::new(Vec::new()),
             macros: RefCell::new(Vec::new()),
-            path_name: parent.map_or_else(|| {
-                format!("{}", scope_name)
-            }, |p|
-                if p.borrow().path_name == "" {
-                    format!("{}", scope_name)
-                } else {
-                    format!("{}__{}", p.borrow().path_name.clone(), scope_name)
-                })
+            path_name: parent.filter(|p| p.borrow().path_name != "").map_or_else(
+                || format!("{}", scope_name),
+                |p| format!("{}__{}", p.borrow().path_name.clone(), scope_name),
+            ),
         }
     }
 
     pub fn add_label(&self, label: Ident<'a>, scope: Option<Rc<RefCell<Scope<'a>>>>) {
-        self.labels.borrow_mut().push((label,  scope));
+        self.labels.borrow_mut().push((label, scope));
     }
 
     pub fn add_macro(&self, label: Ident<'a>, macros: Rc<Macro<'a>>) {
@@ -128,7 +124,7 @@ impl<'a> Scope<'a> {
 
     pub fn find_label_local(&self, label: &Path<'a>) -> Option<String> {
         if self._find_label(label) {
-            return Some( format!("{}__{}", self.path_name, label.path_name()));
+            return Some(format!("{}__{}", self.path_name, label.path_name()));
         }
         None
     }
@@ -150,5 +146,4 @@ impl<'a> Scope<'a> {
         }
         format!("{}__{}", self.path_name, label)
     }
-
 }

@@ -34,6 +34,7 @@ pub fn read_macro_def<'a>(tokenizer: &Tokenizer2<'a>) -> Macro<'a> {
     tokenizer.skip_space_silently();
 
     let m_begin = tokenizer.peek_token().location;
+    eprintln!("{:#?}", m_begin);
     let mut m_end = tokenizer.peek_token_sme().location;
     while !tokenizer.peek_token_sme().is(TokenKind::MacroEnd) {
         tokenizer.skip_token();
@@ -79,6 +80,7 @@ fn read_macro_call_args<'a>(tokenizer: &Tokenizer2<'a>, args: &mut Vec<Stream<'a
     if current_token.is(TokenKind::CloseParenthesis) {
         return;
     }
+    tokenizer.skip_space_silently();
     let m_begin = current_token.location;
     while !tokenizer.peek_token().is(TokenKind::MacroEnd) {
         tokenizer.skip_token();

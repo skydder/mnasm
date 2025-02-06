@@ -22,7 +22,12 @@ pub struct Label<'a> {
 }
 
 impl<'a> Label<'a> {
-    pub fn new(name: Ident<'a>, scope: Rc<RefCell<Scope<'a>>>, location: Location<'a>, path: Path<'a>) -> Self {
+    pub fn new(
+        name: Ident<'a>,
+        scope: Rc<RefCell<Scope<'a>>>,
+        location: Location<'a>,
+        path: Path<'a>,
+    ) -> Self {
         Self {
             name: name,
             scope: scope,
@@ -53,7 +58,14 @@ impl<'a> Operand for Label<'a> {
         self.scope
             .borrow()
             .find_label(&self.path)
-            .unwrap_or_else(|| emit_error!(self.location, "undefined label: {} {:?}", self.name, self.path));
+            .unwrap_or_else(|| {
+                emit_error!(
+                    self.location,
+                    "undefined label: {} {:?}",
+                    self.name,
+                    self.path
+                )
+            });
     }
 
     fn op(&self) -> (OperandKind, usize) {

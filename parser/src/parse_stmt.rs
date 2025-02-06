@@ -4,10 +4,7 @@ use data::{Scope, Stmt};
 use tokenizer::{TokenKind, Tokenizer2};
 use util::emit_error;
 
-use crate::{
-    parse_block, parse_compound_ins, parse_label_def, parse_let_macro,
-    parse_pseudo_ins,
-};
+use crate::{parse_block, parse_compound_ins, parse_label_def, parse_let_macro, parse_pseudo_ins};
 
 // <stmt> = <compound_ins> | <block> | <label_def>
 pub fn parse_stmt<'a>(
@@ -16,7 +13,7 @@ pub fn parse_stmt<'a>(
     scope: Rc<RefCell<Scope<'a>>>,
 ) -> Box<dyn Stmt<'a> + 'a> {
     let currrent_token = tokenizer.peek_token();
-    match currrent_token.kind {
+    let new: Box<dyn Stmt<'a> + 'a> = match currrent_token.kind {
         TokenKind::Identifier("db") => Box::new(parse_pseudo_ins(tokenizer, scope)),
         TokenKind::Identifier("resb") => Box::new(parse_pseudo_ins(tokenizer, scope)),
         TokenKind::Identifier("extern") | TokenKind::Identifier("include") => {
@@ -43,5 +40,6 @@ pub fn parse_stmt<'a>(
                 tokenizer.code()
             )
         }
-    }
+    };
+    new
 }

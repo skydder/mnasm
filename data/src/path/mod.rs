@@ -8,7 +8,10 @@ pub struct Path<'a> {
 
 impl<'a> Path<'a> {
     pub fn new(is_relative: bool, path: Vec<Ident<'a>>) -> Self {
-        Self { is_relative: is_relative, path: path }
+        Self {
+            is_relative: is_relative,
+            path: path,
+        }
     }
 
     pub fn is_relative(&self) -> bool {
@@ -40,7 +43,7 @@ impl<'a> Path<'a> {
         if let Some(i) = self.path.first() {
             Some((*i, Path::new(false, self.path[1..].to_vec())))
         } else {
-            None   
+            None
         }
     }
 }

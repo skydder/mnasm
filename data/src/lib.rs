@@ -1,18 +1,18 @@
 mod code;
 mod ident;
 mod operands;
-mod stmt;
 mod path;
+mod stmt;
 
 pub use code::Code;
 pub use ident::Ident;
 pub use operands::{
     Immediate, Label, LabelState, Memory, Operand, OperandKind, Register, RegisterKind, Scale,
 };
+pub use path::Path;
 pub use stmt::{
     Block, CompoundIns, Ins, LabelDef, LabelInfo, Macro, PseudoIns, Scope, Stmt, StmtKind,
 };
-pub use path::Path;
 pub trait Analyze {
     fn analyze(&self);
 }

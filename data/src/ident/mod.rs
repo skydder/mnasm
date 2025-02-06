@@ -11,7 +11,7 @@ static C: AtomicU64 = AtomicU64::new(0);
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum Ident<'a> {
     Named(&'a str),
-    Unnamed(u64)
+    Unnamed(u64),
 }
 
 impl<'a> Ident<'a> {
@@ -20,8 +20,9 @@ impl<'a> Ident<'a> {
     }
 
     pub fn new_unnamed() -> Self {
-        let new = Self::Unnamed(C.load(Ordering::Relaxed));
-        C.fetch_add(1, Ordering::Relaxed);
+        eprintln!("1");
+        let new = Self::Unnamed(C.load(Ordering::SeqCst).clone());
+        C.fetch_add(1, Ordering::SeqCst);
         new
     }
 
@@ -30,18 +31,6 @@ impl<'a> Ident<'a> {
             Ident::Named(name) => format!("{}", name),
             Ident::Unnamed(c) => format!("N_L_L_{}", c),
         }
-    }
-}
-
-impl<'a> _Ident<'a> {
-    pub fn new(name: &'a str) -> Self {
-        Self {
-            name: name,
-        }
-    }
-
-    pub fn get(&self) -> String {
-        format!("{}", &self.name[0..])
     }
 }
 

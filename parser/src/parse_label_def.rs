@@ -69,16 +69,13 @@ pub fn parse_label_def<'a>(
         TokenKind::OpenBrace => {
             let s = Rc::new(RefCell::new(Scope::new(Some(label), Some(scope.clone()))));
             scope.borrow_mut().add_label(label, Some(s.clone()));
-            Some(parse_block(
-                tokenizer,
-                indent_depth,
-                s,
-            ))
-        },
+            Some(parse_block(tokenizer, indent_depth, s))
+        }
         TokenKind::NewLine | TokenKind::EOS => {
-            scope.borrow_mut().add_label(label, None);
+            scope.borrow_mut().add_label(label, None); 
+            tokenizer.add_to_code(TokenKind::NewLine);
             None
-        },
+        }
         _ => {
             todo!()
         }
@@ -100,11 +97,9 @@ fn parse_section<'a>(tokenizer: &'a Tokenizer2<'a>) -> Ident<'a> {
         }
     } else {
         tokenizer.skip_space();
-        Ident::new(
-            tokenizer.peek_token().get_identifier().unwrap_or_else(|| {
-                emit_error!(tokenizer.location(), "consumeed label here but found other");
-            })
-        )
+        Ident::new(tokenizer.peek_token().get_identifier().unwrap_or_else(|| {
+            emit_error!(tokenizer.location(), "consumeed label here but found other");
+        }))
     };
     tokenizer.next_token();
     return s;

@@ -1,7 +1,4 @@
-use std::{
-    cell::RefCell,
-    collections::HashMap,
-};
+use std::{cell::RefCell, collections::HashMap};
 
 use crate::{read_macro_call, read_macro_def, Macro, Stream, Token, TokenKind};
 use util::{emit_error, Location};
@@ -107,7 +104,12 @@ impl<'a> TokenizerStatus<'a> {
         }
     }
     fn update(self, begin: Location<'a>) -> Self {
-        Self::new(begin, self.stream.end(), self.is_auto_leave, self.macro_args)
+        Self::new(
+            begin,
+            self.stream.end(),
+            self.is_auto_leave,
+            self.macro_args,
+        )
     }
 }
 // delete auto leave, since macro auto leaves.
@@ -152,7 +154,9 @@ impl<'a> Tokenizer2<'a> {
             is_auto_leave,
             args,
         ));
-        self.status_stack.borrow_mut().push(status.update(self.location()));
+        self.status_stack
+            .borrow_mut()
+            .push(status.update(self.location()));
         self.tokenizer.borrow_mut().swap(stream.begin());
     }
 
@@ -246,12 +250,12 @@ impl<'a> Tokenizer2<'a> {
     }
 
     pub fn skip_space(&self) {
-        self.code.borrow_mut().push(TokenKind::Space);
+        // self.code.borrow_mut().push(TokenKind::Space);
         self.tokenizer.borrow().skip_space()
     }
 
     pub fn skip_space_silently(&self) {
-        self.code.borrow_mut().push(TokenKind::Space);
+        // self.code.borrow_mut().push(TokenKind::Space);
         self.tokenizer.borrow().skip_space()
     }
 
@@ -295,7 +299,7 @@ impl<'a> Tokenizer2<'a> {
                 )
             }
         }
-        self.code.borrow_mut().push(TokenKind::NewLine);
+        // self.code.borrow_mut().push(TokenKind::NewLine);
         // self.tokenizer.borrow().consume_newline()
     }
 

@@ -36,7 +36,7 @@ pub fn parse_pseudo_ins<'a>(
     // ")"
     tokenizer.skip_space();
     tokenizer.consume_token(TokenKind::CloseParenthesis);
-
+    tokenizer.add_to_code(TokenKind::NewLine);
     PseudoIns::new(ins, operands, currrent_token.location)
 }
 
