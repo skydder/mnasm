@@ -31,14 +31,28 @@ pub fn parse_let_macro<'a>(
     }
 
     let start_loc = tokenizer.location();
-    let mut end = tokenizer.location();
-    while !tokenizer.peek_token().is(TokenKind::MacroEnd) {
+    // let mut end = tokenizer.location();
+    // while !tokenizer.peek_token().is(TokenKind::MacroEnd) {
+    //     tokenizer.next_token();
+    //     tokenizer.skip_space();
+    //     end = tokenizer.location();
+    // }
+    let mut counter: Vec<&str> = vec!["("];
+    while !counter.is_empty() {
         tokenizer.next_token();
-        tokenizer.skip_space();
-        end = tokenizer.location();
+        match tokenizer.peek_token().kind {
+            TokenKind::CloseParenthesis => {
+                counter.pop();
+            },
+            TokenKind::OpenParenthesis => {
+                counter.push("(");
+            },
+            _ => ()
+        };
     }
-
-    tokenizer.consume_token(TokenKind::MacroEnd);
+    let end = tokenizer.location();
+    
+    // tokenizer.consume_token(TokenKind::MacroEnd);
     tokenizer.skip_space();
     tokenizer.consume_token(TokenKind::CloseParenthesis);
     scope.borrow_mut().add_macro(

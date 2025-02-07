@@ -1,4 +1,4 @@
-use std::{cell::RefCell, collections::HashMap};
+use std::{cell::RefCell, collections::HashMap, fmt::Debug};
 
 use crate::{read_macro_call, read_macro_def, Macro, Stream, Token, TokenKind};
 use util::{emit_error, Location};
@@ -16,15 +16,11 @@ impl<'a> InnerTokenizer<'a> {
     }
 
     fn location(&self) -> Location<'a> {
-        self.location.borrow().clone()
-    }
-
-    fn current_slice(&self) -> &'a str {
-        self.location.borrow().current_slice()
+        *self.location.borrow()
     }
 
     fn peek_token(&self) -> Token<'a> {
-        let tok = Token::tokenize(self.current_slice(), self.location.borrow().clone());
+        let tok = Token::tokenize(*self.location.borrow());
         tok
     }
 
@@ -113,7 +109,7 @@ impl<'a> TokenizerStatus<'a> {
     }
 }
 // delete auto leave, since macro auto leaves.
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct Tokenizer2<'a> {
     tokenizer: RefCell<InnerTokenizer<'a>>,
 
@@ -313,5 +309,11 @@ impl<'a> Tokenizer2<'a> {
 
     pub fn add_to_code(&self, tokenkind: TokenKind<'a>) {
         self.code.borrow_mut().push(tokenkind);
+    }
+}
+
+impl<'a> std::fmt::Debug for Tokenizer2<'a> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Tokenizer2").field("tokenizer", &self.tokenizer).field("current_status", &self.current_status).finish()
     }
 }

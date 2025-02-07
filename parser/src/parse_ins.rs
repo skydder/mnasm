@@ -74,7 +74,7 @@ pub fn parse_compound_ins<'a>(
     let mut compound = Vec::new();
     let loc = tokenizer.location();
     parse_compound_ins_inside(tokenizer, &mut compound, scope);
-    tokenizer.add_to_code(TokenKind::NewLine);
+    // tokenizer.add_to_code(TokenKind::NewLine);
     CompoundIns::new(compound, loc)
 }
 

@@ -73,7 +73,7 @@ pub fn parse_label_def<'a>(
         }
         TokenKind::NewLine | TokenKind::EOS => {
             scope.borrow_mut().add_label(label, None); 
-            tokenizer.add_to_code(TokenKind::NewLine);
+            // tokenizer.add_to_code(TokenKind::NewLine);
             None
         }
         _ => {

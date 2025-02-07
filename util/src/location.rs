@@ -23,6 +23,7 @@ impl<'a> Source<'a> {
     }
 
     pub fn nth(&self, n: usize) -> &str {
+        assert!(n < self.end());
         &self.code[n..]
     }
 
@@ -91,7 +92,14 @@ impl<'a> Location<'a> {
         Self::create_location(self.source, self.line, self.column, self.nth + dn)
     }
     pub fn current_slice(&self) -> &'a str {
+        if self.is_eos() {
+            eprintln!("eror: {:#?}", self);
+        }
         self.source.nth(self.nth)
+    }
+
+    pub fn is_eos(&self) -> bool {
+        self.nth >= self.source.end()
     }
 }
 

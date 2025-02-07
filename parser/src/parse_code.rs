@@ -41,7 +41,8 @@ fn skip_null_line<'a>(tokenizer: &'a Tokenizer2<'a>) {
 fn is_eos<'a>(tokenizer: &'a Tokenizer2<'a>) -> bool {
     match tokenizer.peek_token().kind {
         TokenKind::EOS => true,
-        TokenKind::NewLine | TokenKind::Space => {
+        TokenKind::NewLine | TokenKind::Semicolon | TokenKind::Space => {
+            // eprintln!("{:#?}", tokenizer);
             skip_null_line(tokenizer);
             is_eos(tokenizer)
         }

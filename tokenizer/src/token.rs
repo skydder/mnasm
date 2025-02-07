@@ -267,7 +267,11 @@ impl<'a> Token<'a> {
         Some(builder.kind(TokenKind::String(&s[1..n])).len(n + 1))
     }
 
-    pub(crate) fn tokenize(s: &'a str, location: Location<'a>) -> Token<'a> {
+    pub(crate) fn tokenize(location: Location<'a>) -> Token<'a> {
+        if location.is_eos() {
+            return TokenBuilder::new().kind(TokenKind::EOS).len(1).location(location).build();
+        }
+        let s = location.current_slice();
         let builder = if let Some(b) = Token::check_if_punc(s) {
             b
         } else if let Some(b) = Token::check_if_ident(s) {

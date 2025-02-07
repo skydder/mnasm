@@ -13,7 +13,7 @@ pub enum LabelState {
     UsedAndDefined,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct Label<'a> {
     name: Ident<'a>,
     pub path: Path<'a>,
@@ -84,5 +84,11 @@ impl<'a> std::cmp::Eq for Label<'a> {}
 impl<'a> std::hash::Hash for Label<'a> {
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
         self.name.get().hash(state);
+    }
+}
+
+impl<'a> std::fmt::Debug for Label<'a> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Label").field("name", &self.name).field("path", &self.path).field("location", &self.location).finish()
     }
 }

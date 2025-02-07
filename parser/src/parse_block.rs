@@ -28,7 +28,7 @@ pub fn parse_block<'a>(
     tokenizer.consume_token(TokenKind::CloseBrace);
     tokenizer.skip_space();
 
-    tokenizer.add_to_code(TokenKind::NewLine);
+    // tokenizer.add_to_code(TokenKind::NewLine);
 
     // Block::new(indent_depth, stmts, loc, inner_scope)
     Block::new(indent_depth, stmts, loc, scope)

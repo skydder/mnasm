@@ -41,5 +41,6 @@ pub fn parse_stmt<'a>(
             )
         }
     };
+    tokenizer.add_to_code(TokenKind::NewLine);
     new
 }

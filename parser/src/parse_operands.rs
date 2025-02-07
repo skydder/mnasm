@@ -26,6 +26,7 @@ pub fn parse_operands<'a>(
             } else {
                 // tokenizer.next_token();
                 let label = parse_label(tokenizer, scope.clone());
+                // eprintln!("{:#?}", label);
                 if let Some(m) = scope.borrow().find_macro(label.ident()) {
                     tokenizer.enter_macro(m.ingredients_of_tokenizer(), Vec::new(), false);
                     let op = parse_operands(tokenizer, scope.clone());

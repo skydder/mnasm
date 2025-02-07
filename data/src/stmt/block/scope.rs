@@ -33,6 +33,7 @@ impl<'a> Scope<'a> {
     }
 
     pub fn add_macro(&self, label: Ident<'a>, macros: Rc<Macro<'a>>) {
+        // eprintln!("{:#?}", (label, macros.clone()));
         self.labels.borrow_mut().push((label, None));
         self.macros.borrow_mut().push((label, macros));
     }
