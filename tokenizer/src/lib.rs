@@ -4,7 +4,7 @@ mod tokenizer2;
 
 use std::fmt::Debug;
 
-pub(crate) use macro_related::{read_macro_call, read_macro_def, Macro};
+pub(crate) use macro_related::{init_infix_macro, read_macro_call, read_macro_def, Macro};
 pub use token::{Token, TokenKind};
 pub use tokenizer2::Tokenizer2;
 use util::Location;

@@ -49,7 +49,7 @@ fn parse_inside<'a>(
         TokenKind::CloseBrace => {
             return;
         }
-        TokenKind::NewLine | TokenKind::Semicolon | TokenKind::EOS=> {
+        TokenKind::NewLine | TokenKind::Semicolon | TokenKind::EOS => {
             tokenizer.add_to_code(TokenKind::NewLine);
             parse_inside(tokenizer, indent_depth, stmts, scope);
         }

@@ -32,9 +32,41 @@ impl<'a> Source<'a> {
     }
 }
 
+#[derive(Clone, Copy, PartialEq)]
+pub enum Source2<'a> {
+    Source(&'a Source<'a>),
+    BuiltIn(&'a str),
+}
+
+impl<'a> Source2<'a> {
+    fn file(&self) -> &str {
+        match self {
+            Source2::Source(source) => source.file,
+            Source2::BuiltIn(_) => "builtin",
+        }
+    }
+
+    fn end(&self) -> usize {
+        match self {
+            Source2::Source(source) => source.end(),
+            Source2::BuiltIn(s) => s.len(),
+        }
+    }
+
+    fn nth(&self, n: usize) -> &'a str {
+        match self {
+            Source2::Source(source) => source.nth(n),
+            Source2::BuiltIn(s) => {
+                assert!(n < self.end());
+                &s[n..]
+            }
+        }
+    }
+}
+
 #[derive(Clone, Copy)]
 pub struct Location<'a> {
-    source: &'a Source<'a>,
+    source: Source2<'a>,
     line: usize,
     column: usize,
     nth: usize,
@@ -42,20 +74,29 @@ pub struct Location<'a> {
 
 impl<'a> std::fmt::Display for Location<'a> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}:{}:{}", self.source.file, self.line, self.column)
+        write!(f, "{}:{}:{}", self.source.file(), self.line, self.column)
     }
 }
 
 impl<'a> std::fmt::Debug for Location<'a> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}:{}:{}", self.source.file, self.line, self.column)
+        write!(f, "{}:{}:{}", self.source.file(), self.line, self.column)
     }
 }
 
 impl<'a> Location<'a> {
     pub fn new(source: &'a Source<'a>) -> Self {
         Self {
-            source: source,
+            source: Source2::Source(source),
+            line: 1,
+            column: 1,
+            nth: 0,
+        }
+    }
+
+    pub fn new_builtin(source: &'a str) -> Self {
+        Self {
+            source: Source2::BuiltIn(source),
             line: 1,
             column: 1,
             nth: 0,
@@ -71,7 +112,7 @@ impl<'a> Location<'a> {
         }
     }
 
-    pub fn create_location(source: &'a Source<'a>, line: usize, column: usize, nth: usize) -> Self {
+    pub fn create_location(source: Source2<'a>, line: usize, column: usize, nth: usize) -> Self {
         Self {
             source: source,
             line: line,

@@ -1,6 +1,6 @@
-use std::{cell::RefCell, collections::HashMap, fmt::Debug};
+use std::{cell::RefCell, collections::HashMap, fmt::Debug, process::exit};
 
-use crate::{read_macro_call, read_macro_def, Macro, Stream, Token, TokenKind};
+use crate::{init_infix_macro, read_macro_call, read_macro_def, Macro, Stream, Token, TokenKind};
 use util::{emit_error, Location};
 
 #[derive(Debug, Clone)]
@@ -84,6 +84,7 @@ struct TokenizerStatus<'a> {
     stream: Stream<'a>,
     is_auto_leave: bool,
     macro_args: Vec<(&'a str, Stream<'a>)>,
+    macro_args_current: usize
 }
 
 impl<'a> TokenizerStatus<'a> {
@@ -92,11 +93,13 @@ impl<'a> TokenizerStatus<'a> {
         eos: Location<'a>,
         is_auto_leave: bool,
         macro_args: Vec<(&'a str, Stream<'a>)>,
+        macro_args_current: usize
     ) -> Self {
         Self {
             is_auto_leave: is_auto_leave,
             macro_args: macro_args,
             stream: Stream::new(current_location, eos),
+            macro_args_current: macro_args_current
         }
     }
     fn update(self, begin: Location<'a>) -> Self {
@@ -105,6 +108,7 @@ impl<'a> TokenizerStatus<'a> {
             self.stream.end(),
             self.is_auto_leave,
             self.macro_args,
+            self.macro_args_current
         )
     }
 }
@@ -124,16 +128,20 @@ pub struct Tokenizer2<'a> {
 
 impl<'a> Tokenizer2<'a> {
     pub fn new_tokenizer(location: Location<'a>) -> Self {
+        let mut macro_data = HashMap::new();
+        macro_data.insert("infix", init_infix_macro());
+
         Self {
             tokenizer: RefCell::new(InnerTokenizer::new(location)),
             status_stack: RefCell::new(Vec::new()),
             code: RefCell::new(Vec::new()),
-            macro_data: RefCell::new(HashMap::new()),
+            macro_data: RefCell::new(macro_data),
             current_status: RefCell::new(TokenizerStatus::new(
                 location,
                 location.end(),
                 false,
                 Vec::new(),
+                0
             )),
         }
     }
@@ -144,12 +152,14 @@ impl<'a> Tokenizer2<'a> {
         args: Vec<(&'a str, Stream<'a>)>,
         is_auto_leave: bool,
     ) {
+        let len = args.len();
+        let macro_args = vec![self.current_status.borrow().macro_args.clone(), args].concat();
         let status = self.current_status.replace(TokenizerStatus::new(
             stream.begin(),
             stream.end(),
             is_auto_leave,
-            args,
-        ));
+            macro_args,
+        len));
         self.status_stack
             .borrow_mut()
             .push(status.update(self.location()));
@@ -194,12 +204,13 @@ impl<'a> Tokenizer2<'a> {
     }
 
     pub fn peek_token(&self) -> Token<'a> {
-        let current = self.tokenizer.borrow().peek_token();
+        let current =  self.tokenizer.borrow().peek_token();
         if current.location >= self.end() {
             if self.is_auto_leave() {
                 self.leave_macro();
                 return self.peek_token_sme();
             }
+            eprintln!("hello: {:#?}", self);
             return Token::new(TokenKind::EOS, 0, self.end());
         }
         match current.kind {
@@ -207,7 +218,7 @@ impl<'a> Tokenizer2<'a> {
                 self.skip_token();
                 let name = self.peek_token().get_identifier().unwrap();
                 self.skip_token();
-                self.enter_macro(self.match_arg(name).unwrap(), Vec::new(), true);
+                self.enter_macro(self.match_arg(name).unwrap_or_else(|| {eprintln!("{}", self.location()); exit(1)}), Vec::new(), true);
                 self.peek_token()
             }
             TokenKind::At => {
@@ -314,6 +325,9 @@ impl<'a> Tokenizer2<'a> {
 
 impl<'a> std::fmt::Debug for Tokenizer2<'a> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("Tokenizer2").field("tokenizer", &self.tokenizer).field("current_status", &self.current_status).finish()
+        f.debug_struct("Tokenizer2")
+            .field("tokenizer", &self.tokenizer)
+            .field("current_status", &self.current_status)
+            .finish()
     }
 }

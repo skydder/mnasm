@@ -37,15 +37,15 @@ pub fn parse_let_macro<'a>(
         match tokenizer.peek_token().kind {
             TokenKind::CloseParenthesis => {
                 counter -= 1;
-            },
+            }
             TokenKind::OpenParenthesis => {
                 counter += 1;
-            },
-            _ => ()
+            }
+            _ => (),
         };
     }
     let end = tokenizer.location();
-    
+
     // tokenizer.consume_token(TokenKind::MacroEnd);
     tokenizer.skip_space();
     tokenizer.consume_token(TokenKind::CloseParenthesis);

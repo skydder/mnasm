@@ -45,8 +45,8 @@ fn parse_ins_operands_inside<'a>(
     // <operand>
     operands.push(parse_operands(tokenizer, scope.clone()));
     tokenizer.skip_space();
-
-    match tokenizer.peek_token().kind {
+    let current = tokenizer.peek_token();
+    match current.kind {
         TokenKind::CloseParenthesis => {
             return;
         }
@@ -63,7 +63,8 @@ fn parse_ins_operands_inside<'a>(
         _ => {
             emit_error!(
                 tokenizer.location(),
-                "invalid expression: {:?}\n{}",
+                "invalid expression1: {:?}\n{:?}\n{}\n",
+                current,
                 tokenizer.peek_token(),
                 tokenizer.code()
             );

@@ -15,7 +15,7 @@ impl<'a> Ins<'a> {
         instruction: &'a str,
         operands: Vec<Box<dyn Operand + 'a>>,
         location: Location<'a>,
-        check: bool
+        check: bool,
     ) -> Self {
         Self {
             instruction: instruction,

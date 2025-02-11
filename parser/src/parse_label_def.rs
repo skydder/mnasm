@@ -72,7 +72,7 @@ pub fn parse_label_def<'a>(
             Some(parse_block(tokenizer, indent_depth, s))
         }
         TokenKind::NewLine | TokenKind::EOS => {
-            scope.borrow_mut().add_label(label, None); 
+            scope.borrow_mut().add_label(label, None);
             // tokenizer.add_to_code(TokenKind::NewLine);
             None
         }

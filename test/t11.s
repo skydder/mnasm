@@ -19,31 +19,31 @@ macro if(cond, then, else,) {
 }
 
 macro print(len, str,) {
-    mov(rax, 1);
-    mov(rdi, 1);
-    mov(rsi, `str)
-    mov(rdx, `len)
+    @[rax = 1]
+    @[rdi = 1]
+    @[rsi = `str]
+    @[rdx = `len]
     syscall!()
 }
 
-macro exit() {
-    mov(rax, 60)
-    mov(rdi, 0)
+macro exit(code,) {
+    @[rax = 60]
+    @[rdi = `code]
     syscall!()
 }
 
 macro exit2() mov(rax, 60);mov(rdi, 0);syscall!()
 
 macro divide(a, b,) {
-    mov(rax, `a)
+    @[rax = `a]
     cqo()
-    mov(rdi, `b)
+    @[rdi = `b]
     div(rdi)
 }
 
 <_start:global:.text> {
     let(counter, r8) #r8:counter
-    mov(counter, 1)
+    @[counter = 1]
     <loop> {
         @divide(counter)(3)
 
@@ -55,9 +55,9 @@ macro divide(a, b,) {
                 @print(5)(buzz)
             }()
         }
-        add(counter, 1)
+        @[counter += 1]
         cmp(counter, 15)
         jl!(_start.loop)
     }
-    @exit2()
+    @exit(0)
 }

@@ -9,10 +9,7 @@ pub fn analyze_ins<'a>(ins: &Ins<'a>) {
         match ins_analyzer(ins.instruction, Operands::convert_operands(&ins.operands)) {
             Ok(_) => return,
             Err(_) => {
-                emit_error!(
-                    ins.location,
-                    "unsuppoted instruction or operands."
-                );
+                emit_error!(ins.location, "unsuppoted instruction or operands.");
             }
         }
     }

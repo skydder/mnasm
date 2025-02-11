@@ -44,7 +44,7 @@ pub fn parse_operands<'a>(
         TokenKind::Dot => Box::new(parse_label(tokenizer, scope)),
 
         _ => {
-            emit_error!(loc, "unexpected token, {:#?}", tokenizer.peek_token().kind)
+            emit_error!(loc, "unexpected token1, {:#?}", tokenizer.peek_token())
         }
     }
 }

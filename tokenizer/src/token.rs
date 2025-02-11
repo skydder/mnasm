@@ -10,6 +10,8 @@ pub enum TokenKind<'a> {
     CloseParenthesis,
     OpenBrace,
     CloseBrace,
+    OpenSquareBracket,
+    CloseSquareBracket,
     Colon,
     Semicolon,
     Comma,
@@ -26,6 +28,12 @@ pub enum TokenKind<'a> {
     NewLine,
     Space,
     EOS,
+
+    // for infix macro
+    Add,
+    Mov,
+    And,
+    Sub,
 }
 
 impl<'a> std::fmt::Display for TokenKind<'a> {
@@ -40,6 +48,8 @@ impl<'a> std::fmt::Display for TokenKind<'a> {
                 TokenKind::CloseParenthesis => format!(")"),
                 TokenKind::OpenBrace => format!("{{"),
                 TokenKind::CloseBrace => format!("}}"),
+                TokenKind::OpenSquareBracket => format!("["),
+                TokenKind::CloseSquareBracket => format!("]"),
                 TokenKind::Colon => format!(":"),
                 TokenKind::Semicolon => format!(";"),
                 TokenKind::Comma => format!(", "),
@@ -55,6 +65,11 @@ impl<'a> std::fmt::Display for TokenKind<'a> {
                 TokenKind::NewLine => format!("\n"),
                 TokenKind::Space => format!(" "),
                 TokenKind::EOS => format!("\n"),
+
+                TokenKind::Add => format!("+="),
+                TokenKind::And => format!("&="),
+                TokenKind::Mov => format!("="),
+                TokenKind::Sub => format!("-="),
             }
         )
     }
@@ -200,6 +215,18 @@ impl<'a> Token<'a> {
             Some(builder.kind(TokenKind::BackQuote).len(1))
         } else if s.starts_with("!") {
             Some(builder.kind(TokenKind::Not).len(1))
+        } else if s.starts_with("[") {
+            Some(builder.kind(TokenKind::OpenSquareBracket).len(1))
+        } else if s.starts_with("]") {
+            Some(builder.kind(TokenKind::CloseSquareBracket).len(1))
+        } else if s.starts_with("+=") {
+            Some(builder.kind(TokenKind::Add).len(2))
+        } else if s.starts_with("&=") {
+            Some(builder.kind(TokenKind::And).len(2))
+        } else if s.starts_with("=") {
+            Some(builder.kind(TokenKind::Mov).len(2))
+        } else if s.starts_with("-=") {
+            Some(builder.kind(TokenKind::Sub).len(2))
         } else {
             None
         }
@@ -273,7 +300,11 @@ impl<'a> Token<'a> {
 
     pub(crate) fn tokenize(location: Location<'a>) -> Token<'a> {
         if location.is_eos() {
-            return TokenBuilder::new().kind(TokenKind::EOS).len(1).location(location).build();
+            return TokenBuilder::new()
+                .kind(TokenKind::EOS)
+                .len(1)
+                .location(location)
+                .build();
         }
         let s = location.current_slice();
         let builder = if let Some(b) = Token::check_if_punc(s) {

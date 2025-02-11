@@ -49,6 +49,6 @@ fn is_eos<'a>(tokenizer: &'a Tokenizer2<'a>) -> bool {
         _ => {
             tokenizer.add_to_code(TokenKind::NewLine);
             false
-        },
+        }
     }
 }
