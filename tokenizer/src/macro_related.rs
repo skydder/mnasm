@@ -123,15 +123,15 @@ fn read_macro_call_args_p<'a>(tokenizer: &Tokenizer2<'a>, args: &mut Vec<Stream<
     tokenizer.skip_token();
     let m_begin = tokenizer.location();
     if !tokenizer.peek_token_sme().is(TokenKind::CloseParenthesis) {
-        let mut counter: Vec<&str> = vec!["("];
-        while !counter.is_empty() {
+        let mut counter = 1;
+        while counter > 0 {
             tokenizer.skip_token();
             match tokenizer.peek_token_sme().kind {
                 TokenKind::CloseParenthesis => {
-                    counter.pop();
+                    counter -= 1;
                 },
                 TokenKind::OpenParenthesis => {
-                    counter.push("(");
+                    counter += 1;
                 },
                 _ => ()
             };
@@ -149,14 +149,14 @@ fn read_macro_call_args_b<'a>(tokenizer: &Tokenizer2<'a>, args: &mut Vec<Stream<
    
     let m_begin = current_token.location;
     tokenizer.next_token_silently();
-    let mut counter: Vec<&str> = vec!["{"];
-    while !counter.is_empty() {
+    let mut counter = 1;
+    while counter > 0 {
         match tokenizer.peek_token_sme().kind {
             TokenKind::CloseBrace => {
-                counter.pop();
+                counter -= 1;
             },
             TokenKind::OpenBrace => {
-                counter.push("{");
+                counter += 1;
             },
             _ => ()
         };

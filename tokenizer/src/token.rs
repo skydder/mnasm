@@ -15,6 +15,7 @@ pub enum TokenKind<'a> {
     Comma,
     Minus,
     Dot,
+    Not,
     At,
     BackQuote,
     MacroEnd,
@@ -44,6 +45,7 @@ impl<'a> std::fmt::Display for TokenKind<'a> {
                 TokenKind::Comma => format!(", "),
                 TokenKind::Minus => format!("-"),
                 TokenKind::Dot => format!("."),
+                TokenKind::Not => format!("!"),
                 TokenKind::At => format!("@"),
                 TokenKind::MacroEnd => format!("@:"),
                 TokenKind::BackQuote => format!("`"),
@@ -196,6 +198,8 @@ impl<'a> Token<'a> {
             Some(builder.kind(TokenKind::At).len(1))
         } else if s.starts_with("`") {
             Some(builder.kind(TokenKind::BackQuote).len(1))
+        } else if s.starts_with("!") {
+            Some(builder.kind(TokenKind::Not).len(1))
         } else {
             None
         }

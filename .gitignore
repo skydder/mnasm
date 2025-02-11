@@ -9,3 +9,5 @@
 /test/target/
 /.gdb_history
 /peda-session-arith.txt
+/test.txt
+/test1.txt

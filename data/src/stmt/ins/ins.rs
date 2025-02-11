@@ -15,11 +15,12 @@ impl<'a> Ins<'a> {
         instruction: &'a str,
         operands: Vec<Box<dyn Operand + 'a>>,
         location: Location<'a>,
+        check: bool
     ) -> Self {
         Self {
             instruction: instruction,
             operands: operands,
-            check: true,
+            check: check,
             location: location,
         }
     }

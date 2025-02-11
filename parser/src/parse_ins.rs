@@ -15,6 +15,12 @@ pub fn parse_ins<'a>(tokenizer: &'a Tokenizer2<'a>, scope: Rc<RefCell<Scope<'a>>
     let ins = currrent_token.get_identifier().unwrap();
     tokenizer.next_token();
     tokenizer.skip_space();
+    let check = if tokenizer.peek_token().is(TokenKind::Not) {
+        tokenizer.next_token();
+        false
+    } else {
+        true
+    };
     // "("
     tokenizer.consume_token(TokenKind::OpenParenthesis);
     tokenizer.skip_space();
@@ -27,7 +33,7 @@ pub fn parse_ins<'a>(tokenizer: &'a Tokenizer2<'a>, scope: Rc<RefCell<Scope<'a>>
     // ")"
     tokenizer.consume_token(TokenKind::CloseParenthesis);
 
-    Ins::new(ins, operands, currrent_token.location)
+    Ins::new(ins, operands, currrent_token.location, check)
 }
 
 // <operands> = <operand> ("," <operand>)*

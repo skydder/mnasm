@@ -1,8 +1,8 @@
 macro if(cond, then, else,) {
     `cond
-    jne(.else)
+    jne!(.else)
     `then
-    jmp(.end)
+    jmp!(.end)
     <else>
     `else
     <end>
@@ -23,16 +23,16 @@ macro print(len, str,) {
     mov(rdi, 1);
     mov(rsi, `str)
     mov(rdx, `len)
-    syscall()
+    syscall!()
 }
 
 macro exit() {
     mov(rax, 60)
     mov(rdi, 0)
-    syscall()
+    syscall!()
 }
 
-macro exit2() mov(rax, 60);mov(rdi, 0);syscall()
+macro exit2() mov(rax, 60);mov(rdi, 0);syscall!()
 
 macro divide(a, b,) {
     mov(rax, `a)
@@ -57,7 +57,7 @@ macro divide(a, b,) {
         }
         add(counter, 1)
         cmp(counter, 15)
-        jl(_start.loop)
+        jl!(_start.loop)
     }
     @exit2()
 }
