@@ -12,7 +12,7 @@ pub fn parse_stmt<'a>(
     indent_depth: usize,
     scope: Rc<RefCell<Scope<'a>>>,
 ) -> Box<dyn Stmt<'a> + 'a> {
-    let currrent_token = tokenizer.peek_token();
+    let currrent_token = tokenizer.peek_token(true);
     let new: Box<dyn Stmt<'a> + 'a> = match currrent_token.kind {
         TokenKind::Identifier("db") => Box::new(parse_pseudo_ins(tokenizer, scope)),
         TokenKind::Identifier("resb") => Box::new(parse_pseudo_ins(tokenizer, scope)),
@@ -36,7 +36,7 @@ pub fn parse_stmt<'a>(
             emit_error!(
                 currrent_token.location,
                 "expected stmt, but found other!:{:?}\n{}",
-                tokenizer.peek_token(),
+                tokenizer.peek_token(true),
                 tokenizer.code()
             )
         }

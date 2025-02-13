@@ -14,7 +14,7 @@ pub fn parse_block<'a>(
     let loc = tokenizer.location();
 
     // "{"
-    assert!(tokenizer.peek_token().is(TokenKind::OpenBrace));
+    assert!(tokenizer.peek_token(true).is(TokenKind::OpenBrace));
     tokenizer.next_token();
     tokenizer.add_to_code(TokenKind::NewLine);
     // <stmt>*
@@ -26,7 +26,7 @@ pub fn parse_block<'a>(
 
     // "}"
     tokenizer.consume_token(TokenKind::CloseBrace);
-    tokenizer.skip_space();
+    tokenizer.skip_space(true);
 
     // tokenizer.add_to_code(TokenKind::NewLine);
 
@@ -41,11 +41,11 @@ fn parse_inside<'a>(
     stmts: &mut Vec<Box<dyn Stmt<'a> + 'a>>,
     scope: Rc<RefCell<Scope<'a>>>,
 ) {
-    tokenizer.skip_space();
+    tokenizer.skip_space(true);
     tokenizer.consume_newline();
     read_indent_by_depth(tokenizer, indent_depth);
 
-    match tokenizer.peek_token().kind {
+    match tokenizer.peek_token(true).kind {
         TokenKind::CloseBrace => {
             return;
         }
@@ -56,12 +56,12 @@ fn parse_inside<'a>(
         // <stmt>*
         _ => {
             read_indent_by_depth(tokenizer, 1);
-            tokenizer.skip_space();
+            tokenizer.skip_space(true);
             // <stmt>
-            if !(tokenizer.peek_token().is(TokenKind::Space)
-                || tokenizer.peek_token().is(TokenKind::NewLine)
-                || tokenizer.peek_token().is(TokenKind::Semicolon)
-                || tokenizer.peek_token().is(TokenKind::EOS))
+            if !(tokenizer.peek_token(true).is(TokenKind::Space)
+                || tokenizer.peek_token(true).is(TokenKind::NewLine)
+                || tokenizer.peek_token(true).is(TokenKind::Semicolon)
+                || tokenizer.peek_token(true).is(TokenKind::EOS))
             {
                 stmts.push(parse_stmt(tokenizer, indent_depth + 1, scope.clone()));
             } else {

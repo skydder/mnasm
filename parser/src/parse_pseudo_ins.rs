@@ -10,31 +10,31 @@ pub fn parse_pseudo_ins<'a>(
     tokenizer: &'a Tokenizer2<'a>,
     scope: Rc<RefCell<Scope<'a>>>,
 ) -> PseudoIns<'a> {
-    let currrent_token = tokenizer.peek_token();
+    let currrent_token = tokenizer.peek_token(true);
     assert!(currrent_token.is_identifier());
 
     // <instruction>
     let ins = currrent_token.get_identifier().unwrap();
     tokenizer.next_token();
-    tokenizer.skip_space();
+    tokenizer.skip_space(true);
 
     // "("
     tokenizer.consume_token(TokenKind::OpenParenthesis);
-    tokenizer.skip_space();
+    tokenizer.skip_space(true);
     let mut operands: Vec<String> = Vec::new();
     if ins == "extern" || ins == "include" {
-        if tokenizer.peek_token().is(TokenKind::CloseParenthesis) {
+        if tokenizer.peek_token(true).is(TokenKind::CloseParenthesis) {
             emit_error!(tokenizer.location(), "expected label");
         }
         parse_extern_operands_inside(tokenizer, &mut operands, scope);
     } else {
         // <operands>?
-        if !tokenizer.peek_token().is(TokenKind::CloseParenthesis) {
+        if !tokenizer.peek_token(true).is(TokenKind::CloseParenthesis) {
             parse_ins_operands_inside(tokenizer, &mut operands);
         }
     }
     // ")"
-    tokenizer.skip_space();
+    tokenizer.skip_space(true);
     tokenizer.consume_token(TokenKind::CloseParenthesis);
     // tokenizer.add_to_code(TokenKind::NewLine);
     PseudoIns::new(ins, operands, currrent_token.location)
@@ -42,26 +42,26 @@ pub fn parse_pseudo_ins<'a>(
 
 fn parse_ins_operands_inside<'a>(tokenizer: &'a Tokenizer2<'a>, operands: &mut Vec<String>) {
     // <operand>
-    let op = match tokenizer.peek_token().kind {
+    let op = match tokenizer.peek_token(true).kind {
         TokenKind::Minus | TokenKind::Number(_) => {
             parse_operands::parse_immediate(tokenizer).codegen().clone()
         }
 
         TokenKind::String(i) => {
             tokenizer.next_token();
-            tokenizer.skip_space();
+            tokenizer.skip_space(true);
             format!("\"{}\"", i)
         }
         _ => {
             emit_error!(
                 tokenizer.location(),
                 "invalid expression, {:#?}",
-                tokenizer.peek_token()
+                tokenizer.peek_token(true)
             );
         }
     };
     operands.push(op);
-    match tokenizer.peek_token().kind {
+    match tokenizer.peek_token(true).kind {
         TokenKind::CloseParenthesis => {
             return;
         }
@@ -69,7 +69,7 @@ fn parse_ins_operands_inside<'a>(tokenizer: &'a Tokenizer2<'a>, operands: &mut V
         TokenKind::Comma => {
             // ","
             tokenizer.next_token();
-            tokenizer.skip_space();
+            tokenizer.skip_space(true);
 
             // <operand>)*
             parse_ins_operands_inside(tokenizer, operands);
@@ -78,7 +78,7 @@ fn parse_ins_operands_inside<'a>(tokenizer: &'a Tokenizer2<'a>, operands: &mut V
             emit_error!(
                 tokenizer.location(),
                 "invalid expression, is end?, {:#?}",
-                tokenizer.peek_token()
+                tokenizer.peek_token(true)
             );
         }
     }
@@ -90,7 +90,7 @@ fn parse_extern_operands_inside<'a>(
     scope: Rc<RefCell<Scope<'a>>>,
 ) {
     // <operand>
-    let op = match tokenizer.peek_token().kind {
+    let op = match tokenizer.peek_token(true).kind {
         TokenKind::Identifier(ident) => {
             scope.borrow().add_label_to_root(Ident::new(ident));
             tokenizer.next_token();
@@ -100,12 +100,12 @@ fn parse_extern_operands_inside<'a>(
             emit_error!(
                 tokenizer.location(),
                 "invalid expression, {:#?}",
-                tokenizer.peek_token()
+                tokenizer.peek_token(true)
             );
         }
     };
     operands.push(op);
-    match tokenizer.peek_token().kind {
+    match tokenizer.peek_token(true).kind {
         TokenKind::CloseParenthesis => {
             return;
         }
@@ -113,7 +113,7 @@ fn parse_extern_operands_inside<'a>(
         TokenKind::Comma => {
             // ","
             tokenizer.next_token();
-            tokenizer.skip_space();
+            tokenizer.skip_space(true);
 
             // <operand>)*
             parse_extern_operands_inside(tokenizer, operands, scope);
@@ -122,7 +122,7 @@ fn parse_extern_operands_inside<'a>(
             emit_error!(
                 tokenizer.location(),
                 "invalid expression, is end?, {:#?}",
-                tokenizer.peek_token()
+                tokenizer.peek_token(true)
             );
         }
     }

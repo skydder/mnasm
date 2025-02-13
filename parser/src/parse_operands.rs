@@ -12,7 +12,7 @@ pub fn parse_operands<'a>(
     scope: Rc<RefCell<Scope<'a>>>,
 ) -> Box<dyn Operand + 'a> {
     let loc = tokenizer.location();
-    match tokenizer.peek_token().kind {
+    match tokenizer.peek_token(true).kind {
         TokenKind::Identifier(s) => {
             // <memory>
             if s == "ptr" {
@@ -28,9 +28,11 @@ pub fn parse_operands<'a>(
                 let label = parse_label(tokenizer, scope.clone());
                 // eprintln!("{:#?}", label);
                 if let Some(m) = scope.borrow().find_macro(label.ident()) {
-                    tokenizer.enter_macro(m.ingredients_of_tokenizer(), Vec::new(), false);
+                    tokenizer.turn_off_the_record();
+                    tokenizer.enter_macro(m.ingredients_of_tokenizer(), Vec::new());
                     let op = parse_operands(tokenizer, scope.clone());
-                    tokenizer.leave_macro();
+                    tokenizer.skip_space(true);
+                    tokenizer.turn_on_the_record();
                     return op;
                 }
                 Box::new(label)
@@ -44,14 +46,14 @@ pub fn parse_operands<'a>(
         TokenKind::Dot => Box::new(parse_label(tokenizer, scope)),
 
         _ => {
-            emit_error!(loc, "unexpected token1, {:#?}", tokenizer.peek_token())
+            emit_error!(loc, "unexpected token1, {:#?}", tokenizer.peek_token(true))
         }
     }
 }
 
 // <immediate> = ("-")? <number>
 pub fn parse_immediate<'a>(tokenizer: &'a Tokenizer2<'a>) -> Immediate<'a> {
-    let current_token = tokenizer.peek_token();
+    let current_token = tokenizer.peek_token(true);
     match current_token.kind {
         // <number>
         TokenKind::Number(imm) => {
@@ -63,7 +65,7 @@ pub fn parse_immediate<'a>(tokenizer: &'a Tokenizer2<'a>) -> Immediate<'a> {
             tokenizer.next_token();
 
             // <number>
-            match tokenizer.peek_token().kind {
+            match tokenizer.peek_token(true).kind {
                 TokenKind::Number(imm) => {
                     tokenizer.next_token();
                     return Immediate::new(imm, true, 32, current_token.location);
@@ -100,14 +102,14 @@ fn parse_memory<'a>(tokenizer: &'a Tokenizer2<'a>) -> Memory<'a> {
     let loc = tokenizer.location();
     // "ptr"
     tokenizer.consume_token(TokenKind::Identifier("ptr"));
-    tokenizer.skip_space();
+    tokenizer.skip_space(true);
 
     // size process
     // ============
-    let size = if tokenizer.peek_token().is(TokenKind::LessThan) {
+    let size = if tokenizer.peek_token(true).is(TokenKind::LessThan) {
         tokenizer.next_token();
-        tokenizer.skip_space();
-        let v = match tokenizer.peek_token().kind {
+        tokenizer.skip_space(true);
+        let v = match tokenizer.peek_token(true).kind {
             TokenKind::Identifier("byte") => {
                 tokenizer.next_token();
                 8
@@ -131,9 +133,9 @@ fn parse_memory<'a>(tokenizer: &'a Tokenizer2<'a>) -> Memory<'a> {
                 );
             }
         };
-        tokenizer.skip_space();
+        tokenizer.skip_space(true);
         tokenizer.consume_token(TokenKind::GreaterThan);
-        tokenizer.skip_space();
+        tokenizer.skip_space(true);
         v
     } else {
         0
@@ -141,9 +143,9 @@ fn parse_memory<'a>(tokenizer: &'a Tokenizer2<'a>) -> Memory<'a> {
 
     // "("
     tokenizer.consume_token(TokenKind::OpenParenthesis);
-    tokenizer.skip_space();
+    tokenizer.skip_space(true);
     // <base> = "_" | <register>
-    let base = match tokenizer.peek_token().kind {
+    let base = match tokenizer.peek_token(true).kind {
         // "_"
         TokenKind::Identifier("_") => {
             tokenizer.next_token();
@@ -163,12 +165,12 @@ fn parse_memory<'a>(tokenizer: &'a Tokenizer2<'a>) -> Memory<'a> {
     };
 
     // ","
-    tokenizer.skip_space();
+    tokenizer.skip_space(true);
     tokenizer.consume_token(TokenKind::Comma);
-    tokenizer.skip_space();
+    tokenizer.skip_space(true);
 
     // <index> = "_" | <register>
-    let index = match tokenizer.peek_token().kind {
+    let index = match tokenizer.peek_token(true).kind {
         // "_"
         TokenKind::Identifier("_") => {
             tokenizer.next_token();
@@ -189,12 +191,12 @@ fn parse_memory<'a>(tokenizer: &'a Tokenizer2<'a>) -> Memory<'a> {
     };
 
     // ","
-    tokenizer.skip_space();
+    tokenizer.skip_space(true);
     tokenizer.consume_token(TokenKind::Comma);
-    tokenizer.skip_space();
+    tokenizer.skip_space(true);
 
     // <scale> = "1" | "2" | "4" | "8" | "_"
-    let scale = match tokenizer.peek_token().kind {
+    let scale = match tokenizer.peek_token(true).kind {
         // "_"
         TokenKind::Identifier("_") => {
             tokenizer.next_token();
@@ -230,12 +232,12 @@ fn parse_memory<'a>(tokenizer: &'a Tokenizer2<'a>) -> Memory<'a> {
         }
     };
     // ","
-    tokenizer.skip_space();
+    tokenizer.skip_space(true);
     tokenizer.consume_token(TokenKind::Comma);
-    tokenizer.skip_space();
+    tokenizer.skip_space(true);
 
     // <disp> = "_" | <immediate>
-    let disp = match tokenizer.peek_token().kind {
+    let disp = match tokenizer.peek_token(true).kind {
         // "_"
         TokenKind::Identifier("_") => {
             tokenizer.next_token();
@@ -250,7 +252,7 @@ fn parse_memory<'a>(tokenizer: &'a Tokenizer2<'a>) -> Memory<'a> {
     };
 
     // ")"
-    tokenizer.skip_space();
+    tokenizer.skip_space(true);
     tokenizer.consume_token(TokenKind::CloseParenthesis);
 
     Memory::new((base, index, scale, disp), size, loc)

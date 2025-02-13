@@ -12,21 +12,21 @@ pub fn parse_let_macro<'a>(
 ) -> Macro<'a> {
     let loc = tokenizer.location();
     tokenizer.consume_token(TokenKind::Identifier("let"));
-    tokenizer.skip_space();
+    tokenizer.skip_space(true);
     tokenizer.consume_token(TokenKind::OpenParenthesis);
-    tokenizer.skip_space();
-    let ident = match tokenizer.peek_token().kind {
+    tokenizer.skip_space(true);
+    let ident = match tokenizer.peek_token(true).kind {
         TokenKind::Identifier(ident) => Ident::new(ident),
         _ => {
             todo!();
         }
     };
     tokenizer.next_token();
-    tokenizer.skip_space();
+    tokenizer.skip_space(true);
     tokenizer.consume_token(TokenKind::Comma);
-    tokenizer.skip_space();
+    tokenizer.skip_space(true);
 
-    if tokenizer.peek_token().is(TokenKind::CloseParenthesis) {
+    if tokenizer.peek_token(true).is(TokenKind::CloseParenthesis) {
         emit_error!(tokenizer.location(), "unexpected token, expected stream");
     }
 
@@ -34,7 +34,7 @@ pub fn parse_let_macro<'a>(
     let mut counter = 1;
     while counter > 0 {
         tokenizer.next_token();
-        match tokenizer.peek_token().kind {
+        match tokenizer.peek_token(true).kind {
             TokenKind::CloseParenthesis => {
                 counter -= 1;
             }
@@ -47,7 +47,7 @@ pub fn parse_let_macro<'a>(
     let end = tokenizer.location();
 
     // tokenizer.consume_token(TokenKind::MacroEnd);
-    tokenizer.skip_space();
+    tokenizer.skip_space(true);
     tokenizer.consume_token(TokenKind::CloseParenthesis);
     scope.borrow_mut().add_macro(
         ident,

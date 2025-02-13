@@ -15,9 +15,9 @@ pub fn parse_label_def<'a>(
     let loc = tokenizer.location();
 
     // "<"
-    assert!(tokenizer.peek_token().is(TokenKind::LessThan));
+    assert!(tokenizer.peek_token(true).is(TokenKind::LessThan));
     tokenizer.next_token();
-    tokenizer.skip_space();
+    tokenizer.skip_space(true);
 
     // <label>
     let label_data = parse_label(tokenizer, scope.clone());
@@ -30,19 +30,19 @@ pub fn parse_label_def<'a>(
     // kimokimo-nest :<
 
     // (":" "global")? (":" <section> )?
-    tokenizer.skip_space();
-    let (is_global, section) = if tokenizer.peek_token().is(TokenKind::Colon) {
+    tokenizer.skip_space(true);
+    let (is_global, section) = if tokenizer.peek_token(true).is(TokenKind::Colon) {
         tokenizer.next_token();
-        tokenizer.skip_space();
+        tokenizer.skip_space(true);
         // "global" (":" <section> )?
-        if tokenizer.peek_token().is(TokenKind::Identifier("global")) {
+        if tokenizer.peek_token(true).is(TokenKind::Identifier("global")) {
             tokenizer.next_token();
-            tokenizer.skip_space();
+            tokenizer.skip_space(true);
 
             // (":" <section> )?
-            let sec = if tokenizer.peek_token().is(TokenKind::Colon) {
+            let sec = if tokenizer.peek_token(true).is(TokenKind::Colon) {
                 tokenizer.next_token();
-                tokenizer.skip_space();
+                tokenizer.skip_space(true);
                 // <section>
                 Some(parse_section(tokenizer))
             } else {
@@ -60,12 +60,12 @@ pub fn parse_label_def<'a>(
     };
 
     // ">"
-    tokenizer.skip_space();
+    tokenizer.skip_space(true);
     tokenizer.consume_token(TokenKind::GreaterThan);
-    tokenizer.skip_space();
+    tokenizer.skip_space(true);
 
     // <block>?
-    let block = match tokenizer.peek_token().kind {
+    let block = match tokenizer.peek_token(true).kind {
         TokenKind::OpenBrace => {
             let s = Rc::new(RefCell::new(Scope::new(Some(label), Some(scope.clone()))));
             scope.borrow_mut().add_label(label, Some(s.clone()));
@@ -84,10 +84,10 @@ pub fn parse_label_def<'a>(
 }
 
 fn parse_section<'a>(tokenizer: &'a Tokenizer2<'a>) -> Ident<'a> {
-    let s = if tokenizer.peek_token().is(TokenKind::Dot) {
+    let s = if tokenizer.peek_token(true).is(TokenKind::Dot) {
         tokenizer.next_token();
         // todo: add all reserved section
-        match tokenizer.peek_token().kind {
+        match tokenizer.peek_token(true).kind {
             TokenKind::Identifier("text") => Ident::new(".text"),
             TokenKind::Identifier("data") => Ident::new(".data"),
             TokenKind::Identifier("bss") => Ident::new(".bss"),
@@ -96,8 +96,8 @@ fn parse_section<'a>(tokenizer: &'a Tokenizer2<'a>) -> Ident<'a> {
             }
         }
     } else {
-        tokenizer.skip_space();
-        Ident::new(tokenizer.peek_token().get_identifier().unwrap_or_else(|| {
+        tokenizer.skip_space(true);
+        Ident::new(tokenizer.peek_token(true).get_identifier().unwrap_or_else(|| {
             emit_error!(tokenizer.location(), "consumeed label here but found other");
         }))
     };

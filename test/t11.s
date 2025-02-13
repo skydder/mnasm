@@ -41,10 +41,28 @@ macro divide(a, b,) {
     div(rdi)
 }
 
+macro for(init, cond, inc, loop,) {
+    `init
+    <start>
+    `cond
+    je!(.end)
+    `loop
+    `inc
+    jmp!(.start)
+    <end>
+    `cond
+}
+
+macro l(lhs, rhs,) {
+    cmp(`lhs, `rhs)
+    setl!(al)
+    movsx(rax, al)
+    cmp(rax, 0)
+}
+
 <_start:global:.text> {
     let(counter, r8) #r8:counter
-    @[counter = 1]
-    <loop> {
+    @for(@[counter= 1])(@l(counter)(15))(@[counter += 1]) {
         @divide(counter)(3)
 
         @if (cmp(rdx, 0)) {
@@ -55,9 +73,6 @@ macro divide(a, b,) {
                 @print(5)(buzz)
             }()
         }
-        @[counter += 1]
-        cmp(counter, 15)
-        jl!(_start.loop)
     }
     @exit(0)
 }

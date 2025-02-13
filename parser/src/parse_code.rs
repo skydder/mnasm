@@ -34,12 +34,12 @@ fn parse_code_inside<'a>(
 }
 
 fn skip_null_line<'a>(tokenizer: &'a Tokenizer2<'a>) {
-    tokenizer.skip_space();
+    tokenizer.skip_space(true);
     tokenizer.consume_newline();
 }
 
 fn is_eos<'a>(tokenizer: &'a Tokenizer2<'a>) -> bool {
-    match tokenizer.peek_token().kind {
+    match tokenizer.peek_token(true).kind {
         TokenKind::EOS => true,
         TokenKind::NewLine | TokenKind::Semicolon | TokenKind::Space => {
             // eprintln!("{:#?}", tokenizer);
