@@ -22,6 +22,16 @@ pub struct Macro<'a> {
     pub stream: Stream<'a>,
 }
 
+impl<'a> Macro<'a> {
+    pub fn new(name: &'a str, stream: Stream<'a>, args: Vec<&'a str>) -> Self {
+        Self {
+            name: name,
+            args: args,
+            stream: stream,
+        }
+    }
+}
+
 pub fn read_macro_def<'a>(tokenizer: &Tokenizer2<'a>) -> Macro<'a> {
     tokenizer.skip_token();
     tokenizer.skip_space_silently();
