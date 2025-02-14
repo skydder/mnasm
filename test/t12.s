@@ -32,11 +32,15 @@ macro exit(code,) {
     syscall!()
 }
 
-macro divide(a, b,) {
+macro divide1(a, b,) {
     @[rax = `a]
     cqo()
     @[rdi = `b]
     div(rdi)
+}
+
+macro divide(a, b,) {
+    @divide1(`a)(`b)
 }
 
 macro for(init, cond, inc, loop,) {

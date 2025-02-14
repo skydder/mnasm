@@ -35,7 +35,10 @@ pub fn parse_label_def<'a>(
         tokenizer.next_token();
         tokenizer.skip_space(true);
         // "global" (":" <section> )?
-        if tokenizer.peek_token(true).is(TokenKind::Identifier("global")) {
+        if tokenizer
+            .peek_token(true)
+            .is(TokenKind::Identifier("global"))
+        {
             tokenizer.next_token();
             tokenizer.skip_space(true);
 
@@ -97,9 +100,14 @@ fn parse_section<'a>(tokenizer: &'a Tokenizer2<'a>) -> Ident<'a> {
         }
     } else {
         tokenizer.skip_space(true);
-        Ident::new(tokenizer.peek_token(true).get_identifier().unwrap_or_else(|| {
-            emit_error!(tokenizer.location(), "consumeed label here but found other");
-        }))
+        Ident::new(
+            tokenizer
+                .peek_token(true)
+                .get_identifier()
+                .unwrap_or_else(|| {
+                    emit_error!(tokenizer.location(), "consumeed label here but found other");
+                }),
+        )
     };
     tokenizer.next_token();
     return s;

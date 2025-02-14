@@ -224,7 +224,7 @@ impl<'a> Token<'a> {
         } else if s.starts_with("&=") {
             Some(builder.kind(TokenKind::And).len(2))
         } else if s.starts_with("=") {
-            Some(builder.kind(TokenKind::Mov).len(2))
+            Some(builder.kind(TokenKind::Mov).len(1))
         } else if s.starts_with("-=") {
             Some(builder.kind(TokenKind::Sub).len(2))
         } else {
