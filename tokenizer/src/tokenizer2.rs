@@ -1,7 +1,7 @@
 use std::{
     cell::{Cell, RefCell},
-    collections::HashMap,
-    fmt::Debug,
+    collections::{HashMap, VecDeque},
+    fmt::Debug, rc::Rc,
 };
 
 use crate::{init_infix_macro, read_macro_call, read_macro_def, Macro, Stream, Token, TokenKind};
@@ -74,30 +74,35 @@ impl<'a> InnerTokenizer<'a> {
 #[derive(Debug, Clone)]
 pub struct TokenizerStatus<'a> {
     stream: Stream<'a>,
-    macro_args: Vec<(&'a str, Stream<'a>)>,
-    args_data: HashMap<&'a str, Macro<'a>>,
+    // macro_args: Rc<Vec<(&'a str, Stream<'a>)>>,
+    args_data: Rc<HashMap<&'a str, Macro<'a>>>,
+    prev_args_data: Rc<HashMap<&'a str, Macro<'a>>>,
+    is_macro_record: i8
 }
 
 impl<'a> TokenizerStatus<'a> {
     fn new(
         current_location: Location<'a>,
         eos: Location<'a>,
-        macro_args: Vec<(&'a str, Stream<'a>)>,
-        // parent_args: Vec<(&'a str, Stream<'a>)>,
+        macro_args: Rc<HashMap<&'a str, Macro<'a>>>,
+        prev_args_data: Rc<HashMap<&'a str, Macro<'a>>>,
+        is_macro_record: i8
     ) -> Self {
-        let mut args_data = HashMap::new();
-        for (name, stream) in &macro_args {
-            args_data.insert(*name, Macro::new(name, *stream, Vec::new()));
-        }
+        // let mut args_data = HashMap::new();
+        // for (name, stream) in macro_args.iter() {
+        //     args_data.insert(*name, Macro::new(name, *stream, Vec::new()));
+        // }
         Self {
-            macro_args: macro_args,
+            // macro_args: macro_args,
             stream: Stream::new(current_location, eos),
-            args_data: args_data,
+            args_data: macro_args,
+            prev_args_data: prev_args_data,
+            is_macro_record: is_macro_record
         }
     }
 
     fn update(self, begin: Location<'a>) -> Self {
-        Self::new(begin, self.stream.end(), self.macro_args)
+        Self::new(begin, self.stream.end(), self.args_data, self.prev_args_data, self.is_macro_record)
     }
 
     fn end(&self) -> Location<'a> {
@@ -117,11 +122,12 @@ pub struct Tokenizer2<'a> {
     // args_data: RefCell<HashMap<&'a str, Macro<'a>>>,
     code: RefCell<Vec<TokenKind<'a>>>, // code itself doesn't need location
 
-    macro_stack: RefCell<Vec<TokenizerStatus<'a>>>,
-
+    macro_stack: RefCell<Vec<Rc<HashMap<&'a str, Macro<'a>>>>>,
+    macro_stack2: RefCell<VecDeque<Rc<HashMap<&'a str, Macro<'a>>>>>,
     macro_depth: Cell<i64>,
+    macro_depth2: Cell<i64>,
+    current_arg: RefCell<Rc<Vec<(&'a str, Stream<'a>)>>>,
     record: Cell<bool>,
-    macro_record: Cell<bool>,
 }
 
 impl<'a> Tokenizer2<'a> {
@@ -137,20 +143,27 @@ impl<'a> Tokenizer2<'a> {
             current_status: RefCell::new(TokenizerStatus::new(
                 location,
                 location.end(),
-                Vec::new(),
+                Rc::new(HashMap::new()),
+            Rc::new(HashMap::new()),
+                -1
             )),
-            // args_data: RefCell::new(HashMap::new()),
             macro_depth: Cell::new(0),
             record: Cell::new(true),
-            macro_stack: RefCell::new(Vec::new()),
-            macro_record: Cell::new(true),
+
+            macro_stack: RefCell::new(vec![Rc::new(HashMap::new())]),
+            macro_depth2: Cell::new(0),
+            current_arg: RefCell::new(Rc::new(Vec::new())),
+            macro_stack2: RefCell::new(VecDeque::new()),
         }
     }
 
-    pub fn enter_macro(&self, stream: Stream<'a>, args: Vec<(&'a str, Stream<'a>)>, record: bool) {
+    pub fn enter_macro(&self, stream: Stream<'a>, args: Rc<HashMap<&'a str, Macro<'a>>>, is_macro_record: i8) {
+        let p = self.current_status.borrow();
+        let prev = p.args_data.clone();
+        drop(p); 
         let status =
             self.current_status
-                .replace(TokenizerStatus::new(stream.begin(), stream.end(), args));
+                .replace(TokenizerStatus::new(stream.begin(), stream.end(), args, prev.clone(), is_macro_record));
         self.status_stack
             .borrow_mut()
             .push(status.clone().update(self.location())); // adhoc
@@ -158,23 +171,28 @@ impl<'a> Tokenizer2<'a> {
             .borrow_mut()
             .swap(stream.begin(), stream.end());
         self.macro_depth.replace(self.macro_depth.get() + 1);
-
-        if record {
-            self.macro_stack.borrow_mut().push(status);
+        if self.current_status.borrow().is_macro_record > 0 {
+            self.macro_stack.borrow_mut().insert(self.macro_depth2.get() as usize, prev);
+            self.macro_depth2.replace(self.macro_depth2.get() + 1);
+        } else if self.current_status.borrow().is_macro_record < 0 {
+            self.macro_depth2.replace(self.macro_depth2.get() - 1);
         }
     }
 
-    pub fn leave_macro(&self, record: bool) {
+    pub fn leave_macro(&self) {
         assert!(self.macro_depth.get() > 0);
+        if self.current_status.borrow().is_macro_record > 0 {
+            self.macro_stack.borrow_mut().remove(self.macro_depth2.get() as usize);
+            self.macro_depth2.replace(self.macro_depth2.get() - 1);
+        } else if self.current_status.borrow().is_macro_record < 0 {
+            self.macro_depth2.replace(self.macro_depth2.get() + 1);
+        }
         let status = self.status_stack.borrow_mut().pop().unwrap();
         self.tokenizer
             .borrow_mut()
             .swap(status.stream.begin(), status.stream.end());
         let _ = self.current_status.replace(status);
         self.macro_depth.replace(self.macro_depth.get() - 1);
-        if record {
-            self.macro_stack.borrow_mut().pop();
-        }
     }
 
     pub fn code(&self) -> String {
@@ -223,18 +241,17 @@ impl<'a> Tokenizer2<'a> {
                 self.skip_token();
                 let cs = self.current_status.borrow();
                 let args_data = &cs.args_data;
-                eprintln!("{:?}", args_data);
+                // eprintln!("we have :{:?}", args_data);
                 let macro_data = args_data
                     .get(name)
                     .unwrap_or_else(|| emit_error!(self.location(), "undefined argment:{}", name))
                     .stream;
-                let ss = self.status_stack.borrow();
-                let a = &ss.last().unwrap().args_data;
-                let args= a.iter().map(|(k, v)| (*k, v.stream)).collect();
-                eprintln!("===\n{}:{:#?}\n{:#?}", name, args, args_data);
-                drop(ss);
                 drop(cs);
-                self.enter_macro(macro_data, args);
+                let stack = self.macro_stack.borrow();
+                let args = stack.get((self.macro_depth2.get() - 1) as usize).unwrap().clone();
+                eprintln!("we have :{:?} [{}]", stack, self.macro_depth2.get());
+                drop(stack);
+                self.enter_macro(macro_data, args.clone(), -1);
 
                 self.peek_token(true)
             }
@@ -246,9 +263,13 @@ impl<'a> Tokenizer2<'a> {
                 let macro_data = macro_data
                     .get(data.0)
                     .unwrap_or_else(|| emit_error!(self.location(), "undefined macro"));
-                let args: Vec<(&'a str, Stream<'a>)> =
-                    macro_data.args.iter().map(|a| *a).zip(data.1).collect();
-                self.enter_macro(macro_data.stream, args);
+                let args: Rc<Vec<(&'a str, Stream<'a>)>>=
+                    Rc::new(macro_data.args.iter().map(|a| *a).zip(data.1).collect());
+                let mut args_data = HashMap::new();
+                for (name, stream) in args.iter() {
+                    args_data.insert(*name, Macro::new(name, *stream, Vec::new()));
+                }
+                self.enter_macro(macro_data.stream, Rc::new(args_data), 1);
                 self.peek_token(true)
             }
             TokenKind::Identifier("macro") => {

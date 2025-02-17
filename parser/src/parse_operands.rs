@@ -1,4 +1,4 @@
-use std::{cell::RefCell, rc::Rc};
+use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
 use data::{Immediate, Memory, Operand, Register, Scale, Scope};
 use tokenizer::{TokenKind, Tokenizer2};
@@ -29,7 +29,7 @@ pub fn parse_operands<'a>(
                 // eprintln!("{:#?}", label);
                 if let Some(m) = scope.borrow().find_macro(label.ident()) {
                     tokenizer.turn_off_the_record();
-                    tokenizer.enter_macro(m.ingredients_of_tokenizer(), Vec::new());
+                    tokenizer.enter_macro(m.ingredients_of_tokenizer(), Rc::new(HashMap::new()), 0);
                     let op = parse_operands(tokenizer, scope.clone());
                     tokenizer.skip_space(true);
                     tokenizer.turn_on_the_record();
