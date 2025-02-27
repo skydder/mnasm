@@ -1,7 +1,7 @@
 use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
 use data::{Immediate, Memory, Operand, Register, Scale, Scope};
-use tokenizer::{TokenKind, Tokenizer2};
+use tokenizer::{MacroStatus, TokenKind, Tokenizer2};
 use util::emit_error;
 
 use crate::parse_label;
@@ -29,7 +29,7 @@ pub fn parse_operands<'a>(
                 // eprintln!("{:#?}", label);
                 if let Some(m) = scope.borrow().find_macro(label.ident()) {
                     tokenizer.turn_off_the_record();
-                    tokenizer.enter_macro(m.ingredients_of_tokenizer(), Rc::new(HashMap::new()), 0);
+                    tokenizer.enter_macro(m.ingredients_of_tokenizer(), Rc::new(HashMap::new()), MacroStatus::Other);
                     let op = parse_operands(tokenizer, scope.clone());
                     tokenizer.skip_space(true);
                     tokenizer.turn_on_the_record();

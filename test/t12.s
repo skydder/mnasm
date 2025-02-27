@@ -39,8 +39,16 @@ macro divide1(a, b,) {
     div(rdi)
 }
 
-macro divide(a, b,) {
+macro divide2(a, b,) {
     @divide1(`a)(`b)
+}
+
+macro divide3(a, b,) {
+    @divide2(`a)(`b)
+}
+
+macro divide(a, b,) {
+    @divide3(`a)(`b)
 }
 
 macro for(init, cond, inc, loop,) {

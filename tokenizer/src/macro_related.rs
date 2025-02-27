@@ -51,7 +51,6 @@ pub fn read_macro_def<'a>(tokenizer: &Tokenizer2<'a>) -> Macro<'a> {
         args: args,
         stream: stream,
     };
-    // eprintln!("{:#?}", new);
     new
 }
 
@@ -117,7 +116,6 @@ pub fn read_macro_call<'a>(tokenizer: &Tokenizer2<'a>) -> (&'a str, Vec<Stream<'
         _ => emit_error!(tokenizer.location(), "unexpected token"),
     };
     let new = (name, args.clone());
-    eprintln!("{:#?}", new);
     new
 }
 
