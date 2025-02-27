@@ -2,7 +2,7 @@ use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
 use data::{Immediate, Memory, Operand, Register, Scale, Scope};
 use tokenizer::{MacroStatus, TokenKind, Tokenizer2};
-use util::emit_error;
+use util::{AsmError, AsmResult};
 
 use crate::parse_label;
 
@@ -10,55 +10,69 @@ use crate::parse_label;
 pub fn parse_operands<'a>(
     tokenizer: &'a Tokenizer2<'a>,
     scope: Rc<RefCell<Scope<'a>>>,
-) -> Box<dyn Operand + 'a> {
+) -> AsmResult<'a, Box<dyn Operand + 'a>> {
     let loc = tokenizer.location();
     match tokenizer.peek_token(true).kind {
         TokenKind::Identifier(s) => {
             // <memory>
             if s == "ptr" {
-                return Box::new(parse_memory(tokenizer));
+                return Ok(Box::new(parse_memory(tokenizer)?));
 
             // <register>
             } else if let Some(reg) = parse_register(tokenizer, s) {
-                return Box::new(reg);
+                return Ok(Box::new(reg));
 
             // <label>
             } else {
                 // tokenizer.next_token();
-                let label = parse_label(tokenizer, scope.clone());
+                let label = parse_label(tokenizer, scope.clone())?;
                 // eprintln!("{:#?}", label);
                 if let Some(m) = scope.borrow().find_macro(label.ident()) {
                     tokenizer.turn_off_the_record();
-                    tokenizer.enter_macro(m.ingredients_of_tokenizer(), Rc::new(HashMap::new()), MacroStatus::Other);
+                    tokenizer.enter_macro(
+                        m.ingredients_of_tokenizer(),
+                        Rc::new(HashMap::new()),
+                        MacroStatus::Other,
+                    );
                     let op = parse_operands(tokenizer, scope.clone());
                     tokenizer.skip_space(true);
                     tokenizer.turn_on_the_record();
                     return op;
                 }
-                Box::new(label)
+                Ok(Box::new(label))
             }
         }
 
         // <immediate>
         TokenKind::Number(_) | TokenKind::Minus => {
-            return Box::new(parse_immediate(tokenizer));
+            return Ok(Box::new(parse_immediate(tokenizer)?));
         }
-        TokenKind::Dot => Box::new(parse_label(tokenizer, scope)),
+        TokenKind::Dot => Ok(Box::new(parse_label(tokenizer, scope)?)),
 
-        _ => {
-            emit_error!(loc, "unexpected token1, {:#?}", tokenizer.peek_token(true))
-        }
+        _ => Err(AsmError::ParseError(
+            loc,
+            format!(
+                "unexpected token for parsing operands: {:#?}",
+                tokenizer.peek_token(true)
+            ),
+            "look at the bnfs".to_string(),
+        )),
     }
 }
 
 // <immediate> = ("-")? <number>
-pub fn parse_immediate<'a>(tokenizer: &'a Tokenizer2<'a>) -> Immediate<'a> {
+pub fn parse_immediate<'a>(tokenizer: &'a Tokenizer2<'a>) -> AsmResult<'a, Immediate<'a>> {
     let current_token = tokenizer.peek_token(true);
     match current_token.kind {
         // <number>
         TokenKind::Number(imm) => {
             tokenizer.next_token();
-            return Immediate::new(imm, false, 32, current_token.location.clone());
+            return Ok(Immediate::new(
+                imm,
+                false,
+                32,
+                current_token.location.clone(),
+            ));
         }
         // "-" <number>
         TokenKind::Minus => {
@@ -68,20 +82,19 @@ pub fn parse_immediate<'a>(tokenizer: &'a Tokenizer2<'a>) -> Immediate<'a> {
             match tokenizer.peek_token(true).kind {
                 TokenKind::Number(imm) => {
                     tokenizer.next_token();
-                    return Immediate::new(imm, true, 32, current_token.location);
+                    return Ok(Immediate::new(imm, true, 32, current_token.location));
                 }
-                _ => {
-                    emit_error!(
-                        current_token.location,
-                        "unexpected token, only number can come right after a minus"
-                    );
-                }
+                _ => Err(AsmError::ParseError(
+                    current_token.location,
+                    "unexpected token, only number can come right after a minus".to_string(),
+                    "look at the bnf".to_string(),
+                )),
             }
         }
         _ => {
             // never happends
             assert!(false);
-            std::process::exit(1);
+            panic!();
         }
     }
 }
@@ -98,7 +111,7 @@ fn parse_register<'a>(tokenizer: &'a Tokenizer2<'a>, s: &str) -> Option<Register
 }
 
 // <memory> = "ptr" "(" <base> ","  <index> "," <scale> "," <disp> ")"
-fn parse_memory<'a>(tokenizer: &'a Tokenizer2<'a>) -> Memory<'a> {
+fn parse_memory<'a>(tokenizer: &'a Tokenizer2<'a>) -> AsmResult<'a, Memory<'a>> {
     let loc = tokenizer.location();
     // "ptr"
     tokenizer.consume_token(TokenKind::Identifier("ptr"));
@@ -127,10 +140,11 @@ fn parse_memory<'a>(tokenizer: &'a Tokenizer2<'a>) -> Memory<'a> {
                 64
             }
             _ => {
-                emit_error!(
+                return Err(AsmError::ParseError(
                     tokenizer.location(),
-                    "expected size expression here, but there is not."
-                );
+                    "expected size expression here, but there is not.".to_string(),
+                    "look at the bnf".to_string(),
+                ));
             }
         };
         tokenizer.skip_space(true);
@@ -245,7 +259,7 @@ fn parse_memory<'a>(tokenizer: &'a Tokenizer2<'a>) -> Memory<'a> {
         }
 
         // <immediate>
-        TokenKind::Number(_) | TokenKind::Minus => Some(parse_immediate(tokenizer)),
+        TokenKind::Number(_) | TokenKind::Minus => Some(parse_immediate(tokenizer)?),
         _ => {
             todo!()
         }
@@ -255,5 +269,5 @@ fn parse_memory<'a>(tokenizer: &'a Tokenizer2<'a>) -> Memory<'a> {
     tokenizer.skip_space(true);
     tokenizer.consume_token(TokenKind::CloseParenthesis);
 
-    Memory::new((base, index, scale, disp), size, loc)
+    Ok(Memory::new((base, index, scale, disp), size, loc))
 }

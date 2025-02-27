@@ -1,9 +1,5 @@
 use std::{
-    fs::{self, File},
-    io::{self, Write},
-    path::Path,
-    process::Command,
-    result::Result,
+    fs::{self, File}, io::{self, Write}, path::Path, process::Command, result::Result
 };
 use tempfile::NamedTempFile;
 
@@ -22,7 +18,7 @@ fn assemble(file: &str, flag: &RunFlags) -> String {
     let source = Source::new(file);
     let loc = Location::new(&source);
     let t = Tokenizer2::new_tokenizer(loc);
-    let ast = parse_code(&t);
+    let ast = parse_code(&t).unwrap_or_else(|err| emit_msg_and_exit(format!("{}", err)));
     if flag.is_e {
         println!("{}", t.code());
     }

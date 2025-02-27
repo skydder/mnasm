@@ -43,3 +43,26 @@ macro_rules! emit_warning {
         $crate::emit_warning($loc, format!($($msg), *))
     };
 }
+
+#[derive(Debug)]
+pub enum AsmError<'a> {
+    ParseError(Location<'a>, String, String),
+}
+
+impl<'a> std::fmt::Display for AsmError<'a> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            AsmError::ParseError(location, msg, sub_msg) => {
+                write!(
+                    f,
+                    "[Error in Parsing] {}\n-> {:?}\n: (tips) {}",
+                    msg, location, sub_msg
+                )
+            }
+        }
+    }
+}
+
+impl<'a> std::error::Error for AsmError<'a> {}
+
+pub type AsmResult<'a, T> = Result<T, AsmError<'a>>;

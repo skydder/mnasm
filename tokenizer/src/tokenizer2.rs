@@ -74,9 +74,8 @@ impl<'a> InnerTokenizer<'a> {
 pub enum MacroStatus {
     Macro,
     Arg,
-    Other
+    Other,
 }
-
 
 #[derive(Debug, Clone)]
 pub struct TokenizerStatus<'a> {

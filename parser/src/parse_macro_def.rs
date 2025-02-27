@@ -2,14 +2,12 @@ use std::{cell::RefCell, rc::Rc};
 
 use data::{Ident, Macro, Scope};
 use tokenizer::{TokenKind, Tokenizer2};
-use util::emit_error;
-
-// eventually, make these not be recorded
+use util::{AsmError, AsmResult};
 
 pub fn parse_let_macro<'a>(
     tokenizer: &'a Tokenizer2<'a>,
     scope: Rc<RefCell<Scope<'a>>>,
-) -> Macro<'a> {
+) -> AsmResult<'a, Macro<'a>> {
     let loc = tokenizer.location();
     tokenizer.consume_token(TokenKind::Identifier("let"));
     tokenizer.skip_space(true);
@@ -27,7 +25,11 @@ pub fn parse_let_macro<'a>(
     tokenizer.skip_space(true);
 
     if tokenizer.peek_token(true).is(TokenKind::CloseParenthesis) {
-        emit_error!(tokenizer.location(), "unexpected token, expected stream");
+        return Err(AsmError::ParseError(
+            tokenizer.location(),
+            "unexpected token, expected stream".to_string(),
+            "look at the bnf".to_string(),
+        ));
     }
 
     let start_loc = tokenizer.location();
@@ -53,5 +55,5 @@ pub fn parse_let_macro<'a>(
         ident,
         Rc::new(Macro::new(loc, Vec::new(), (start_loc, end))),
     );
-    Macro::new(loc, Vec::new(), (start_loc, end))
+    Ok(Macro::new(loc, Vec::new(), (start_loc, end)))
 }
