@@ -60,7 +60,7 @@ impl<'a> std::fmt::Display for TokenKind<'a> {
                 TokenKind::MacroEnd => format!("@:"),
                 TokenKind::BackQuote => format!("`"),
                 TokenKind::Number(i) => format!("{}", i),
-                TokenKind::String(s) => format!("{}", s),
+                TokenKind::String(s) => format!("{:?}", s),
                 TokenKind::Identifier(i) => format!("{}", i),
                 TokenKind::NewLine => format!("\n"),
                 TokenKind::Space => format!(" "),

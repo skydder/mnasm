@@ -15,6 +15,7 @@ pub fn parse_stmt<'a>(
     let currrent_token = tokenizer.peek_token(true);
     let new: Box<dyn Stmt<'a> + 'a> = match currrent_token.kind {
         TokenKind::Identifier("db") => Box::new(parse_pseudo_ins(tokenizer, scope)),
+        TokenKind::Identifier("nasm") => Box::new(parse_pseudo_ins(tokenizer, scope)),
         TokenKind::Identifier("resb") => Box::new(parse_pseudo_ins(tokenizer, scope)),
         TokenKind::Identifier("extern") | TokenKind::Identifier("include") => {
             Box::new(parse_pseudo_ins(tokenizer, scope))
