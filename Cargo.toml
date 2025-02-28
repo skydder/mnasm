@@ -3,16 +3,15 @@ name = "mnasm"
 version = "0.1.0"
 edition = "2021"
 
-[workspace]
-members = [ "analyzer", "codegen", "data", "parser","tokenizer", "util"]
+
 
 
 [dependencies]
-tokenizer = { path = "./tokenizer"}
-util = { path = "./util"}
-parser = {path = "./parser"}
-codegen = {path = "./codegen"}
-data = {path = "./data"}
-analyzer = {path = "./analyzer"}
+tokenizer = { path = "./crates/tokenizer"}
+util = { path = "./crates/util"}
+parser = {path = "./crates/parser"}
+codegen = {path = "./crates/codegen"}
+data = {path = "./crates/data"}
+analyzer = {path = "./crates/analyzer"}
 tempfile = "3.14.0"
 backtrace-on-stack-overflow = "0.3.0"

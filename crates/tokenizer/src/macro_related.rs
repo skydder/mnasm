@@ -41,8 +41,10 @@ pub fn read_macro_def<'a>(tokenizer: &Tokenizer2<'a>) -> Macro<'a> {
     tokenizer.consume_token(TokenKind::OpenParenthesis);
     tokenizer.skip_space(false);
     let mut args = Vec::new();
+
     read_macro_def_args(tokenizer, &mut args);
     tokenizer.consume_token(TokenKind::CloseParenthesis);
+    
     tokenizer.skip_space(false);
 
     let stream = read_macro_body(tokenizer);
