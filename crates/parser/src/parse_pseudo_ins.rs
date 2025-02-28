@@ -1,6 +1,6 @@
 use std::{cell::RefCell, rc::Rc};
 
-use data::{Ident, Operand, PseudoIns, Scope};
+use data::{Ident, Operand, PseudoIns, Scope, UnimplementedOperand};
 use tokenizer::{TokenKind, Tokenizer2};
 use util::{AsmError, AsmResult};
 
@@ -21,14 +21,14 @@ pub fn parse_pseudo_ins<'a>(
         // "("
         tokenizer.consume_token(TokenKind::OpenParenthesis);
         tokenizer.skip_space(true);
-        let mut operands: Vec<String> = Vec::new();
+        let mut operands: Vec<Box<dyn Operand + 'a>> = Vec::new();
         if !tokenizer.peek_token(true).is(TokenKind::CloseParenthesis) {
             parse_nasm_operands_inside(tokenizer, &mut operands, scope)?;
         }
         tokenizer.skip_space(true);
         tokenizer.consume_token(TokenKind::CloseParenthesis);
         // tokenizer.add_to_code(TokenKind::NewLine);
-        return Ok(PseudoIns::new(ins, operands, currrent_token.location));
+        return Ok(PseudoIns::new_nasm(ins, operands, currrent_token.location));
     }
 
     assert!(currrent_token.is_identifier());
@@ -174,7 +174,7 @@ fn parse_extern_operands_inside<'a>(
 
 fn parse_nasm_operands_inside<'a>(
     tokenizer: &'a Tokenizer2<'a>,
-    operands: &mut Vec<String>,
+    operands: &mut Vec<Box<dyn Operand + 'a>>,
     scope: Rc<RefCell<Scope<'a>>>,
 ) -> AsmResult<'a, ()> {
     // <operand>
@@ -182,9 +182,9 @@ fn parse_nasm_operands_inside<'a>(
         TokenKind::String(ident) => {
             // scope.borrow().add_label_to_root(Ident::new(ident));
             tokenizer.next_token();
-            ident.to_string()
+            Box::new(UnimplementedOperand::new(ident))
         }
-        _ => parse_operands(tokenizer, scope.clone())?.codegen(),
+        _ => parse_operands(tokenizer, scope.clone())?,
     };
     operands.push(op);
     match tokenizer.peek_token(true).kind {

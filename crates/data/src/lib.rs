@@ -7,7 +7,7 @@ mod stmt;
 pub use code::Code;
 pub use ident::Ident;
 pub use operands::{
-    Immediate, Label, LabelState, Memory, Operand, OperandKind, Register, RegisterKind, Scale,
+    Immediate, Label, LabelState, Memory, Operand, OperandKind, Register, RegisterKind, Scale, UnimplementedOperand
 };
 pub use path::Path;
 pub use stmt::{

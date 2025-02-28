@@ -41,8 +41,9 @@ pub fn read_macro_def<'a>(tokenizer: &Tokenizer2<'a>) -> Macro<'a> {
     tokenizer.consume_token(TokenKind::OpenParenthesis);
     tokenizer.skip_space(false);
     let mut args = Vec::new();
-
-    read_macro_def_args(tokenizer, &mut args);
+    if !tokenizer.peek_token(false).is(TokenKind::CloseParenthesis) {
+        read_macro_def_args2(tokenizer, &mut args);
+    }
     tokenizer.consume_token(TokenKind::CloseParenthesis);
 
     tokenizer.skip_space(false);
@@ -56,16 +57,27 @@ pub fn read_macro_def<'a>(tokenizer: &Tokenizer2<'a>) -> Macro<'a> {
     new
 }
 
-fn read_macro_def_args<'a>(tokenizer: &Tokenizer2<'a>, args: &mut Vec<&'a str>) {
+fn read_macro_def_args2<'a>(tokenizer: &Tokenizer2<'a>, args: &mut Vec<&'a str>) {
     if tokenizer.peek_token(false).is(TokenKind::CloseParenthesis) {
         return;
     }
-    let arg = tokenizer.next_token().get_identifier().unwrap();
-    tokenizer.skip_space(false);
-    tokenizer.consume_token(TokenKind::Comma);
+    let arg = tokenizer.next_token().get_identifier().unwrap_or_else(|| emit_error!(tokenizer.location(), "what"));
     args.push(arg);
     tokenizer.skip_space(false);
-    read_macro_def_args(tokenizer, args);
+    match tokenizer.peek_token(false).kind {
+        TokenKind::Comma => {
+            tokenizer.consume_token(TokenKind::Comma);
+            tokenizer.skip_space(false);
+            read_macro_def_args2(tokenizer, args);
+        }
+        TokenKind::CloseParenthesis => {
+            return;
+        }
+        _ => {
+            emit_error!(tokenizer.location(), "unexpected token")
+        }
+    }
+    
 }
 
 fn read_macro_body<'a>(tokenizer: &Tokenizer2<'a>) -> Stream<'a> {

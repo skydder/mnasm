@@ -19,7 +19,7 @@ fn main() {
 }
 
 fn assemble(file: &str, flag: &RunFlags) -> String {
-    let source = Source::new(file);
+    let source = Source::new_with_file(file);
     let loc = Location::new(&source);
     let t = Tokenizer2::new_tokenizer(loc);
     let ast = parse_code(&t).unwrap_or_else(|err| emit_msg_and_exit(format!("{}", err)));

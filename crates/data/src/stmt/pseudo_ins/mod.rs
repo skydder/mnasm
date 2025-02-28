@@ -1,6 +1,6 @@
 use util::Location;
 
-use crate::{Analyze, Codegen, Object};
+use crate::{Analyze, Codegen, Object, Operand};
 
 use super::Stmt;
 
@@ -8,7 +8,9 @@ use super::Stmt;
 pub struct PseudoIns<'a> {
     pub instruction: &'a str,
     pub operands: Vec<String>,
+    pub nasm_op: Vec<Box<dyn Operand+ 'a>>,
     pub location: Location<'a>,
+    kind: bool
 }
 
 impl<'a> PseudoIns<'a> {
@@ -17,11 +19,26 @@ impl<'a> PseudoIns<'a> {
             instruction: instruction,
             operands: operands,
             location: location,
+            nasm_op: Vec::new(),
+            kind: false
         }
     }
-
+    pub fn new_nasm(instruction: &'a str, operands: Vec<Box<dyn Operand+'a>>, location: Location<'a>) -> Self {
+        Self {
+            instruction: instruction,
+            operands: Vec::new(),
+            location: location,
+            nasm_op: operands,
+            kind: true
+        }
+    }
     fn codegen_operands(&self) -> String {
-        stringfy_vec(&self.operands, 0, String::new())
+        if self.kind {
+            stringfy_vec(&self.nasm_op.iter().map(|op| op.codegen()).collect(), 0, String::new())
+        } else {
+            stringfy_vec(&self.operands, 0, String::new())
+        }
+    
     }
 }
 

@@ -9,7 +9,7 @@ pub struct Source<'a> {
 }
 
 impl<'a> Source<'a> {
-    pub fn new(file: &'a str) -> Self {
+    pub fn new_with_file(file: &'a str) -> Self {
         let mut code = String::new();
         open_safely(file)
             .read_to_string(&mut code)
@@ -20,6 +20,10 @@ impl<'a> Source<'a> {
             code: code,
             file: file,
         }
+    }
+    
+    pub fn new(code: String, file: &'a str) -> Self {
+        Self { code: code, file: file }
     }
 
     pub fn nth(&self, n: usize) -> &str {

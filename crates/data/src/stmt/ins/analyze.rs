@@ -13,18 +13,18 @@ pub fn analyze_ins<'a>(ins: &Ins<'a>) {
     }
 }
 
-pub struct Operands(
-    pub Option<(OperandKind, usize)>,
-    pub Option<(OperandKind, usize)>,
-    pub Option<(OperandKind, usize)>,
-    pub Option<(OperandKind, usize)>,
+pub struct Operands<'a>(
+    pub Option<(OperandKind<'a>, usize)>,
+    pub Option<(OperandKind<'a>, usize)>,
+    pub Option<(OperandKind<'a>, usize)>,
+    pub Option<(OperandKind<'a>, usize)>,
 );
 
-impl Operands {
+impl<'a> Operands<'a> {
     fn default() -> Self {
         Self(None, None, None, None)
     }
-    fn set(&mut self, i: usize, value: Option<(OperandKind, usize)>) {
+    fn set(&mut self, i: usize, value: Option<(OperandKind<'a>, usize)>) {
         match i {
             0 => self.0 = value,
             1 => self.1 = value,
@@ -33,7 +33,7 @@ impl Operands {
             _ => todo!(),
         }
     }
-    fn convert_operands<'a>(operands: &Vec<Box<dyn Operand + 'a>>) -> Self {
+    fn convert_operands(operands: &'a Vec<Box<dyn Operand + 'a>>) -> Self {
         let mut op = Operands::default();
         for i in 0..4 {
             op.set(i, operands.get(i).map_or(None, |o| Some(o.op())));
