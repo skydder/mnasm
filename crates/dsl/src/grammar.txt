@@ -1,0 +1,10 @@
+<if> = "if" "(" <cond> ")" <stmt>
+<let> = "let" <ident> "=" <exp>
+<fn-call> = <fn-name> "(" <args> ")"
+
+1. get input and just return that as output (read, parse function not required, only eval)
+1'. return random code as output (read, parse function not required, only eval)
+=== ^ by realizing these, make conections between mnasm and dsl
+
+2. add function to manipulate the stream
+
