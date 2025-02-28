@@ -22,13 +22,6 @@ pub fn parse_ins<'a>(
     ))?;
     tokenizer.next_token();
     tokenizer.skip_space(true);
-    let check = if tokenizer.peek_token(true).is(TokenKind::Not) {
-        tokenizer.next_token();
-        false
-    } else {
-        true
-    };
-    // "("
     tokenizer.consume_token(TokenKind::OpenParenthesis);
     tokenizer.skip_space(true);
     // <operands>?
@@ -40,7 +33,7 @@ pub fn parse_ins<'a>(
     // ")"
     tokenizer.consume_token(TokenKind::CloseParenthesis);
 
-    Ok(Ins::new(ins, operands, currrent_token.location, check))
+    Ok(Ins::new(ins, operands, currrent_token.location))
 }
 
 // <operands> = <operand> ("," <operand>)*

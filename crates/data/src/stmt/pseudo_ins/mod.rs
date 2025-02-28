@@ -26,6 +26,9 @@ impl<'a> PseudoIns<'a> {
 }
 
 fn stringfy_vec<'a>(v: &Vec<String>, mut n: usize, mut s: String) -> String {
+    if v.len() == 0 {
+        return s;
+    }
     if n == v.len() - 1 {
         s.push_str(&v[n]);
         return s;

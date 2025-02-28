@@ -1,5 +1,9 @@
 use std::{
-    fs::{self, File}, io::{self, Write}, path::Path, process::Command, result::Result
+    fs::{self, File},
+    io::{self, Write},
+    path::Path,
+    process::Command,
+    result::Result,
 };
 use tempfile::NamedTempFile;
 

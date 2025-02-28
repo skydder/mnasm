@@ -7,7 +7,7 @@
 <visibility> = "global"
 <section> = ".text" | ".data" | ".bss" | <ident>
 <compound_ins> = <ins> ("," <ins>)*
-<ins> = <ins_name> "!"? "(" <operand> ("," <operand>)* ")"
-<pseudo_ins> = ("extern" "(" <fn_name> ("," <fn_name>)* ")") | (("db" | "resb") "(" <data>* ")") | ("nasm" "(" <nasm-code>* ")")
+<ins> = <ins_name> "(" <operand> ("," <operand>)* ")"
+<pseudo_ins> = ("extern" "(" <fn_name> ("," <fn_name>)* ")") | (("db" | "resb") "(" <data>* ")") | ("nasm" "(" <nasm-code>* ")") | <nasm-ins> "("<nasm-operands>?")"
 <gramatic_macro> = "let" "(" <label> "," <operand>? ")"
 <operand>
