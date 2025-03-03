@@ -1,5 +1,4 @@
-use tokenizer::Stream;
-use util::Location;
+use util::{Location, Stream};
 
 use crate::{Analyze, Codegen, Object};
 

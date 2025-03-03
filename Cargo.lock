@@ -99,7 +99,13 @@ dependencies = [
 name = "data"
 version = "0.1.0"
 dependencies = [
- "tokenizer",
+ "util",
+]
+
+[[package]]
+name = "dsl"
+version = "0.1.0"
+dependencies = [
  "util",
 ]
 
@@ -169,6 +175,7 @@ dependencies = [
  "backtrace-on-stack-overflow",
  "codegen",
  "data",
+ "dsl",
  "parser",
  "tempfile",
  "tokenizer",
@@ -254,6 +261,7 @@ dependencies = [
 name = "tokenizer"
 version = "0.1.0"
 dependencies = [
+ "dsl",
  "util",
 ]
 

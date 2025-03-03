@@ -1,4 +1,4 @@
-use std::io::Read;
+use std::{io::Read, cell::RefCell};
 
 use crate::{emit_msg_and_exit, open_safely};
 
@@ -37,34 +37,41 @@ impl<'a> Source<'a> {
 }
 
 #[derive(Clone, Copy, PartialEq)]
-pub enum Source2<'a> {
-    Source(&'a Source<'a>),
-    BuiltIn(&'a str),
+pub struct  Source2<'a> {
+    source:&'a RefCell<Vec<Source<'a>>>,
+    nth: usize,
+
 }
 
 impl<'a> Source2<'a> {
+    fn new(source: &'a RefCell<Vec<Source<'a>>>, nth: usize) -> Self {
+        Self { source: source, nth: nth }
+    }
+
     fn file(&self) -> &str {
-        match self {
-            Source2::Source(source) => source.file,
-            Source2::BuiltIn(_) => "builtin",
-        }
+        self.source.borrow()[self.nth].file
     }
 
     fn end(&self) -> usize {
-        match self {
-            Source2::Source(source) => source.end(),
-            Source2::BuiltIn(s) => s.len(),
+        self.source.borrow()[self.nth].end()
+    }
+
+    fn nth(&self, nth: usize) -> &'a str {
+        let l = (self.source).as_ptr();
+        unsafe {
+            &(*l.wrapping_add(0))[self.nth].code[nth..]
         }
     }
 
-    fn nth(&self, n: usize) -> &'a str {
-        match self {
-            Source2::Source(source) => source.nth(n),
-            Source2::BuiltIn(s) => {
-                assert!(n < self.end());
-                &s[n..]
-            }
+    fn silce(&self, begin: usize, end: usize) -> &'a str {
+        let l = (self.source).as_ptr();
+        unsafe {
+            &(*l.wrapping_add(0))[self.nth].code[begin..end]
         }
+    }
+
+    pub fn add_source(&self, source: Source<'a>) {
+        self.source.borrow_mut().push(source);
     }
 }
 
@@ -84,23 +91,24 @@ impl<'a> std::fmt::Display for Location<'a> {
 
 impl<'a> std::fmt::Debug for Location<'a> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}:{}:{}", self.source.file(), self.line, self.column)
+        write!(f, "{}:{}:{}({})", self.source.file(), self.line, self.column, self.nth)
     }
 }
 
 impl<'a> Location<'a> {
-    pub fn new(source: &'a Source<'a>) -> Self {
+    pub fn new(source: &'a RefCell<Vec<Source<'a>>>) -> Self {
         Self {
-            source: Source2::Source(source),
+            source: Source2::new(source, 0),
             line: 1,
             column: 1,
             nth: 0,
         }
     }
 
-    pub fn new_builtin(source: &'a str) -> Self {
+    pub fn new_source(original_sources: Source2<'a>, new_source: Source<'a>) -> Self {
+        original_sources.add_source(new_source);
         Self {
-            source: Source2::BuiltIn(source),
+            source: Source2::new(original_sources.source, original_sources.nth + 1),
             line: 1,
             column: 1,
             nth: 0,
@@ -157,5 +165,36 @@ impl<'a> std::cmp::PartialEq for Location<'a> {
 impl<'a> std::cmp::PartialOrd for Location<'a> {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
         self.nth.partial_cmp(&other.nth)
+    }
+}
+
+#[derive(Debug, Clone, Copy)]
+pub struct Stream<'a> {
+    begin: Location<'a>,
+    end: Location<'a>,
+}
+
+impl<'a> Stream<'a> {
+    pub fn new(begin: Location<'a>, end: Location<'a>) -> Self {
+        Self {
+            begin: begin,
+            end: end,
+        }
+    }
+
+    pub fn begin(&self) -> Location<'a> {
+        self.begin
+    }
+
+    pub fn end(&self) -> Location<'a> {
+        self.end
+    }
+
+    pub fn stringfiy(&self) -> String {
+        self.begin.source.silce(self.begin.nth, self.end.nth).to_string()
+    }
+
+    pub fn source(&self) -> Source2<'a> {
+        self.begin.source
     }
 }

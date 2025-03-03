@@ -12,6 +12,7 @@ util = { path = "./crates/util"}
 parser = {path = "./crates/parser"}
 codegen = {path = "./crates/codegen"}
 data = {path = "./crates/data"}
+dsl = {path = "./crates/dsl"}
 analyzer = {path = "./crates/analyzer"}
 tempfile = "3.14.0"
 backtrace-on-stack-overflow = "0.3.0"

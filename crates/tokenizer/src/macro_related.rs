@@ -11,9 +11,9 @@
 // peek get messy!!
 // macro marker: @<label> ("(" (<stream>"@,")*")")?
 
-use util::{emit_error, Location};
+use util::{emit_error, Stream};
 
-use crate::{Stream, TokenKind, Tokenizer2};
+use crate::{TokenKind, Tokenizer2};
 
 #[derive(Debug, Clone)]
 pub struct Macro<'a> {
@@ -115,10 +115,11 @@ fn read_macro_body<'a>(tokenizer: &Tokenizer2<'a>) -> Stream<'a> {
 
 // macro marker: @<label> ("(" (<stream>"@,")*")")?
 pub fn read_macro_call<'a>(tokenizer: &Tokenizer2<'a>) -> (&'a str, Vec<Stream<'a>>) {
-    tokenizer.consume_token(TokenKind::At);
-    if tokenizer.peek_token(false).is(TokenKind::OpenSquareBracket) {
-        return infix_macro_call(tokenizer);
-    }
+    // tokenizer.consume_token(TokenKind::At);
+    // if tokenizer.peek_token(false).is(TokenKind::OpenSquareBracket) {
+    //     todo!()
+    //     // return infix_macro_call(tokenizer);
+    // }
     let name = tokenizer.peek_token(false).get_identifier().unwrap(); // todo
     tokenizer.skip_token();
     tokenizer.skip_space(false);
@@ -196,69 +197,27 @@ fn read_macro_call_args_b<'a>(tokenizer: &Tokenizer2<'a>, args: &mut Vec<Stream<
     read_macro_call_args(tokenizer, args);
 }
 
-// === infix macro ===
-static INFIX_STREAM: &str = "`ins(`lhs, `rhs)";
-static INFIX_ARGS: &[&str] = &["ins", "lhs", "rhs"];
-pub fn init_infix_macro() -> Macro<'static> {
-    let location = Location::new_builtin(INFIX_STREAM);
-    Macro {
-        name: INFIX_STREAM,
-        args: INFIX_ARGS.to_vec(),
-        stream: Stream::new(location, location.end()),
-    }
-}
-
-fn match_infix(token: TokenKind) -> Option<&str> {
-    match token {
-        TokenKind::Add => Some("add"),
-        TokenKind::And => Some("and"),
-        TokenKind::Mov => Some("mov"),
-        TokenKind::Sub => Some("sub"),
-        _ => None,
-    }
-}
-
-fn infix_macro_call<'a>(tokenizer: &Tokenizer2<'a>) -> (&'a str, Vec<Stream<'a>>) {
+pub fn read_macro_call_dsl<'a>(tokenizer: &Tokenizer2<'a>) -> Stream<'a> {
     tokenizer.consume_token(TokenKind::OpenSquareBracket);
-
-    let lhs_begin: Location<'a> = tokenizer.location();
-    let mut lhs_end: Option<Location<'a>> = None;
-    let mut rhs_begin: Option<Location<'a>> = None;
-    let rhs_end: Location<'a>;
-    let mut ins: Option<Stream<'a>> = None;
-    let mut current_token = tokenizer.peek_token(false);
-    while !current_token.is(TokenKind::CloseSquareBracket) {
-        if let Some(i) = match_infix(current_token.kind) {
-            if ins.is_some() {
-                emit_error!(lhs_begin, "unexpected expression")
-            }
-            lhs_end = Some(current_token.location);
-            let loc = Location::new_builtin(i);
-            ins = Some(Stream::new(loc, loc.end()));
+    let m_begin = tokenizer.location();
+    if !tokenizer.peek_token(false).is(TokenKind::CloseSquareBracket) {
+        let mut counter = 1;
+        while counter > 0 {
             tokenizer.skip_token();
-            tokenizer.skip_space(false);
-            current_token = tokenizer.peek_token(false);
-            rhs_begin = Some(tokenizer.location());
-            continue;
+            match tokenizer.peek_token(false).kind {
+                TokenKind::CloseSquareBracket => {
+                    counter -= 1;
+                }
+                TokenKind::OpenSquareBracket => {
+                    counter += 1;
+                }
+                _ => (),
+            };
         }
-        tokenizer.skip_token();
-        current_token = tokenizer.peek_token(false);
     }
-    rhs_end = tokenizer.location();
-    // tokenizer.consume_token(TokenKind::CloseSquareBracket);
+    let m_end = tokenizer.peek_token(false).location;
     tokenizer.skip_token();
-    (
-        "infix",
-        vec![
-            ins.unwrap_or_else(|| emit_error!(lhs_begin, "unexpected expression1")),
-            Stream::new(
-                lhs_begin,
-                lhs_end.unwrap_or_else(|| emit_error!(lhs_begin, "unexpected expression2")),
-            ),
-            Stream::new(
-                rhs_begin.unwrap_or_else(|| emit_error!(lhs_begin, "unexpected expression3")),
-                rhs_end,
-            ),
-        ],
-    )
+    let new = Stream::new(m_begin, m_end);
+    eprintln!("{:#?}", new);
+    new
 }

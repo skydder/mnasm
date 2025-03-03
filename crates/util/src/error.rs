@@ -55,7 +55,7 @@ impl<'a> std::fmt::Display for AsmError<'a> {
             AsmError::ParseError(location, msg, sub_msg) => {
                 write!(
                     f,
-                    "[Error in Parsing] {}\n-> {:?}\n: (tips) {}",
+                    "[Error in Parsing] {}\n-> {}\n: (tips) {}\n",
                     msg, location, sub_msg
                 )
             }

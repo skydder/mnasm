@@ -5,8 +5,9 @@ use std::{
     rc::Rc,
 };
 
-use crate::{init_infix_macro, read_macro_call, read_macro_def, Macro, Stream, Token, TokenKind};
-use util::{emit_error, Location};
+use crate::{read_macro_call, read_macro_call_dsl, read_macro_def, Macro, Token, TokenKind};
+use dsl::{eval_macro, read_stream};
+use util::{emit_error, Location, Stream};
 
 #[derive(Debug, Clone)]
 struct InnerTokenizer<'a> {
@@ -129,19 +130,17 @@ pub struct Tokenizer2<'a> {
 
     macro_stack: RefCell<Vec<Rc<HashMap<&'a str, Macro<'a>>>>>,
     macro_depth2: Cell<i64>,
+    macro_depth: Cell<i64>,
     record: Cell<bool>,
 }
 
 impl<'a> Tokenizer2<'a> {
     pub fn new_tokenizer(location: Location<'a>) -> Self {
-        let mut macro_data = HashMap::new();
-        macro_data.insert("infix", init_infix_macro());
-
-        Self {
+        let new = Self {
             tokenizer: RefCell::new(InnerTokenizer::new(location, location.end())),
             status_stack: RefCell::new(Vec::new()),
             code: RefCell::new(Vec::new()),
-            macro_data: RefCell::new(macro_data),
+            macro_data: RefCell::new(HashMap::new()),
             current_status: RefCell::new(TokenizerStatus::new(
                 location,
                 location.end(),
@@ -153,7 +152,9 @@ impl<'a> Tokenizer2<'a> {
 
             macro_stack: RefCell::new(vec![Rc::new(HashMap::new())]),
             macro_depth2: Cell::new(0),
-        }
+            macro_depth: Cell::new(0),
+        };
+        new
     }
 
     pub fn enter_macro(
@@ -178,7 +179,7 @@ impl<'a> Tokenizer2<'a> {
         self.tokenizer
             .borrow_mut()
             .swap(stream.begin(), stream.end());
-
+        self.macro_depth.replace(self.macro_depth.get() + 1);
         if self.current_status.borrow().macro_status == MacroStatus::Macro {
             self.macro_stack
                 .borrow_mut()
@@ -190,7 +191,7 @@ impl<'a> Tokenizer2<'a> {
     }
 
     pub fn leave_macro(&self) {
-        assert!(self.macro_stack.borrow().len() > 1);
+        assert!(self.macro_depth.get() > 0);
         if self.current_status.borrow().macro_status == MacroStatus::Macro {
             self.macro_stack
                 .borrow_mut()
@@ -199,6 +200,7 @@ impl<'a> Tokenizer2<'a> {
         } else if self.current_status.borrow().macro_status == MacroStatus::Arg {
             self.macro_depth2.replace(self.macro_depth2.get() + 1);
         }
+        self.macro_depth.replace(self.macro_depth.get() - 1);
         // this unwrap garanteed by the assert above
         let status = self.status_stack.borrow_mut().pop().unwrap();
         self.tokenizer
@@ -244,7 +246,8 @@ impl<'a> Tokenizer2<'a> {
             return current;
         }
         if current.is(TokenKind::EOS) {
-            while self.is_eos() && self.macro_stack.borrow().len() > 1 {
+            // eprintln!("{}: {}: {}", self.is_eos(), self.macro_stack.borrow().len(), self.macro_depth.get() );
+            while self.is_eos() && self.macro_depth.get() > 0 {
                 self.leave_macro();
             }
             return self.tokenizer.borrow().peek_token();
@@ -276,6 +279,15 @@ impl<'a> Tokenizer2<'a> {
             }
             TokenKind::At => {
                 self.turn_off_the_record();
+                self.consume_token(TokenKind::At);
+                if self.peek_token(false).is(TokenKind::OpenSquareBracket) {
+                    let stream = read_macro_call_dsl(self);
+                    self.turn_on_the_record();
+                    let stream = eval_macro(read_stream(stream));
+                    eprintln!("{:#?}", stream);
+                    self.enter_macro(stream, Rc::new(HashMap::new()), MacroStatus::Other);
+                    return self.peek_token(true);
+                }
                 let m = read_macro_call(self);
                 self.turn_on_the_record();
                 let macro_data = self.macro_data.borrow();
