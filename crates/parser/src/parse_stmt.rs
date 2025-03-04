@@ -14,7 +14,7 @@ pub fn parse_stmt<'a>(
 ) -> AsmResult<'a, Box<dyn Stmt<'a> + 'a>> {
     let currrent_token = tokenizer.peek_token(true);
     let new: AsmResult<Box<dyn Stmt<'a> + 'a>> = match currrent_token.kind {
-        TokenKind::Not =>  Ok(Box::new(parse_pseudo_ins(tokenizer, scope)?)),
+        TokenKind::Not => Ok(Box::new(parse_pseudo_ins(tokenizer, scope)?)),
         TokenKind::Identifier("db") => Ok(Box::new(parse_pseudo_ins(tokenizer, scope)?)),
         TokenKind::Identifier("nasm") => Ok(Box::new(parse_pseudo_ins(tokenizer, scope)?)),
         TokenKind::Identifier("resb") => Ok(Box::new(parse_pseudo_ins(tokenizer, scope)?)),

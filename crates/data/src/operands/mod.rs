@@ -14,19 +14,17 @@ pub enum OperandKind<'a> {
     Memory,
     Immediate(bool),
     Label, // memory,
-    NASMOperand(&'a str)
+    NASMOperand(&'a str),
 }
 
 #[derive(Debug)]
 pub struct UnimplementedOperand<'a> {
-    opreand: &'a str
+    opreand: &'a str,
 }
 
 impl<'a> UnimplementedOperand<'a> {
     pub fn new(opreand: &'a str) -> Self {
-        Self {
-            opreand: opreand
-        }
+        Self { opreand: opreand }
     }
 }
 

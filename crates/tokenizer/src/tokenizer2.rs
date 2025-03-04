@@ -5,8 +5,8 @@ use std::{
     rc::Rc,
 };
 
-use crate::{read_macro_call, read_macro_call_dsl, read_macro_def, Macro, Token, TokenKind};
-use dsl::{eval_macro, read_stream};
+use crate::{macro_related::read_dsl_code, read_macro_call, read_macro_call_dsl, read_macro_def, Macro, Token, TokenKind};
+use dsl::{eval_macro, parse, read_stream, tokenize, AST};
 use util::{emit_error, Location, Stream};
 
 #[derive(Debug, Clone)]
@@ -132,6 +132,8 @@ pub struct Tokenizer2<'a> {
     macro_depth2: Cell<i64>,
     macro_depth: Cell<i64>,
     record: Cell<bool>,
+
+    dsl_ast: RefCell<Option<AST>>
 }
 
 impl<'a> Tokenizer2<'a> {
@@ -152,7 +154,9 @@ impl<'a> Tokenizer2<'a> {
 
             macro_stack: RefCell::new(vec![Rc::new(HashMap::new())]),
             macro_depth2: Cell::new(0),
-            macro_depth: Cell::new(0),
+            macro_depth: Cell::new(0), 
+
+            dsl_ast: RefCell::new(None),
         };
         new
     }
@@ -283,9 +287,17 @@ impl<'a> Tokenizer2<'a> {
                 if self.peek_token(false).is(TokenKind::OpenSquareBracket) {
                     let stream = read_macro_call_dsl(self);
                     self.turn_on_the_record();
-                    let stream = eval_macro(read_stream(stream));
-                    eprintln!("{:#?}", stream);
+                    let stream = eval_macro(read_stream(stream), self.dsl_ast.borrow().clone().unwrap());
+                    // eprintln!("{:#?}", stream);
                     self.enter_macro(stream, Rc::new(HashMap::new()), MacroStatus::Other);
+                    return self.peek_token(true);
+                } else if self.peek_token(false).is(TokenKind::OpenParenthesis) {
+                    let stream: Stream<'a> = read_dsl_code(self);
+                    self.turn_on_the_record();
+                    let ast: AST = parse(&tokenize(&stream.stringfiy()));
+                    if self.dsl_ast.replace(Some(ast)).is_some() {
+                        todo!()
+                    }
                     return self.peek_token(true);
                 }
                 let m = read_macro_call(self);

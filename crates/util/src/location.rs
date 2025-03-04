@@ -1,4 +1,4 @@
-use std::{io::Read, cell::RefCell};
+use std::{cell::RefCell, io::Read};
 
 use crate::{emit_msg_and_exit, open_safely};
 
@@ -21,9 +21,12 @@ impl<'a> Source<'a> {
             file: file,
         }
     }
-    
+
     pub fn new(code: String, file: &'a str) -> Self {
-        Self { code: code, file: file }
+        Self {
+            code: code,
+            file: file,
+        }
     }
 
     pub fn nth(&self, n: usize) -> &str {
@@ -37,15 +40,17 @@ impl<'a> Source<'a> {
 }
 
 #[derive(Clone, Copy, PartialEq)]
-pub struct  Source2<'a> {
-    source:&'a RefCell<Vec<Source<'a>>>,
+pub struct Source2<'a> {
+    source: &'a RefCell<Vec<Source<'a>>>,
     nth: usize,
-
 }
 
 impl<'a> Source2<'a> {
     fn new(source: &'a RefCell<Vec<Source<'a>>>, nth: usize) -> Self {
-        Self { source: source, nth: nth }
+        Self {
+            source: source,
+            nth: nth,
+        }
     }
 
     fn file(&self) -> &str {
@@ -58,16 +63,12 @@ impl<'a> Source2<'a> {
 
     fn nth(&self, nth: usize) -> &'a str {
         let l = (self.source).as_ptr();
-        unsafe {
-            &(*l.wrapping_add(0))[self.nth].code[nth..]
-        }
+        unsafe { &(*l.wrapping_add(0))[self.nth].code[nth..] }
     }
 
     fn silce(&self, begin: usize, end: usize) -> &'a str {
         let l = (self.source).as_ptr();
-        unsafe {
-            &(*l.wrapping_add(0))[self.nth].code[begin..end]
-        }
+        unsafe { &(*l.wrapping_add(0))[self.nth].code[begin..end] }
     }
 
     pub fn add_source(&self, source: Source<'a>) {
@@ -91,7 +92,14 @@ impl<'a> std::fmt::Display for Location<'a> {
 
 impl<'a> std::fmt::Debug for Location<'a> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}:{}:{}({})", self.source.file(), self.line, self.column, self.nth)
+        write!(
+            f,
+            "{}:{}:{}({})",
+            self.source.file(),
+            self.line,
+            self.column,
+            self.nth
+        )
     }
 }
 
@@ -190,8 +198,10 @@ impl<'a> Stream<'a> {
         self.end
     }
 
-    pub fn stringfiy(&self) -> String {
-        self.begin.source.silce(self.begin.nth, self.end.nth).to_string()
+    pub fn stringfiy(&self) -> &'a str {
+        self.begin
+            .source
+            .silce(self.begin.nth, self.end.nth)
     }
 
     pub fn source(&self) -> Source2<'a> {
