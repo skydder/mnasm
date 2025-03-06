@@ -199,9 +199,7 @@ impl<'a> Stream<'a> {
     }
 
     pub fn stringfiy(&self) -> &'a str {
-        self.begin
-            .source
-            .silce(self.begin.nth, self.end.nth)
+        self.begin.source.silce(self.begin.nth, self.end.nth)
     }
 
     pub fn source(&self) -> Source2<'a> {

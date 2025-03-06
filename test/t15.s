@@ -15,7 +15,7 @@ macro if(cond, then, else,) {
 }
 
 <_start:global:.text> {
-    @(output += "!syscall()")
+    @(output += "!" + input[0] + "()")
     mov(a, 1);mov(rdi, 1);
     mov(rsi, helloworld)
     mov(rdx, 14)
