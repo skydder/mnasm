@@ -1,4 +1,4 @@
-use std::{cell::RefCell, collections::HashMap, rc::Rc, str};
+use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
 use eval::eval;
 use util::{Location, Source, Source2, Stream};
@@ -7,7 +7,7 @@ mod errors;
 pub use errors::{DSLError, DSLResult};
 
 mod tokenizer;
-pub use tokenizer::{tokenize, KeyWord, Token, consume_token};
+pub use tokenizer::{consume_token, peek_token, tokenize, KeyWord, Token};
 
 mod parser;
 pub use parser::parse;
@@ -127,6 +127,13 @@ impl Data {
         }
     }
 
+    fn get_symbol(&self) -> Option<String> {
+        match self {
+            Self::Symbol(name) => Some(name.clone()),
+            _ => None,
+        }
+    }
+
     fn add(&self, rhs: Rc<Data>) -> Rc<Data> {
         match (self, rhs.as_ref()) {
             (Data::Integer(lhs), Data::Integer(rhs)) => Rc::new(Data::Integer(lhs + rhs)),
@@ -136,28 +143,70 @@ impl Data {
             (Data::String(lhs), Data::Char(rhs)) => {
                 Rc::new(Data::String(format!("{}{}", lhs, rhs)))
             }
-            _ => todo!(),
+            (Data::Char(lhs), Data::Char(rhs)) => Rc::new(Data::String(format!("{}{}", lhs, rhs))),
+            (Data::Char(lhs), Data::String(rhs)) => {
+                Rc::new(Data::String(format!("{}{}", lhs, rhs)))
+            }
+            _ => {
+                eprintln!("{:#?}", self);
+                eprintln!("{:#?}", rhs);
+                todo!()
+            }
         }
     }
 
     fn _index(&self, nth: usize) -> Option<Rc<Data>> {
         match self {
             Data::List(lhs) => Some(lhs.get(nth)?.clone()),
-            Data::String(lhs) => {
-                Some(Rc::new(Data::Char(lhs.chars().nth(nth)?)))
-            }
+            Data::String(lhs) => Some(Rc::new(Data::Char(lhs.chars().nth(nth)?))),
             _ => None,
         }
     }
 
     fn index(&self, rhs: Rc<Data>) -> Option<Rc<Data>> {
-        match (self, rhs.as_ref()) {
-            (Data::List(lhs), Data::Integer(rhs)) => Some(lhs.get(*rhs as usize)?.clone()),
-            (Data::String(lhs), Data::Integer(rhs)) => {
-                Some(Rc::new(Data::Char(lhs.chars().nth(*rhs as usize)?)))
+        match rhs.as_ref() {
+            Data::Integer(nth) => self._index(*nth as usize),
+            _ => None,
+        }
+    }
+
+    fn _slice(&self, begin: usize, end: usize) -> Option<Rc<Data>> {
+        match self {
+            Data::List(lhs) => Some(Rc::new(Data::List(
+                lhs.get(begin..end)?
+                    .iter()
+                    .map(|i| i.clone())
+                    .collect::<Vec<Rc<Data>>>(),
+            ))),
+            Data::String(lhs) => Some(Rc::new(Data::String(
+                lhs.get(begin..end)?.chars().collect::<String>(),
+            ))),
+            _ => None,
+        }
+    }
+
+    fn slice(&self, begin: Rc<Data>, end: Rc<Data>) -> Option<Rc<Data>> {
+        match (begin.as_ref(), end.as_ref()) {
+            (Data::Integer(begin), Data::Integer(end)) => {
+                self._slice(*begin as usize, *end as usize)
             }
             _ => None,
         }
+    }
+
+    fn cmp_equal(&self, rhs: Rc<Data>) -> Rc<Data> {
+        match (self, rhs.as_ref()) {
+            (Data::Integer(lhs), Data::Integer(rhs)) => Rc::new(Data::Integer((*lhs == *rhs) as i64)),
+            (Data::String(lhs), Data::String(rhs)) => {
+                Rc::new(Data::Integer((*lhs == *rhs) as i64))
+            }
+            (Data::Char(lhs), Data::Char(rhs)) => Rc::new(Data::Integer((*lhs == *rhs) as i64)),
+            _ => Rc::new(Data::Integer(0))
+        }
+    }
+
+    fn is_zero(&self) -> bool {
+        matches!(self, Self::Integer(0))
     }
 }
 
@@ -165,6 +214,7 @@ impl Data {
 pub enum Operator {
     AddAssign,
     Add,
+    CmpEqual,
     FnCall, // fn_name goes to lhs and args go to rhs as list
 }
 
@@ -190,6 +240,15 @@ impl AST {
     pub fn eval(&self, env: &Environment) -> DSLResult<Rc<Data>> {
         eval(self, env)
     }
+
+    pub fn eval_list_nth(&self, env: &Environment, nth: usize) -> DSLResult<Rc<Data>> {
+        match self {
+            AST::List(list) => {
+                list.get(nth).ok_or(DSLError::Eval(format!("index range error")))?.eval(env)
+            }
+            _ => Err(DSLError::Eval(format!("expected list, but this has other type")))
+        }
+    }
 }
 
 pub fn read_stream<'a>(stream: Stream<'a>) -> DSLData<'a> {
@@ -199,6 +258,7 @@ pub fn read_stream<'a>(stream: Stream<'a>) -> DSLData<'a> {
 
 // todo: remove used stream in Source2
 pub fn eval_macro<'a>(data: DSLData<'a>, ast: AST) -> Stream<'a> {
+    eprintln!("{:#?}", ast);
     let _ = ast.eval(&data.env);
     let output = data.env.get_output();
     eprintln!("out: {}", output);
