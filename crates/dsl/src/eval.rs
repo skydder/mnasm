@@ -83,7 +83,21 @@ fn apply_fn(fn_name: Rc<AST>, args: Rc<AST>, env: &Environment) -> DSLResult<Rc<
                 args.eval_list_nth(env, 1)?
             };
             Ok(evaled)
-        
+        }
+        "print" => {
+            let evaled = args.eval(env)?;
+            eprintln!("dsl: {:?}", evaled);
+            Ok(Rc::new(Data::None))
+        }
+        "let" => {
+            let name =  args.get_list_nth(0)?.get_data().unwrap();
+            let data = args.eval_list_nth(env, 1)?;
+            env.push_var(name.get_symbol().unwrap(), Rc::new(data.to_type(env).unwrap()));
+            Ok(Rc::new(Data::None))
+        }
+        "len" => {
+            let item = args.eval_list_nth(env, 0)?;
+            Ok(item.len().unwrap())
         }
         _ => todo!(),
     }

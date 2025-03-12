@@ -99,7 +99,7 @@ impl Environment {
             "output" => Some(self.output.clone()),
             "input" => Some(self.input.0.clone()),
             n => {
-                eprintln!("parce que: {}", name);
+                // eprintln!("parce que: {}", name);
                 env.variables.borrow().get(&n.to_string()).cloned()
             }
         }
@@ -107,6 +107,10 @@ impl Environment {
 
     pub fn get_output(&self) -> String {
         self.output.get_string().unwrap()
+    }
+
+    pub fn push_var(&self, name: String, data: Rc<Types>) {
+        self.variables.borrow_mut().insert(name, data);
     }
 }
 
@@ -131,6 +135,23 @@ impl Data {
         match self {
             Self::Symbol(name) => Some(name.clone()),
             _ => None,
+        }
+    }
+
+    fn to_type(&self, env: &Environment) -> Option<Types> {
+        match self {
+            Data::Integer(i) => Some(Types::Integer(RefCell::new(*i))),
+            Data::String(s) => Some(Types::String(RefCell::new(s.clone()))),
+            Data::Char(c) => Some(Types::Char(RefCell::new(*c))),
+            Data::List(datas) => {
+                let mut ls = Vec::new();
+                for i in datas {
+                     ls.push(i.to_type(env)?);
+                }
+                Some(Types::List(RefCell::new(ls)))
+            },
+            Data::Symbol(_) => self.get(env).and_then(|s|Some(s.as_ref().clone())),
+            Data::None => None,
         }
     }
 
@@ -205,6 +226,14 @@ impl Data {
         }
     }
 
+    fn len(&self) -> Option<Rc<Data>> {
+        match self {
+            Data::List(list) => Some(Rc::new(Data::Integer(list.len() as i64))),
+            Data::String(s) => Some(Rc::new(Data::Integer(s.len() as i64))),
+            _ => None
+        }
+    }
+
     fn is_zero(&self) -> bool {
         matches!(self, Self::Integer(0))
     }
@@ -249,6 +278,14 @@ impl AST {
             _ => Err(DSLError::Eval(format!("expected list, but this has other type")))
         }
     }
+    pub fn get_list_nth(&self, nth: usize) -> DSLResult<AST> {
+        match self {
+            AST::List(list) => {
+                Ok(list.get(nth).ok_or(DSLError::Eval(format!("index range error")))?.clone())
+            }
+            _ => Err(DSLError::Eval(format!("expected list, but this has other type")))
+        }
+    }
 }
 
 pub fn read_stream<'a>(stream: Stream<'a>) -> DSLData<'a> {
@@ -258,10 +295,10 @@ pub fn read_stream<'a>(stream: Stream<'a>) -> DSLData<'a> {
 
 // todo: remove used stream in Source2
 pub fn eval_macro<'a>(data: DSLData<'a>, ast: AST) -> Stream<'a> {
-    eprintln!("{:#?}", ast);
+    // eprintln!("{:#?}", ast);
     let _ = ast.eval(&data.env);
     let output = data.env.get_output();
-    eprintln!("out: {}", output);
+    // eprintln!("out: {}", output);
     let begin = Location::new_source(data.source, Source::new(output, "macro"));
     let end = begin.end();
     Stream::new(begin, end)

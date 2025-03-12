@@ -35,7 +35,10 @@ pub enum KeyWord {
     SemiColon,
     Equal,
     If,
-    Else
+    Else,
+    Comma,
+    Let,
+    Assign,
 }
 
 impl KeyWord {
@@ -54,6 +57,9 @@ impl KeyWord {
             KeyWord::Equal => 2,
             KeyWord::If => 2,
             KeyWord::Else => 4,
+            KeyWord::Comma => 1,
+            KeyWord::Let => 3,
+            KeyWord::Assign => 1,
         }
     }
 }
@@ -77,6 +83,7 @@ pub fn tokenize<'a>(code: &'a str) -> DSLResult<Vec<Token<'a>>> {
                 match &code[begin..counter] {
                     "if" => token_seq.push(Token::KeyWord(KeyWord::If)),
                     "else" => token_seq.push(Token::KeyWord(KeyWord::Else)),
+                    "let" => token_seq.push(Token::KeyWord(KeyWord::Let)),
                     _ => token_seq.push(Token::Identifier(&code[begin..counter])),
                 }
                 continue;
@@ -96,7 +103,7 @@ pub fn tokenize<'a>(code: &'a str) -> DSLResult<Vec<Token<'a>>> {
                         counter += 1;
                         token_seq.push(Token::KeyWord(KeyWord::Equal))
                     }
-                    _ => todo!()
+                    _ => token_seq.push(Token::KeyWord(KeyWord::Assign))
                 }
                 continue; 
             }
@@ -167,6 +174,11 @@ pub fn tokenize<'a>(code: &'a str) -> DSLResult<Vec<Token<'a>>> {
                 counter += 1;
                 continue;
             }
+            ',' => {
+                counter += 1;
+                token_seq.push(Token::KeyWord(KeyWord::Comma));
+                continue;
+            }
             _ => {
                 return Err(DSLError::Tokenize(format!(
                     "unexpected letter: {}",
@@ -185,7 +197,6 @@ pub fn consume_token<'a>(
 ) -> DSLResult<()> {
     if peek_token(token_seq, counter) == Some(expected_token)
     {
-        // todo: add len() to Token et *counter += expected_token.len()
         *counter += 1;
         Ok(())
     } else {

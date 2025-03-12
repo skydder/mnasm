@@ -116,7 +116,7 @@ impl<'a> Location<'a> {
     pub fn new_source(original_sources: Source2<'a>, new_source: Source<'a>) -> Self {
         original_sources.add_source(new_source);
         Self {
-            source: Source2::new(original_sources.source, original_sources.nth + 1),
+            source: Source2::new(original_sources.source, original_sources.source.borrow().len() - 1),
             line: 1,
             column: 1,
             nth: 0,

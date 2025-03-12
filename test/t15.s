@@ -15,18 +15,26 @@ macro if(cond, then, else,) {
 }
 
 <_start:global:.text> {
-    @(if input == "syscall" {
-        output += "!move()";
+    @(let sys = "!syscall()";
+    let mov = "!move()";
+    let tes = "!test()";
+    print(len(sys), mov, tes);
+    if input == "syscall" {
+        output += mov;
+    } else if input == "move" {
+        output += sys;
     } else {
-        if input == "move" {
-            output += "!syscall()";
-        }
-    })
+        print(input);
+        output += tes;
+    }
+    print(output);
+    )
     mov(a, 1);mov(rdi, 1);
     mov(rsi, helloworld)
     mov(rdx, 14)
     @[syscall]
     @[move]
+    @[adsfasd]
     mov(rax, 60)
     mov(rdi, 0)
     !syscall()
