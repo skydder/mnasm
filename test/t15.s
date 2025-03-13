@@ -15,19 +15,25 @@ macro if(cond, then, else,) {
 }
 
 <_start:global:.text> {
-    @(let sys = "!syscall()";
-    let mov = "!move()";
-    let tes = "!test()";
-    print(len(sys), mov, tes);
-    if input == "syscall" {
-        output += mov;
-    } else if input == "move" {
-        output += sys;
-    } else {
-        print(input);
-        output += tes;
+    @(fn test(x) {
+        print("testT", x );
+    } 
+    fn main() {
+        let sys = "!syscall()";
+        let mov = "!move()";
+        let tes = "!test()";
+        print(len(sys), mov, tes);
+        test(mov);
+        if input == "syscall" {
+            output += mov;
+        } else if input == "move" {
+            output += sys;
+        } else {
+            print(input);
+            output += tes;
+        }
+        print(output);
     }
-    print(output);
     )
     mov(a, 1);mov(rdi, 1);
     mov(rsi, helloworld)

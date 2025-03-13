@@ -1,6 +1,6 @@
 use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
-use eval::eval;
+use eval::{eval, run};
 use util::{Location, Source, Source2, Stream};
 
 mod errors;
@@ -18,16 +18,23 @@ mod eval;
 // - raw stream
 // - source info
 
+// ====
+// ++todo++
+// Data -> Constant
+// Types -> Variable
+// move Fn to Constantj from Types
+// ====
+
 pub struct DSLData<'a> {
     source: Source2<'a>,
-    env: Environment,
+    input: String,
 }
 
 impl<'a> DSLData<'a> {
     fn new(source: Source2<'a>, raw_stream: String) -> Self {
         Self {
             source: source,
-            env: Environment::new(raw_stream),
+            input: raw_stream,
         }
     }
 }
@@ -37,18 +44,14 @@ pub enum Types {
     String(RefCell<String>),
     List(RefCell<Vec<Types>>),
     Integer(RefCell<i64>),
-    Char(RefCell<char>),
+    Fn(Vec<AST>, AST),
 }
 
 impl Types {
     fn add<'a>(&self, rhs: &Data) {
         match (self, rhs) {
             (Types::String(s1), Data::String(s2)) => {
-                // eprintln!("{:?} +  {}", s1, s2);
                 s1.borrow_mut().push_str(s2);
-            }
-            (Types::String(s1), Data::Char(s2)) => {
-                s1.borrow_mut().push(*s2);
             }
             _ => {
                 todo!()
@@ -68,7 +71,7 @@ impl Types {
                     .clone(),
             ),
             Types::Integer(ref_cell) => Data::Integer(ref_cell.borrow().clone()),
-            Types::Char(ref_cell) => Data::Char(ref_cell.borrow().clone()),
+            _ => todo!(),
         }
     }
 
@@ -80,37 +83,45 @@ impl Types {
     }
 }
 
+#[derive(Clone)]
 pub struct Environment {
-    variables: RefCell<HashMap<String, Rc<Types>>>,
-    input: (Rc<Types>, RefCell<usize>),
-    output: Rc<Types>,
+    local: RefCell<HashMap<String, Rc<Types>>>,
+    global: Rc<RefCell<HashMap<String, Rc<Types>>>>,
 }
 
 impl Environment {
-    pub fn new(input: String) -> Self {
+    pub fn new() -> Self {
         Self {
-            variables: RefCell::new(HashMap::new()),
-            input: (Rc::new(Types::String(RefCell::new(input))), RefCell::new(0)),
-            output: Rc::new(Types::String(RefCell::new(String::new()))),
+            local: RefCell::new(HashMap::new()),
+            global: Rc::new(RefCell::new(HashMap::new())),
         }
     }
-    pub fn get_variable(&self, name: &str, env: &Environment) -> Option<Rc<Types>> {
+    pub fn get_variable(&self, name: &str) -> DSLResult<Rc<Types>> {
         match name {
-            "output" => Some(self.output.clone()),
-            "input" => Some(self.input.0.clone()),
-            n => {
-                // eprintln!("parce que: {}", name);
-                env.variables.borrow().get(&n.to_string()).cloned()
+            n if self.global.borrow().contains_key(n) => {
+                self.global.borrow().get(&n.to_string()).cloned()
             }
+            n if self.local.borrow().contains_key(n) => {
+                self.local.borrow().get(&n.to_string()).cloned()
+            }
+            _ => None,
         }
-    }
-
-    pub fn get_output(&self) -> String {
-        self.output.get_string().unwrap()
+        .ok_or(DSLError::Eval(format!("{} is unfdefined", name)))
     }
 
     pub fn push_var(&self, name: String, data: Rc<Types>) {
-        self.variables.borrow_mut().insert(name, data);
+        self.local.borrow_mut().insert(name, data);
+    }
+
+    pub fn push_global(&self, name: String, data: Rc<Types>) {
+        self.global.borrow_mut().insert(name, data);
+    }
+
+    pub fn enter_fn(&self) -> Environment {
+        Environment {
+            local: RefCell::new(HashMap::new()),
+            global: self.global.clone(),
+        }
     }
 }
 
@@ -118,7 +129,6 @@ impl Environment {
 pub enum Data {
     Integer(i64),
     String(String),
-    Char(char),
     List(Vec<Rc<Data>>),
     Symbol(String),
     None,
@@ -126,7 +136,7 @@ pub enum Data {
 impl Data {
     fn get(&self, env: &Environment) -> Option<Rc<Types>> {
         match self {
-            Self::Symbol(name) => env.get_variable(name, env),
+            Self::Symbol(name) => env.get_variable(name).ok(),
             _ => None,
         }
     }
@@ -142,15 +152,14 @@ impl Data {
         match self {
             Data::Integer(i) => Some(Types::Integer(RefCell::new(*i))),
             Data::String(s) => Some(Types::String(RefCell::new(s.clone()))),
-            Data::Char(c) => Some(Types::Char(RefCell::new(*c))),
             Data::List(datas) => {
                 let mut ls = Vec::new();
                 for i in datas {
-                     ls.push(i.to_type(env)?);
+                    ls.push(i.to_type(env)?);
                 }
                 Some(Types::List(RefCell::new(ls)))
-            },
-            Data::Symbol(_) => self.get(env).and_then(|s|Some(s.as_ref().clone())),
+            }
+            Data::Symbol(_) => self.get(env).and_then(|s| Some(s.as_ref().clone())),
             Data::None => None,
         }
     }
@@ -159,13 +168,6 @@ impl Data {
         match (self, rhs.as_ref()) {
             (Data::Integer(lhs), Data::Integer(rhs)) => Rc::new(Data::Integer(lhs + rhs)),
             (Data::String(lhs), Data::String(rhs)) => {
-                Rc::new(Data::String(format!("{}{}", lhs, rhs)))
-            }
-            (Data::String(lhs), Data::Char(rhs)) => {
-                Rc::new(Data::String(format!("{}{}", lhs, rhs)))
-            }
-            (Data::Char(lhs), Data::Char(rhs)) => Rc::new(Data::String(format!("{}{}", lhs, rhs))),
-            (Data::Char(lhs), Data::String(rhs)) => {
                 Rc::new(Data::String(format!("{}{}", lhs, rhs)))
             }
             _ => {
@@ -179,7 +181,7 @@ impl Data {
     fn _index(&self, nth: usize) -> Option<Rc<Data>> {
         match self {
             Data::List(lhs) => Some(lhs.get(nth)?.clone()),
-            Data::String(lhs) => Some(Rc::new(Data::Char(lhs.chars().nth(nth)?))),
+            Data::String(lhs) => Some(Rc::new(Data::String(lhs.chars().nth(nth)?.to_string()))),
             _ => None,
         }
     }
@@ -217,12 +219,11 @@ impl Data {
 
     fn cmp_equal(&self, rhs: Rc<Data>) -> Rc<Data> {
         match (self, rhs.as_ref()) {
-            (Data::Integer(lhs), Data::Integer(rhs)) => Rc::new(Data::Integer((*lhs == *rhs) as i64)),
-            (Data::String(lhs), Data::String(rhs)) => {
+            (Data::Integer(lhs), Data::Integer(rhs)) => {
                 Rc::new(Data::Integer((*lhs == *rhs) as i64))
             }
-            (Data::Char(lhs), Data::Char(rhs)) => Rc::new(Data::Integer((*lhs == *rhs) as i64)),
-            _ => Rc::new(Data::Integer(0))
+            (Data::String(lhs), Data::String(rhs)) => Rc::new(Data::Integer((*lhs == *rhs) as i64)),
+            _ => Rc::new(Data::Integer(0)),
         }
     }
 
@@ -230,7 +231,7 @@ impl Data {
         match self {
             Data::List(list) => Some(Rc::new(Data::Integer(list.len() as i64))),
             Data::String(s) => Some(Rc::new(Data::Integer(s.len() as i64))),
-            _ => None
+            _ => None,
         }
     }
 
@@ -266,24 +267,30 @@ impl AST {
         }
     }
 
-    pub fn eval(&self, env: &Environment) -> DSLResult<Rc<Data>> {
-        eval(self, env)
+    pub fn eval(&self, env: Rc<Environment>) -> DSLResult<Rc<Data>> {
+        eval(self, env) // todo
     }
 
-    pub fn eval_list_nth(&self, env: &Environment, nth: usize) -> DSLResult<Rc<Data>> {
+    pub fn eval_list_nth(&self, env: Rc<Environment>, nth: usize) -> DSLResult<Rc<Data>> {
         match self {
-            AST::List(list) => {
-                list.get(nth).ok_or(DSLError::Eval(format!("index range error")))?.eval(env)
-            }
-            _ => Err(DSLError::Eval(format!("expected list, but this has other type")))
+            AST::List(list) => list
+                .get(nth)
+                .ok_or(DSLError::Eval(format!("index range error")))?
+                .eval(env),
+            _ => Err(DSLError::Eval(format!(
+                "expected list, but this has other type"
+            ))),
         }
     }
     pub fn get_list_nth(&self, nth: usize) -> DSLResult<AST> {
         match self {
-            AST::List(list) => {
-                Ok(list.get(nth).ok_or(DSLError::Eval(format!("index range error")))?.clone())
-            }
-            _ => Err(DSLError::Eval(format!("expected list, but this has other type")))
+            AST::List(list) => Ok(list
+                .get(nth)
+                .ok_or(DSLError::Eval(format!("index range error")))?
+                .clone()),
+            _ => Err(DSLError::Eval(format!(
+                "expected list, but this has other type"
+            ))),
         }
     }
 }
@@ -295,10 +302,8 @@ pub fn read_stream<'a>(stream: Stream<'a>) -> DSLData<'a> {
 
 // todo: remove used stream in Source2
 pub fn eval_macro<'a>(data: DSLData<'a>, ast: AST) -> Stream<'a> {
-    // eprintln!("{:#?}", ast);
-    let _ = ast.eval(&data.env);
-    let output = data.env.get_output();
-    // eprintln!("out: {}", output);
+    let env = Rc::new(Environment::new());
+    let output = run(&ast, env.clone(), data.input).unwrap();
     let begin = Location::new_source(data.source, Source::new(output, "macro"));
     let end = begin.end();
     Stream::new(begin, end)

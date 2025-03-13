@@ -1,13 +1,36 @@
 use std::rc::Rc;
 
-use crate::{consume_token, peek_token, DSLResult, Data, KeyWord, Operator, Token, AST};
+use crate::{consume_token, peek_token, DSLError, DSLResult, Data, KeyWord, Operator, Token, AST};
 
 pub fn parse<'a>(token_seq: &Vec<Token<'a>>) -> DSLResult<AST> {
     let mut counter: usize = 0;
     let mut list = Vec::new();
     while peek_token(token_seq, &mut counter) != None {
-        list.push(parse_stmt(token_seq, &mut counter)?);
+        list.push(parse_fn(token_seq, &mut counter)?);
     }
+    Ok(AST::List(list))
+}
+
+fn parse_fn<'a>(token_seq: &Vec<Token<'a>>, counter: &mut usize) -> DSLResult<AST> {
+    consume_token(Token::KeyWord(KeyWord::Fn), token_seq, counter)?;
+    let name = match peek_token(token_seq, counter) {
+        Some(Token::Identifier(s)) => Some(AST::Data(Rc::new(Data::Symbol(s.to_string())))),
+        _ => None,
+    }
+    .ok_or(DSLError::Parse(format!(
+        "expected identifier, but found other"
+    )))?;
+    *counter += 1;
+    consume_token(Token::KeyWord(KeyWord::OpenParenthesis), token_seq, counter)?;
+    let mut args = Vec::new();
+    parse_list(token_seq, counter, &mut args, KeyWord::CloseParenthesis)?;
+    consume_token(
+        Token::KeyWord(KeyWord::CloseParenthesis),
+        token_seq,
+        counter,
+    )?;
+    let body = parse_block(token_seq, counter)?;
+    let list = vec![name, AST::List(args), body];
     Ok(AST::List(list))
 }
 
@@ -89,7 +112,6 @@ fn parse_assign<'a>(token_seq: &Vec<Token<'a>>, counter: &mut usize) -> DSLResul
     Ok(AST::Expr(op, Rc::new(lhs), Some(Rc::new(rhs))))
 }
 
-
 fn parse_add<'a>(token_seq: &Vec<Token<'a>>, counter: &mut usize) -> DSLResult<AST> {
     let lhs = parse_cmp(token_seq, counter)?;
     let op = match peek_token(token_seq, counter) {
@@ -119,8 +141,12 @@ fn parse_postfix<'a>(token_seq: &Vec<Token<'a>>, counter: &mut usize) -> DSLResu
             // fn-call
             *counter += 1;
             let mut list = Vec::new();
-            parse_fn_arg(token_seq, counter, &mut list)?;
-            consume_token(Token::KeyWord(KeyWord::CloseParenthesis), token_seq, counter)?;
+            parse_list(token_seq, counter, &mut list, KeyWord::CloseParenthesis)?;
+            consume_token(
+                Token::KeyWord(KeyWord::CloseParenthesis),
+                token_seq,
+                counter,
+            )?;
             Ok(AST::Expr(
                 Operator::FnCall,
                 Rc::new(lhs),
@@ -143,7 +169,11 @@ fn parse_postfix<'a>(token_seq: &Vec<Token<'a>>, counter: &mut usize) -> DSLResu
                 Some(Token::KeyWord(KeyWord::Slice)) => {
                     *counter += 1;
                     let rhs2 = parse_data(token_seq, counter)?;
-                    consume_token(Token::KeyWord(KeyWord::CloseSquareBracket), token_seq, counter)?;
+                    consume_token(
+                        Token::KeyWord(KeyWord::CloseSquareBracket),
+                        token_seq,
+                        counter,
+                    )?;
                     Ok(AST::Expr(
                         Operator::FnCall,
                         Rc::new(AST::Data(Rc::new(Data::Symbol("slice".to_string())))),
@@ -153,23 +183,28 @@ fn parse_postfix<'a>(token_seq: &Vec<Token<'a>>, counter: &mut usize) -> DSLResu
                 _ => {
                     eprintln!("{:?}", peek_token(token_seq, counter));
                     todo!()
-                },
+                }
             }
         }
         _ => Ok(lhs),
     }
 }
 
-fn parse_fn_arg<'a>(token_seq: &Vec<Token<'a>>, counter: &mut usize, list: &mut Vec<AST>) -> DSLResult<()> {
+fn parse_list<'a>(
+    token_seq: &Vec<Token<'a>>,
+    counter: &mut usize,
+    list: &mut Vec<AST>,
+    stopper: KeyWord,
+) -> DSLResult<()> {
     match peek_token(token_seq, counter) {
-        Some(Token::KeyWord(KeyWord::CloseParenthesis)) => Ok(()),
+        Some(Token::KeyWord(s)) if s == stopper => Ok(()),
         Some(Token::KeyWord(KeyWord::Comma)) => {
             consume_token(Token::KeyWord(KeyWord::Comma), token_seq, counter)?;
-            parse_fn_arg(token_seq, counter, list)
+            parse_list(token_seq, counter, list, stopper)
         }
         _ => {
             list.push(parse_expr(token_seq, counter)?);
-            parse_fn_arg(token_seq, counter, list)
+            parse_list(token_seq, counter, list, stopper)
         }
     }
 }
@@ -193,6 +228,6 @@ fn parse_data<'a>(token_seq: &Vec<Token<'a>>, counter: &mut usize) -> DSLResult<
         _ => {
             eprintln!("{:?}", peek_token(token_seq, counter));
             todo!()
-        },
+        }
     }
 }

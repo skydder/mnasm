@@ -39,6 +39,7 @@ pub enum KeyWord {
     Comma,
     Let,
     Assign,
+    Fn,
 }
 
 impl KeyWord {
@@ -60,6 +61,7 @@ impl KeyWord {
             KeyWord::Comma => 1,
             KeyWord::Let => 3,
             KeyWord::Assign => 1,
+            KeyWord::Fn => 2,
         }
     }
 }
@@ -72,7 +74,7 @@ pub fn tokenize<'a>(code: &'a str) -> DSLResult<Vec<Token<'a>>> {
             whitespace if whitespace.is_ascii_whitespace() => {
                 counter += 1;
                 continue;
-            },
+            }
             'a'..='z' | 'A'..='Z' | '_' => {
                 let begin = counter;
                 while counter < code.len()
@@ -84,13 +86,16 @@ pub fn tokenize<'a>(code: &'a str) -> DSLResult<Vec<Token<'a>>> {
                     "if" => token_seq.push(Token::KeyWord(KeyWord::If)),
                     "else" => token_seq.push(Token::KeyWord(KeyWord::Else)),
                     "let" => token_seq.push(Token::KeyWord(KeyWord::Let)),
+                    "fn" => token_seq.push(Token::KeyWord(KeyWord::Fn)),
                     _ => token_seq.push(Token::Identifier(&code[begin..counter])),
                 }
                 continue;
-            },
+            }
             '0'..='9' => {
                 let begin = counter;
-                while counter < code.len() && matches!(code.chars().nth(counter).unwrap(), '0'..='9') {
+                while counter < code.len()
+                    && matches!(code.chars().nth(counter).unwrap(), '0'..='9')
+                {
                     counter += 1;
                 }
                 token_seq.push(Token::Number(code[begin..counter].parse().unwrap()));
@@ -103,9 +108,9 @@ pub fn tokenize<'a>(code: &'a str) -> DSLResult<Vec<Token<'a>>> {
                         counter += 1;
                         token_seq.push(Token::KeyWord(KeyWord::Equal))
                     }
-                    _ => token_seq.push(Token::KeyWord(KeyWord::Assign))
+                    _ => token_seq.push(Token::KeyWord(KeyWord::Assign)),
                 }
-                continue; 
+                continue;
             }
             '+' => {
                 counter += 1;
@@ -116,7 +121,7 @@ pub fn tokenize<'a>(code: &'a str) -> DSLResult<Vec<Token<'a>>> {
                     }
                     _ => token_seq.push(Token::KeyWord(KeyWord::Add)),
                 }
-                continue; 
+                continue;
             }
             '.' => {
                 counter += 1;
@@ -127,7 +132,7 @@ pub fn tokenize<'a>(code: &'a str) -> DSLResult<Vec<Token<'a>>> {
                     }
                     _ => todo!(),
                 }
-                continue; 
+                continue;
             }
             '[' => {
                 counter += 1;
@@ -164,7 +169,7 @@ pub fn tokenize<'a>(code: &'a str) -> DSLResult<Vec<Token<'a>>> {
                 token_seq.push(Token::KeyWord(KeyWord::SemiColon));
                 continue;
             }
-            '\"'=> {
+            '\"' => {
                 counter += 1;
                 let begin = counter;
                 while !matches!(code.chars().nth(counter).unwrap(), '\"') {
@@ -195,12 +200,14 @@ pub fn consume_token<'a>(
     token_seq: &Vec<Token<'a>>,
     counter: &mut usize,
 ) -> DSLResult<()> {
-    if peek_token(token_seq, counter) == Some(expected_token)
-    {
+    if peek_token(token_seq, counter) == Some(expected_token) {
         *counter += 1;
         Ok(())
     } else {
-        Err(DSLError::Parse(format!("unexpected token: {:?}", peek_token(token_seq, counter))))
+        Err(DSLError::Parse(format!(
+            "unexpected token: {:?}",
+            peek_token(token_seq, counter)
+        )))
     }
 }
 

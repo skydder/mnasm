@@ -292,7 +292,6 @@ impl<'a> Tokenizer2<'a> {
                     self.turn_on_the_record();
                     let stream =
                         eval_macro(read_stream(stream), self.dsl_ast.borrow().clone().unwrap());
-                    eprintln!("{:#?}", stream);
                     self.enter_macro(stream, Rc::new(HashMap::new()), MacroStatus::Other);
                     return self.peek_token(true);
                 } else if self.peek_token(false).is(TokenKind::OpenParenthesis) {
