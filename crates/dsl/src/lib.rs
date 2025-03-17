@@ -13,24 +13,22 @@ mod parser;
 pub use parser::parse;
 
 mod eval;
-// data ()
+// Constant ()
 // - dsl code
 // - raw stream
 // - source info
 
 // ====
 // ++todo++
-// Data -> Constant
-// Types -> Variable
-// move Fn to Constantj from Types
+// enable dsl to use parser
 // ====
 
-pub struct DSLData<'a> {
+pub struct DSLConstant<'a> {
     source: Source2<'a>,
     input: String,
 }
 
-impl<'a> DSLData<'a> {
+impl<'a> DSLConstant<'a> {
     fn new(source: Source2<'a>, raw_stream: String) -> Self {
         Self {
             source: source,
@@ -40,18 +38,33 @@ impl<'a> DSLData<'a> {
 }
 
 #[derive(Clone, Debug)]
-pub enum Types {
+pub enum Variable {
     String(RefCell<String>),
-    List(RefCell<Vec<Types>>),
+    List(RefCell<Vec<Variable>>),
     Integer(RefCell<i64>),
     Fn(Vec<AST>, AST),
 }
 
-impl Types {
-    fn add<'a>(&self, rhs: &Data) {
+impl Variable {
+    fn add<'a>(&self, rhs: &Constant) {
         match (self, rhs) {
-            (Types::String(s1), Data::String(s2)) => {
+            (Variable::String(s1), Constant::String(s2)) => {
                 s1.borrow_mut().push_str(s2);
+            }
+            (Variable::Integer(s1), Constant::Integer(s2)) => {
+                *s1.borrow_mut() += *s2;
+            }
+            (Variable::List(s1), _) => s1.borrow_mut().push(rhs.to_type_evaled().unwrap()),
+            _ => {
+                todo!()
+            }
+        }
+    }
+
+    fn mul<'a>(&self, rhs: &Constant) {
+        match (self, rhs) {
+            (Variable::Integer(s1), Constant::Integer(s2)) => {
+                *s1.borrow_mut() *= *s2;
             }
             _ => {
                 todo!()
@@ -59,25 +72,25 @@ impl Types {
         }
     }
 
-    fn to_data(&self) -> Data {
+    fn to_constant(&self) -> Constant {
         match self {
-            Types::String(ref_cell) => Data::String(ref_cell.borrow().clone()),
-            Types::List(ref_cell) => Data::List(
+            Variable::String(ref_cell) => Constant::String(ref_cell.borrow().clone()),
+            Variable::List(ref_cell) => Constant::List(
                 ref_cell
                     .borrow()
                     .iter()
-                    .map(|i| Rc::new(i.to_data()))
-                    .collect::<Vec<Rc<Data>>>()
+                    .map(|i| Rc::new(i.to_constant()))
+                    .collect::<Vec<Rc<Constant>>>()
                     .clone(),
             ),
-            Types::Integer(ref_cell) => Data::Integer(ref_cell.borrow().clone()),
+            Variable::Integer(ref_cell) => Constant::Integer(ref_cell.borrow().clone()),
             _ => todo!(),
         }
     }
 
     fn get_string(&self) -> Option<String> {
         match self {
-            Types::String(str) => Some(str.borrow().to_string()),
+            Variable::String(str) => Some(str.borrow().to_string()),
             _ => None,
         }
     }
@@ -85,8 +98,8 @@ impl Types {
 
 #[derive(Clone)]
 pub struct Environment {
-    local: RefCell<HashMap<String, Rc<Types>>>,
-    global: Rc<RefCell<HashMap<String, Rc<Types>>>>,
+    local: RefCell<HashMap<String, Rc<Variable>>>,
+    global: Rc<RefCell<HashMap<String, Rc<Variable>>>>,
 }
 
 impl Environment {
@@ -96,7 +109,7 @@ impl Environment {
             global: Rc::new(RefCell::new(HashMap::new())),
         }
     }
-    pub fn get_variable(&self, name: &str) -> DSLResult<Rc<Types>> {
+    pub fn get_variable(&self, name: &str) -> DSLResult<Rc<Variable>> {
         match name {
             n if self.global.borrow().contains_key(n) => {
                 self.global.borrow().get(&n.to_string()).cloned()
@@ -109,12 +122,12 @@ impl Environment {
         .ok_or(DSLError::Eval(format!("{} is unfdefined", name)))
     }
 
-    pub fn push_var(&self, name: String, data: Rc<Types>) {
-        self.local.borrow_mut().insert(name, data);
+    pub fn push_var(&self, name: String, constant: Rc<Variable>) {
+        self.local.borrow_mut().insert(name, constant);
     }
 
-    pub fn push_global(&self, name: String, data: Rc<Types>) {
-        self.global.borrow_mut().insert(name, data);
+    pub fn push_global(&self, name: String, constant: Rc<Variable>) {
+        self.global.borrow_mut().insert(name, constant);
     }
 
     pub fn enter_fn(&self) -> Environment {
@@ -126,15 +139,15 @@ impl Environment {
 }
 
 #[derive(Clone, Debug)]
-pub enum Data {
+pub enum Constant {
     Integer(i64),
     String(String),
-    List(Vec<Rc<Data>>),
+    List(Vec<Rc<Constant>>),
     Symbol(String),
     None,
 }
-impl Data {
-    fn get(&self, env: &Environment) -> Option<Rc<Types>> {
+impl Constant {
+    fn get(&self, env: &Environment) -> Option<Rc<Variable>> {
         match self {
             Self::Symbol(name) => env.get_variable(name).ok(),
             _ => None,
@@ -148,95 +161,79 @@ impl Data {
         }
     }
 
-    fn to_type(&self, env: &Environment) -> Option<Types> {
+    fn to_type(&self, env: &Environment) -> Option<Variable> {
         match self {
-            Data::Integer(i) => Some(Types::Integer(RefCell::new(*i))),
-            Data::String(s) => Some(Types::String(RefCell::new(s.clone()))),
-            Data::List(datas) => {
+            Constant::Integer(i) => Some(Variable::Integer(RefCell::new(*i))),
+            Constant::String(s) => Some(Variable::String(RefCell::new(s.clone()))),
+            Constant::List(constants) => {
                 let mut ls = Vec::new();
-                for i in datas {
+                for i in constants {
                     ls.push(i.to_type(env)?);
                 }
-                Some(Types::List(RefCell::new(ls)))
+                Some(Variable::List(RefCell::new(ls)))
             }
-            Data::Symbol(_) => self.get(env).and_then(|s| Some(s.as_ref().clone())),
-            Data::None => None,
+            Constant::Symbol(_) => self.get(env).and_then(|s| Some(s.as_ref().clone())),
+            Constant::None => None,
         }
     }
 
-    fn add(&self, rhs: Rc<Data>) -> Rc<Data> {
-        match (self, rhs.as_ref()) {
-            (Data::Integer(lhs), Data::Integer(rhs)) => Rc::new(Data::Integer(lhs + rhs)),
-            (Data::String(lhs), Data::String(rhs)) => {
-                Rc::new(Data::String(format!("{}{}", lhs, rhs)))
-            }
-            _ => {
-                eprintln!("{:#?}", self);
-                eprintln!("{:#?}", rhs);
-                todo!()
-            }
-        }
-    }
-
-    fn _index(&self, nth: usize) -> Option<Rc<Data>> {
+    fn to_type_evaled(&self) -> Option<Variable> {
         match self {
-            Data::List(lhs) => Some(lhs.get(nth)?.clone()),
-            Data::String(lhs) => Some(Rc::new(Data::String(lhs.chars().nth(nth)?.to_string()))),
+            Constant::Integer(i) => Some(Variable::Integer(RefCell::new(*i))),
+            Constant::String(s) => Some(Variable::String(RefCell::new(s.clone()))),
+            Constant::List(constants) => {
+                let mut ls = Vec::new();
+                for i in constants {
+                    ls.push(i.to_type_evaled()?);
+                }
+                Some(Variable::List(RefCell::new(ls)))
+            }
+            Constant::Symbol(_) => None,
+            Constant::None => None,
+        }
+    }
+
+    fn _index(&self, nth: usize) -> Option<Rc<Constant>> {
+        match self {
+            Constant::List(lhs) => Some(lhs.get(nth)?.clone()),
+            Constant::String(lhs) => {
+                Some(Rc::new(Constant::String(lhs.chars().nth(nth)?.to_string())))
+            }
             _ => None,
         }
     }
 
-    fn index(&self, rhs: Rc<Data>) -> Option<Rc<Data>> {
-        match rhs.as_ref() {
-            Data::Integer(nth) => self._index(*nth as usize),
-            _ => None,
-        }
-    }
-
-    fn _slice(&self, begin: usize, end: usize) -> Option<Rc<Data>> {
+    fn _slice(&self, begin: usize, end: usize) -> Option<Rc<Constant>> {
         match self {
-            Data::List(lhs) => Some(Rc::new(Data::List(
+            Constant::List(lhs) => Some(Rc::new(Constant::List(
                 lhs.get(begin..end)?
                     .iter()
                     .map(|i| i.clone())
-                    .collect::<Vec<Rc<Data>>>(),
+                    .collect::<Vec<Rc<Constant>>>(),
             ))),
-            Data::String(lhs) => Some(Rc::new(Data::String(
+            Constant::String(lhs) => Some(Rc::new(Constant::String(
                 lhs.get(begin..end)?.chars().collect::<String>(),
             ))),
             _ => None,
         }
     }
 
-    fn slice(&self, begin: Rc<Data>, end: Rc<Data>) -> Option<Rc<Data>> {
-        match (begin.as_ref(), end.as_ref()) {
-            (Data::Integer(begin), Data::Integer(end)) => {
-                self._slice(*begin as usize, *end as usize)
-            }
-            _ => None,
-        }
-    }
-
-    fn cmp_equal(&self, rhs: Rc<Data>) -> Rc<Data> {
-        match (self, rhs.as_ref()) {
-            (Data::Integer(lhs), Data::Integer(rhs)) => {
-                Rc::new(Data::Integer((*lhs == *rhs) as i64))
-            }
-            (Data::String(lhs), Data::String(rhs)) => Rc::new(Data::Integer((*lhs == *rhs) as i64)),
-            _ => Rc::new(Data::Integer(0)),
-        }
-    }
-
-    fn len(&self) -> Option<Rc<Data>> {
-        match self {
-            Data::List(list) => Some(Rc::new(Data::Integer(list.len() as i64))),
-            Data::String(s) => Some(Rc::new(Data::Integer(s.len() as i64))),
-            _ => None,
-        }
-    }
-
     fn is_zero(&self) -> bool {
         matches!(self, Self::Integer(0))
+    }
+
+    fn get_integer(&self) -> Option<i64> {
+        match self {
+            Self::Integer(i) => Some(*i),
+            _ => None
+        }
+    }
+
+    fn tail_of_list(&self) -> Rc<Constant> {
+        match self {
+            Constant::List(constants) => constants.last().unwrap_or(&Rc::new(Constant::None)).clone(),
+            _ => Rc::new(Constant::None),
+        }
     }
 }
 
@@ -245,6 +242,14 @@ pub enum Operator {
     AddAssign,
     Add,
     CmpEqual,
+    CmpLessThan,
+    CmpNoMoreThan,
+    Break,
+    List,
+    LOr,
+    LAnd,
+    Mul,
+    MulAssign,
     FnCall, // fn_name goes to lhs and args go to rhs as list
 }
 
@@ -255,23 +260,23 @@ pub enum AST {
         Rc<AST>,
         Option<Rc<AST>>, // the reason type(rhs) == Option is for unary op
     ),
-    Data(Rc<Data>),
+    Data(Rc<Constant>),
     List(Vec<AST>),
 }
 
 impl AST {
-    pub fn get_data(&self) -> Option<Rc<Data>> {
+    pub fn get_data(&self) -> Option<Rc<Constant>> {
         match self {
-            AST::Data(data) => Some(data.clone()),
+            AST::Data(constant) => Some(constant.clone()),
             _ => None,
         }
     }
 
-    pub fn eval(&self, env: Rc<Environment>) -> DSLResult<Rc<Data>> {
+    pub fn eval(&self, env: Rc<Environment>) -> DSLResult<Rc<Constant>> {
         eval(self, env) // todo
     }
 
-    pub fn eval_list_nth(&self, env: Rc<Environment>, nth: usize) -> DSLResult<Rc<Data>> {
+    pub fn eval_list_nth(&self, env: Rc<Environment>, nth: usize) -> DSLResult<Rc<Constant>> {
         match self {
             AST::List(list) => list
                 .get(nth)
@@ -295,16 +300,16 @@ impl AST {
     }
 }
 
-pub fn read_stream<'a>(stream: Stream<'a>) -> DSLData<'a> {
-    let new = DSLData::new(stream.source(), stream.stringfiy().to_string());
+pub fn read_stream<'a>(stream: Stream<'a>) -> DSLConstant<'a> {
+    let new = DSLConstant::new(stream.source(), stream.stringfiy().to_string());
     new
 }
 
 // todo: remove used stream in Source2
-pub fn eval_macro<'a>(data: DSLData<'a>, ast: AST) -> Stream<'a> {
+pub fn eval_macro<'a>(constant: DSLConstant<'a>, ast: AST) -> Stream<'a> {
     let env = Rc::new(Environment::new());
-    let output = run(&ast, env.clone(), data.input).unwrap();
-    let begin = Location::new_source(data.source, Source::new(output, "macro"));
+    let output = run(&ast, env.clone(), constant.input).unwrap();
+    let begin = Location::new_source(constant.source, Source::new(output, "macro"));
     let end = begin.end();
     Stream::new(begin, end)
 }

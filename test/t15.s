@@ -16,14 +16,24 @@ macro if(cond, then, else,) {
 
 <_start:global:.text> {
     @(fn test(x) {
-        print("testT", x );
+        print("testT", x , 100);
+    }
+
+    fn test_while(in) {
+        let i = 0;
+        while i < len(in) {
+            print(i, in[i]);
+            i += 1;
+        }
+        let t = ["test", in, 0, 3, i];
+        print(t);
     } 
     fn main() {
         let sys = "!syscall()";
         let mov = "!move()";
         let tes = "!test()";
-        print(len(sys), mov, tes);
         test(mov);
+        test_while(input);
         if input == "syscall" {
             output += mov;
         } else if input == "move" {

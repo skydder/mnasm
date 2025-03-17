@@ -40,6 +40,16 @@ pub enum KeyWord {
     Let,
     Assign,
     Fn,
+    While,
+    Break,
+    LessThan,
+    NoMoreThan,
+    MoreThan,
+    NoLessThan,
+    LOr,
+    LAnd,
+    Astar,
+    MulAssign
 }
 
 impl KeyWord {
@@ -62,6 +72,16 @@ impl KeyWord {
             KeyWord::Let => 3,
             KeyWord::Assign => 1,
             KeyWord::Fn => 2,
+            KeyWord::While => 5,
+            KeyWord::Break => 5,
+            KeyWord::LessThan => 1,
+            KeyWord::NoMoreThan => 2,
+            KeyWord::MoreThan => 1,
+            KeyWord::NoLessThan => 2,
+            KeyWord::LOr => 2,
+            KeyWord::LAnd => 2,
+            KeyWord::Astar => 1,
+            KeyWord::MulAssign => 2,
         }
     }
 }
@@ -87,6 +107,8 @@ pub fn tokenize<'a>(code: &'a str) -> DSLResult<Vec<Token<'a>>> {
                     "else" => token_seq.push(Token::KeyWord(KeyWord::Else)),
                     "let" => token_seq.push(Token::KeyWord(KeyWord::Let)),
                     "fn" => token_seq.push(Token::KeyWord(KeyWord::Fn)),
+                    "while" => token_seq.push(Token::KeyWord(KeyWord::While)),
+                    "break" => token_seq.push(Token::KeyWord(KeyWord::Break)),
                     _ => token_seq.push(Token::Identifier(&code[begin..counter])),
                 }
                 continue;
@@ -184,6 +206,61 @@ pub fn tokenize<'a>(code: &'a str) -> DSLResult<Vec<Token<'a>>> {
                 token_seq.push(Token::KeyWord(KeyWord::Comma));
                 continue;
             }
+            '<' => {
+                counter += 1;
+                match code.chars().nth(counter) {
+                    Some('=') => {
+                        counter += 1;
+                        token_seq.push(Token::KeyWord(KeyWord::NoMoreThan))
+                    }
+                    _ => token_seq.push(Token::KeyWord(KeyWord::LessThan)),
+                }
+                continue;
+            }
+            '>' => {
+                counter += 1;
+                match code.chars().nth(counter) {
+                    Some('=') => {
+                        counter += 1;
+                        token_seq.push(Token::KeyWord(KeyWord::NoLessThan))
+                    }
+                    _ => token_seq.push(Token::KeyWord(KeyWord::MoreThan)),
+                }
+                continue;
+            }
+            '|' => {
+                counter += 1;
+                match code.chars().nth(counter) {
+                    Some('|') => {
+                        counter += 1;
+                        token_seq.push(Token::KeyWord(KeyWord::LOr))
+                    }
+                    _ => todo!(),
+                }
+                continue;
+            }
+            '&' => {
+                counter += 1;
+                match code.chars().nth(counter) {
+                    Some('&') => {
+                        counter += 1;
+                        token_seq.push(Token::KeyWord(KeyWord::LAnd))
+                    }
+                    _ => todo!(),
+                }
+                continue;
+            }
+            '*' => {
+                counter += 1;
+                match code.chars().nth(counter) {
+                    Some('=') => {
+                        counter += 1;
+                        token_seq.push(Token::KeyWord(KeyWord::MulAssign))
+                    }
+                    _ => token_seq.push(Token::KeyWord(KeyWord::Astar)),
+                }
+                continue;
+            }
             _ => {
                 return Err(DSLError::Tokenize(format!(
                     "unexpected letter: {}",
@@ -205,8 +282,9 @@ pub fn consume_token<'a>(
         Ok(())
     } else {
         Err(DSLError::Parse(format!(
-            "unexpected token: {:?}",
-            peek_token(token_seq, counter)
+            "unexpected token: {:?},expected: {:?}",
+            peek_token(token_seq, counter),
+            expected_token
         )))
     }
 }
