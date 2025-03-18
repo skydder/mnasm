@@ -13,6 +13,9 @@ mod parser;
 pub use parser::parse;
 
 mod eval;
+
+mod asm_tokenizer;
+use asm_tokenizer::TKNZR4ASM;
 // Constant ()
 // - dsl code
 // - raw stream
@@ -225,6 +228,13 @@ impl Constant {
     fn get_integer(&self) -> Option<i64> {
         match self {
             Self::Integer(i) => Some(*i),
+            _ => None,
+        }
+    }
+
+    fn get_string(&self) -> Option<String> {
+        match self {
+            Self::String(s) => Some(s.clone()),
             _ => None,
         }
     }

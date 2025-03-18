@@ -1,6 +1,4 @@
-use std::
-    cell::RefCell
-;
+use std::cell::RefCell;
 
 use util::{emit_error, Location, Token, TokenKind};
 

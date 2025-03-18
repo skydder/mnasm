@@ -1,6 +1,6 @@
 use std::{cell::RefCell, rc::Rc};
 
-use crate::{Constant, DSLError, DSLResult, Environment, Operator, Variable, AST};
+use crate::{Constant, DSLError, DSLResult, Environment, Operator, Variable, AST, TKNZR4ASM};
 
 pub fn eval(ast: &AST, env: Rc<Environment>) -> DSLResult<Rc<Constant>> {
     match ast {
@@ -194,7 +194,9 @@ fn apply_fn(fn_name: Rc<AST>, args: Rc<AST>, env: Rc<Environment>) -> DSLResult<
             match item.as_ref() {
                 Constant::List(list) => Ok(Rc::new(Constant::Integer(list.len() as i64))),
                 Constant::String(s) => Ok(Rc::new(Constant::Integer(s.len() as i64))),
-                _ => Err(todo!()),
+                _ => Err(DSLError::Eval(format!(
+                    "expected list or string but found other"
+                ))),
             }
         }
 
@@ -229,6 +231,15 @@ fn apply_fn(fn_name: Rc<AST>, args: Rc<AST>, env: Rc<Environment>) -> DSLResult<
                 args.eval_list_nth(env.clone(), 1)?;
             }
             Ok(Rc::new(Constant::None))
+        }
+
+        "asm_tok" => {
+            let input = args
+                .eval_list_nth(env, 0)?
+                .get_string()
+                .ok_or(DSLError::Eval(format!("expected string but found other")))?;
+            // TKNZR4ASM::new(input, todo!());
+            todo!()
         }
         name if env.global.borrow().contains_key(name) => {
             let binding = env.clone().get_variable(name)?;

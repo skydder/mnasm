@@ -7,12 +7,12 @@ use std::{
 
 use crate::{
     macro_related::{read_dsl_code, read_macro_def_label},
-    read_macro_call, read_macro_call_dsl, read_macro_def, Macro,
-    tokenizer::Tokenizer as InnerTokenizer
+    read_macro_call, read_macro_call_dsl, read_macro_def,
+    tokenizer::Tokenizer as InnerTokenizer,
+    Macro,
 };
 use dsl::{eval_macro, parse, read_stream, tokenize, AST};
 use util::{emit_error, Location, Stream, Token, TokenKind, Tokenizer};
-
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum MacroStatus {

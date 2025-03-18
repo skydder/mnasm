@@ -4,7 +4,7 @@ use crate::token::{Token, TokenKind};
 
 pub trait Tokenizer<'a>
 where
-    Self: Clone+Debug,
+    Self: Clone + Debug,
 {
     fn location(&self) -> crate::Location<'a>;
     fn peek_token(&self, macro_expand: bool) -> Token<'a>;
