@@ -45,8 +45,8 @@ macro if(cond, then, else,) {
         print(output);
     }
     )
-    mov(a, 1);mov(rdi, 1);
-    mov(rsi, helloworld)
+    mov(@a, 1);mov(rdi, 1);
+    mov(rsi, @b)
     mov(rdx, 14)
     @[syscall]
     @[move]

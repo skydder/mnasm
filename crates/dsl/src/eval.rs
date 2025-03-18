@@ -47,7 +47,10 @@ fn apply_op(
                 (Constant::String(lhs), Constant::String(rhs)) => {
                     Ok(Rc::new(Constant::String(format!("{}{}", lhs, rhs))))
                 }
-                _ => Err(DSLError::Eval(format!("cannot evaluate {:#?} + {:#?}", evaled_lhs, evaled_rhs)))
+                _ => Err(DSLError::Eval(format!(
+                    "cannot evaluate {:#?} + {:#?}",
+                    evaled_lhs, evaled_rhs
+                ))),
             }
         }
         Operator::CmpEqual => {
@@ -98,12 +101,12 @@ fn apply_op(
             let evaled_lhs = lhs.eval(env.clone())?;
             match evaled_lhs.as_ref() {
                 Constant::Integer(i) if *i != 0 => (),
-                _ => return Ok(Rc::new(Constant::Integer(0)))
+                _ => return Ok(Rc::new(Constant::Integer(0))),
             };
             let evaled_rhs = rhs.unwrap().eval(env)?;
             match evaled_rhs.as_ref() {
                 Constant::Integer(i) if *i != 0 => Ok(Rc::new(Constant::Integer(1))),
-                _ => Ok(Rc::new(Constant::Integer(0)))
+                _ => Ok(Rc::new(Constant::Integer(0))),
             }
         }
         Operator::Mul => {
@@ -150,7 +153,7 @@ fn apply_fn(fn_name: Rc<AST>, args: Rc<AST>, env: Rc<Environment>) -> DSLResult<
             let evaled = list
                 ._index(nth as usize)
                 .ok_or(DSLError::Parse("invalid for indexing".to_string()))?;
-            
+
             Ok(evaled)
         }
         "slice" => {
@@ -220,9 +223,7 @@ fn apply_fn(fn_name: Rc<AST>, args: Rc<AST>, env: Rc<Environment>) -> DSLResult<
             }
         }
 
-        "eval" => {
-            args.eval(env)
-        }
+        "eval" => args.eval(env),
         "while" => {
             while !args.eval_list_nth(env.clone(), 0)?.is_zero() {
                 args.eval_list_nth(env.clone(), 1)?;
@@ -246,7 +247,7 @@ fn apply_fn(fn_name: Rc<AST>, args: Rc<AST>, env: Rc<Environment>) -> DSLResult<
                 );
                 fn_env.push_var(arg_name, real_arg);
             }
-            body.eval(fn_env).and_then(|c|Ok(c.tail_of_list()))
+            body.eval(fn_env).and_then(|c| Ok(c.tail_of_list()))
         }
         _ => Err(DSLError::Eval(format!("undefined function"))),
     }

@@ -1,14 +1,16 @@
 use std::{cell::RefCell, rc::Rc};
 
 use data::{Ident, Label, Path, Scope};
-use tokenizer::{TokenKind, Tokenizer2};
-use util::{AsmError, AsmResult};
+use util::{AsmError, AsmResult, TokenKind, Tokenizer};
 
 // "."? <ident> ("." <ident>)*
-pub fn parse_label<'a>(
-    tokenizer: &'a Tokenizer2<'a>,
+pub fn parse_label<'a, T>(
+    tokenizer: &'a T,
     scope: Rc<RefCell<Scope<'a>>>,
-) -> AsmResult<'a, Label<'a>> {
+) -> AsmResult<'a, Label<'a>>
+where
+    T: Tokenizer<'a>,
+{
     let location = tokenizer.location();
     let is_relative = if tokenizer.peek_token(true).is(TokenKind::Dot) {
         tokenizer.next_token();

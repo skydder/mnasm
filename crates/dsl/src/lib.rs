@@ -225,13 +225,15 @@ impl Constant {
     fn get_integer(&self) -> Option<i64> {
         match self {
             Self::Integer(i) => Some(*i),
-            _ => None
+            _ => None,
         }
     }
 
     fn tail_of_list(&self) -> Rc<Constant> {
         match self {
-            Constant::List(constants) => constants.last().unwrap_or(&Rc::new(Constant::None)).clone(),
+            Constant::List(constants) => {
+                constants.last().unwrap_or(&Rc::new(Constant::None)).clone()
+            }
             _ => Rc::new(Constant::None),
         }
     }

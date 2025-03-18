@@ -1,15 +1,17 @@
 use std::{cell::RefCell, rc::Rc};
 
 use data::{Ident, Operand, PseudoIns, Scope, UnimplementedOperand};
-use tokenizer::{TokenKind, Tokenizer2};
-use util::{AsmError, AsmResult};
+use util::{AsmError, AsmResult, TokenKind, Tokenizer};
 
 use crate::parse_operands;
 
-pub fn parse_pseudo_ins<'a>(
-    tokenizer: &'a Tokenizer2<'a>,
+pub fn parse_pseudo_ins<'a, T>(
+    tokenizer: &'a T,
     scope: Rc<RefCell<Scope<'a>>>,
-) -> AsmResult<'a, PseudoIns<'a>> {
+) -> AsmResult<'a, PseudoIns<'a>>
+where
+    T: Tokenizer<'a>,
+{
     let currrent_token = tokenizer.peek_token(true);
 
     if currrent_token.is(TokenKind::Not) {
@@ -79,10 +81,13 @@ pub fn parse_pseudo_ins<'a>(
     Ok(PseudoIns::new(ins, operands, currrent_token.location))
 }
 
-fn parse_ins_operands_inside<'a>(
-    tokenizer: &'a Tokenizer2<'a>,
+fn parse_ins_operands_inside<'a, T>(
+    tokenizer: &'a T,
     operands: &mut Vec<String>,
-) -> AsmResult<'a, ()> {
+) -> AsmResult<'a, ()>
+where
+    T: Tokenizer<'a>,
+{
     // <operand>
     let op = match tokenizer.peek_token(true).kind {
         TokenKind::Minus | TokenKind::Number(_) => parse_operands::parse_immediate(tokenizer)?
@@ -130,11 +135,14 @@ fn parse_ins_operands_inside<'a>(
     }
 }
 
-fn parse_extern_operands_inside<'a>(
-    tokenizer: &'a Tokenizer2<'a>,
+fn parse_extern_operands_inside<'a, T>(
+    tokenizer: &'a T,
     operands: &mut Vec<String>,
     scope: Rc<RefCell<Scope<'a>>>,
-) -> AsmResult<'a, ()> {
+) -> AsmResult<'a, ()>
+where
+    T: Tokenizer<'a>,
+{
     // <operand>
     let op = match tokenizer.peek_token(true).kind {
         TokenKind::Identifier(ident) => {
@@ -172,11 +180,14 @@ fn parse_extern_operands_inside<'a>(
     }
 }
 
-fn parse_nasm_operands_inside<'a>(
-    tokenizer: &'a Tokenizer2<'a>,
+fn parse_nasm_operands_inside<'a, T>(
+    tokenizer: &'a T,
     operands: &mut Vec<Box<dyn Operand + 'a>>,
     scope: Rc<RefCell<Scope<'a>>>,
-) -> AsmResult<'a, ()> {
+) -> AsmResult<'a, ()>
+where
+    T: Tokenizer<'a>,
+{
     // <operand>
     let op = match tokenizer.peek_token(true).kind {
         TokenKind::String(ident) => {

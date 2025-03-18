@@ -73,7 +73,7 @@ macro l(lhs, rhs,) {
 
 <_start:global:.text> {
     let(counter, r8) #r8:counter
-    @for(@[counter=1])(@l(counter)(15))(@[counter+=1]) {
+    @for(@[@counter=1])(@l(@counter)(15))(@[@counter+=1]) {
         @divide(counter)(3)
 
         @if (cmp(rdx, 0)) {

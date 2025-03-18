@@ -11,9 +11,9 @@
 // peek get messy!!
 // macro marker: @<label> ("(" (<stream>"@,")*")")?
 
-use util::{emit_error, Stream};
+use util::{emit_error, Stream, TokenKind, Tokenizer};
 
-use crate::{TokenKind, Tokenizer2};
+use crate::Tokenizer2;
 
 #[derive(Debug, Clone)]
 pub struct Macro<'a> {
@@ -115,9 +115,51 @@ fn read_macro_body<'a>(tokenizer: &Tokenizer2<'a>) -> Stream<'a> {
     }
 }
 
+pub fn read_macro_def_label<'a>(tokenizer: &Tokenizer2<'a>) -> Macro<'a> {
+    tokenizer.consume_token(TokenKind::Identifier("let"));
+    tokenizer.skip_space(false);
+    tokenizer.consume_token(TokenKind::OpenParenthesis);
+    let name = tokenizer.peek_token(false).get_identifier().unwrap(); // todo
+    tokenizer.skip_token();
+    tokenizer.skip_space(false);
+    tokenizer.consume_token(TokenKind::Comma);
+    tokenizer.skip_space(false);
+    let args = Vec::new();
+    let m_begin = tokenizer.location();
+    if !tokenizer.peek_token(false).is(TokenKind::CloseParenthesis) {
+        let mut counter = 1;
+        while counter > 0 {
+            tokenizer.skip_token();
+            match tokenizer.peek_token(false).kind {
+                TokenKind::CloseParenthesis => {
+                    counter -= 1;
+                }
+                TokenKind::OpenParenthesis => {
+                    counter += 1;
+                }
+                _ => (),
+            };
+        }
+    }
+    let m_end = tokenizer.location();
+    tokenizer.consume_token(TokenKind::CloseParenthesis);
+
+    tokenizer.skip_space(false);
+
+    let stream = Stream::new(m_begin, m_end);
+    eprintln!("{}->{:?}", name, stream);
+    let new = Macro {
+        name: name,
+        args: args,
+        stream: stream,
+    };
+    new
+}
+
 // macro marker: @<label> ("(" (<stream>"@,")*")")?
 pub fn read_macro_call<'a>(tokenizer: &Tokenizer2<'a>) -> (&'a str, Vec<Stream<'a>>) {
     let name = tokenizer.peek_token(false).get_identifier().unwrap(); // todo
+    eprintln!("hello, {}", name);
     tokenizer.skip_token();
     tokenizer.skip_space(false);
     let mut args = Vec::new();
@@ -125,7 +167,7 @@ pub fn read_macro_call<'a>(tokenizer: &Tokenizer2<'a>) -> (&'a str, Vec<Stream<'
         TokenKind::OpenBrace | TokenKind::OpenParenthesis => {
             read_macro_call_args(tokenizer, &mut args)
         }
-        _ => emit_error!(tokenizer.location(), "unexpected token"),
+        _ => (),
     };
     let new = (name, args.clone());
     new

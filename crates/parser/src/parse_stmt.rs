@@ -1,17 +1,19 @@
 use std::{cell::RefCell, rc::Rc};
 
 use data::{Scope, Stmt};
-use tokenizer::{TokenKind, Tokenizer2};
-use util::{AsmError, AsmResult};
+use util::{AsmError, AsmResult, TokenKind, Tokenizer};
 
-use crate::{parse_block, parse_compound_ins, parse_label_def, parse_let_macro, parse_pseudo_ins};
+use crate::{parse_block, parse_compound_ins, parse_label_def, parse_pseudo_ins};
 
 // <stmt> = <compound_ins> | <block> | <label_def>
-pub fn parse_stmt<'a>(
-    tokenizer: &'a Tokenizer2<'a>,
+pub fn parse_stmt<'a, T>(
+    tokenizer: &'a T,
     indent_depth: usize,
     scope: Rc<RefCell<Scope<'a>>>,
-) -> AsmResult<'a, Box<dyn Stmt<'a> + 'a>> {
+) -> AsmResult<'a, Box<dyn Stmt<'a> + 'a>>
+where
+    T: Tokenizer<'a>,
+{
     let currrent_token = tokenizer.peek_token(true);
     let new: AsmResult<Box<dyn Stmt<'a> + 'a>> = match currrent_token.kind {
         TokenKind::Not => Ok(Box::new(parse_pseudo_ins(tokenizer, scope)?)),
@@ -21,7 +23,6 @@ pub fn parse_stmt<'a>(
         TokenKind::Identifier("extern") | TokenKind::Identifier("include") => {
             Ok(Box::new(parse_pseudo_ins(tokenizer, scope)?))
         }
-        TokenKind::Identifier("let") => Ok(Box::new(parse_let_macro(tokenizer, scope)?)),
         // <compound_stmt>
         TokenKind::Identifier(_) => Ok(Box::new(parse_compound_ins(tokenizer, scope)?)),
 

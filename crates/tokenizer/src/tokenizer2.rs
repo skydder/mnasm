@@ -6,73 +6,13 @@ use std::{
 };
 
 use crate::{
-    macro_related::read_dsl_code, read_macro_call, read_macro_call_dsl, read_macro_def, Macro,
-    Token, TokenKind,
+    macro_related::{read_dsl_code, read_macro_def_label},
+    read_macro_call, read_macro_call_dsl, read_macro_def, Macro,
+    tokenizer::Tokenizer as InnerTokenizer
 };
 use dsl::{eval_macro, parse, read_stream, tokenize, AST};
-use util::{emit_error, Location, Stream};
+use util::{emit_error, Location, Stream, Token, TokenKind, Tokenizer};
 
-#[derive(Debug, Clone)]
-struct InnerTokenizer<'a> {
-    location: RefCell<Location<'a>>,
-    eos: RefCell<Location<'a>>,
-}
-
-impl<'a> InnerTokenizer<'a> {
-    fn new(location: Location<'a>, eos: Location<'a>) -> Self {
-        Self {
-            location: RefCell::new(location),
-            eos: RefCell::new(eos),
-        }
-    }
-
-    fn location(&self) -> Location<'a> {
-        *self.location.borrow()
-    }
-
-    fn peek_token(&self) -> Token<'a> {
-        if self.location >= self.eos {
-            return Token::new(TokenKind::EOS, 0, *self.eos.borrow());
-        }
-        let tok = Token::tokenize(*self.location.borrow());
-        tok
-    }
-
-    fn advance_location_by_token(&self, token: &Token) {
-        if token.is(TokenKind::NewLine) {
-            self.location
-                .replace_with(|loc| loc.advance_line(1).advance_nth(token.len));
-        } else {
-            self.location
-                .replace_with(|loc| loc.advance_column(token.len).advance_nth(token.len));
-        }
-    }
-
-    fn next_token(&self) -> Token<'a> {
-        let token = self.peek_token();
-        self.advance_location_by_token(&token);
-        token
-    }
-
-    fn consume_token(&self, expecting_token: TokenKind) {
-        let current_token = self.peek_token();
-        if current_token.is(expecting_token) {
-            self.advance_location_by_token(&current_token);
-        } else {
-            emit_error!(
-                current_token.location,
-                "expected {:?}, but found {:?}",
-                expecting_token,
-                current_token.kind
-            )
-        }
-    }
-
-    fn swap(&self, location: Location<'a>, eos: Location<'a>) -> Location<'a> {
-        self.eos.replace(eos);
-        self.location.replace(location)
-    }
-}
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum MacroStatus {
@@ -164,7 +104,7 @@ impl<'a> Tokenizer2<'a> {
         new
     }
 
-    pub fn enter_macro(
+    pub(crate) fn enter_macro(
         &self,
         stream: Stream<'a>,
         args: Rc<HashMap<&'a str, Macro<'a>>>,
@@ -197,7 +137,7 @@ impl<'a> Tokenizer2<'a> {
         }
     }
 
-    pub fn leave_macro(&self) {
+    pub(crate) fn leave_macro(&self) {
         assert!(self.macro_depth.get() > 0);
         if self.current_status.borrow().macro_status == MacroStatus::Macro {
             self.macro_stack
@@ -216,38 +156,24 @@ impl<'a> Tokenizer2<'a> {
         let _ = self.current_status.replace(status);
     }
 
-    pub fn code(&self) -> String {
-        self.code
-            .borrow()
-            .iter()
-            .map(|c| format!("{}", c))
-            .collect()
-    }
-
     fn is_eos(&self) -> bool {
         self.tokenizer.borrow().peek_token().location >= self.current_status.borrow().end()
     }
 
-    pub fn turn_on_the_record(&self) {
+    pub(crate) fn turn_on_the_record(&self) {
         self.record.set(true);
     }
-    pub fn turn_off_the_record(&self) {
+    pub(crate) fn turn_off_the_record(&self) {
         self.record.set(false);
-    }
-
-    pub fn add_to_code(&self, tokenkind: TokenKind<'a>) {
-        if self.record.get() {
-            self.code.borrow_mut().push(tokenkind);
-        }
     }
 }
 
-impl<'a> Tokenizer2<'a> {
-    pub fn location(&self) -> util::Location<'a> {
+impl<'a> Tokenizer<'a> for Tokenizer2<'a> {
+    fn location(&self) -> util::Location<'a> {
         self.tokenizer.borrow().location()
     }
 
-    pub fn peek_token(&self, macro_expand: bool) -> Token<'a> {
+    fn peek_token(&self, macro_expand: bool) -> Token<'a> {
         let current = self.tokenizer.borrow().peek_token();
         if !macro_expand {
             return current;
@@ -326,11 +252,18 @@ impl<'a> Tokenizer2<'a> {
                 self.macro_data.borrow_mut().insert(m.name, m);
                 self.peek_token(true)
             }
+            TokenKind::Identifier("let") => {
+                self.turn_off_the_record();
+                let m = read_macro_def_label(self);
+                self.turn_on_the_record();
+                self.macro_data.borrow_mut().insert(m.name, m);
+                self.peek_token(true)
+            }
             _ => current,
         }
     }
 
-    pub fn next_token(&self) -> Token<'a> {
+    fn next_token(&self) -> Token<'a> {
         let current = self.peek_token(true);
         if current.kind != TokenKind::EOS {
             self.tokenizer.borrow().next_token();
@@ -340,22 +273,22 @@ impl<'a> Tokenizer2<'a> {
         current
     }
 
-    pub fn skip_space(&self, macro_expand: bool) {
+    fn skip_space(&self, macro_expand: bool) {
         while self.peek_token(macro_expand).is(TokenKind::Space) {
             self.skip_token();
         }
     }
 
-    pub fn skip_token(&self) {
+    fn skip_token(&self) {
         let _ = self.tokenizer.borrow().next_token();
     }
 
-    pub fn consume_token(&self, consumeing_token: TokenKind<'a>) {
+    fn consume_token(&self, consumeing_token: TokenKind<'a>) {
         self.add_to_code(consumeing_token);
         self.tokenizer.borrow().consume_token(consumeing_token)
     }
 
-    pub fn consume_newline(&self) {
+    fn consume_newline(&self) {
         let current_token = self.peek_token(true);
         match current_token.kind {
             TokenKind::NewLine => {
@@ -375,7 +308,7 @@ impl<'a> Tokenizer2<'a> {
         }
     }
 
-    pub fn consume_indent(&self) {
+    fn consume_indent(&self) {
         self.code.borrow_mut().push(TokenKind::Space);
         self.code.borrow_mut().push(TokenKind::Space);
         self.code.borrow_mut().push(TokenKind::Space);
@@ -389,6 +322,20 @@ impl<'a> Tokenizer2<'a> {
                 _ => (),
             }
         }
+    }
+
+    fn add_to_code(&self, tokenkind: TokenKind<'a>) {
+        if self.record.get() {
+            self.code.borrow_mut().push(tokenkind);
+        }
+    }
+
+    fn code(&self) -> String {
+        self.code
+            .borrow()
+            .iter()
+            .map(|c| format!("{}", c))
+            .collect()
     }
 }
 

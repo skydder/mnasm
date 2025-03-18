@@ -49,7 +49,7 @@ pub enum KeyWord {
     LOr,
     LAnd,
     Astar,
-    MulAssign
+    MulAssign,
 }
 
 impl KeyWord {

@@ -1,4 +1,4 @@
-use std::{cell::RefCell, io::Read};
+use std::{cell::RefCell, fmt::Debug, io::Read};
 
 use crate::{emit_msg_and_exit, open_safely};
 
@@ -179,7 +179,7 @@ impl<'a> std::cmp::PartialOrd for Location<'a> {
     }
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Clone, Copy)]
 pub struct Stream<'a> {
     begin: Location<'a>,
     end: Location<'a>,
@@ -207,5 +207,11 @@ impl<'a> Stream<'a> {
 
     pub fn source(&self) -> Source2<'a> {
         self.begin.source
+    }
+}
+
+impl<'a> Debug for Stream<'a> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.stringfiy())
     }
 }

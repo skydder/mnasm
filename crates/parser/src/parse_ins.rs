@@ -1,16 +1,15 @@
 use std::{cell::RefCell, rc::Rc};
 
 use data::{CompoundIns, Ins, Operand, Scope};
-use tokenizer::{TokenKind, Tokenizer2};
-use util::{AsmError, AsmResult};
+use util::{AsmError, AsmResult, TokenKind, Tokenizer};
 
 use crate::parse_operands;
 
 // <ins> = <instruction(identifier)> "(" <operands>? ")"
-pub fn parse_ins<'a>(
-    tokenizer: &'a Tokenizer2<'a>,
-    scope: Rc<RefCell<Scope<'a>>>,
-) -> AsmResult<'a, Ins<'a>> {
+pub fn parse_ins<'a, T>(tokenizer: &'a T, scope: Rc<RefCell<Scope<'a>>>) -> AsmResult<'a, Ins<'a>>
+where
+    T: Tokenizer<'a>,
+{
     let currrent_token = tokenizer.peek_token(true);
     assert!(currrent_token.is_identifier());
 
@@ -37,11 +36,14 @@ pub fn parse_ins<'a>(
 }
 
 // <operands> = <operand> ("," <operand>)*
-fn parse_ins_operands_inside<'a>(
-    tokenizer: &'a Tokenizer2<'a>,
+fn parse_ins_operands_inside<'a, T>(
+    tokenizer: &'a T,
     operands: &mut Vec<Box<dyn Operand + 'a>>,
     scope: Rc<RefCell<Scope<'a>>>,
-) -> AsmResult<'a, ()> {
+) -> AsmResult<'a, ()>
+where
+    T: Tokenizer<'a>,
+{
     // <operand>
     operands.push(parse_operands(tokenizer, scope.clone())?);
     tokenizer.skip_space(true);
@@ -69,10 +71,13 @@ fn parse_ins_operands_inside<'a>(
 }
 
 // <compound_ins> = <ins> ("," <ins>)*
-pub fn parse_compound_ins<'a>(
-    tokenizer: &'a Tokenizer2<'a>,
+pub fn parse_compound_ins<'a, T>(
+    tokenizer: &'a T,
     scope: Rc<RefCell<Scope<'a>>>,
-) -> AsmResult<'a, CompoundIns<'a>> {
+) -> AsmResult<'a, CompoundIns<'a>>
+where
+    T: Tokenizer<'a>,
+{
     // <compound_ins>
     let mut compound = Vec::new();
     let loc = tokenizer.location();
@@ -82,11 +87,14 @@ pub fn parse_compound_ins<'a>(
 }
 
 // <compound_ins> = <ins> ("," <ins>)*
-fn parse_compound_ins_inside<'a>(
-    tokenizer: &'a Tokenizer2<'a>,
+fn parse_compound_ins_inside<'a, T>(
+    tokenizer: &'a T,
     compound: &mut Vec<Ins<'a>>,
     scope: Rc<RefCell<Scope<'a>>>,
-) -> AsmResult<'a, ()> {
+) -> AsmResult<'a, ()>
+where
+    T: Tokenizer<'a>,
+{
     // <ins>
     compound.push(parse_ins(tokenizer, scope.clone())?);
     tokenizer.skip_space(true);

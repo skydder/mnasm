@@ -6,5 +6,5 @@
 ## nonurgent
  - [ ] ADD AST to mnasm
  - [ ] ensure orthogonality
- - [ ] symplify tokenizer
+ - [x] symplify tokenizer
  - [ ] enable dsl to use parser

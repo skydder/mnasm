@@ -1,17 +1,19 @@
 use std::{cell::RefCell, rc::Rc};
 
 use data::{Block, Scope, Stmt};
-use tokenizer::{TokenKind, Tokenizer2};
-use util::AsmResult;
+use util::{AsmResult, TokenKind, Tokenizer};
 
 use crate::{parse_stmt, read_indent_by_depth};
 
 // <block> = "{" <stmt>* "}"
-pub fn parse_block<'a>(
-    tokenizer: &'a Tokenizer2<'a>,
+pub fn parse_block<'a, T>(
+    tokenizer: &'a T,
     indent_depth: usize,
     scope: Rc<RefCell<Scope<'a>>>,
-) -> AsmResult<'a, Block<'a>> {
+) -> AsmResult<'a, Block<'a>>
+where
+    T: Tokenizer<'a>,
+{
     let loc = tokenizer.location();
 
     // "{"
@@ -30,12 +32,15 @@ pub fn parse_block<'a>(
 }
 
 // <stmts>*
-fn parse_inside<'a>(
-    tokenizer: &'a Tokenizer2<'a>,
+fn parse_inside<'a, T>(
+    tokenizer: &'a T,
     indent_depth: usize,
     stmts: &mut Vec<Box<dyn Stmt<'a> + 'a>>,
     scope: Rc<RefCell<Scope<'a>>>,
-) -> AsmResult<'a, ()> {
+) -> AsmResult<'a, ()>
+where
+    T: Tokenizer<'a>,
+{
     tokenizer.skip_space(true);
     tokenizer.consume_newline();
     read_indent_by_depth(tokenizer, indent_depth);

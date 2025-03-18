@@ -1,16 +1,18 @@
-use std::{cell::RefCell, collections::HashMap, rc::Rc};
+use std::{cell::RefCell, rc::Rc};
 
 use data::{Immediate, Memory, Operand, Register, Scale, Scope};
-use tokenizer::{MacroStatus, TokenKind, Tokenizer2};
-use util::{AsmError, AsmResult};
+use util::{AsmError, AsmResult, TokenKind, Tokenizer};
 
 use crate::parse_label;
 
 // <operand> = <memory> | <register> | <immediate> | <label>
-pub fn parse_operands<'a>(
-    tokenizer: &'a Tokenizer2<'a>,
+pub fn parse_operands<'a, T>(
+    tokenizer: &'a T,
     scope: Rc<RefCell<Scope<'a>>>,
-) -> AsmResult<'a, Box<dyn Operand + 'a>> {
+) -> AsmResult<'a, Box<dyn Operand + 'a>>
+where
+    T: Tokenizer<'a>,
+{
     let loc = tokenizer.location();
     match tokenizer.peek_token(true).kind {
         TokenKind::Identifier(s) => {
@@ -26,19 +28,6 @@ pub fn parse_operands<'a>(
             } else {
                 // tokenizer.next_token();
                 let label = parse_label(tokenizer, scope.clone())?;
-                // eprintln!("{:#?}", label);
-                if let Some(m) = scope.borrow().find_macro(label.ident()) {
-                    tokenizer.turn_off_the_record();
-                    tokenizer.enter_macro(
-                        m.ingredients_of_tokenizer(),
-                        Rc::new(HashMap::new()),
-                        MacroStatus::Other,
-                    );
-                    let op = parse_operands(tokenizer, scope.clone());
-                    tokenizer.skip_space(true);
-                    tokenizer.turn_on_the_record();
-                    return op;
-                }
                 Ok(Box::new(label))
             }
         }
@@ -61,7 +50,10 @@ pub fn parse_operands<'a>(
 }
 
 // <immediate> = ("-")? <number>
-pub fn parse_immediate<'a>(tokenizer: &'a Tokenizer2<'a>) -> AsmResult<'a, Immediate<'a>> {
+pub fn parse_immediate<'a, T>(tokenizer: &'a T) -> AsmResult<'a, Immediate<'a>>
+where
+    T: Tokenizer<'a>,
+{
     let current_token = tokenizer.peek_token(true);
     match current_token.kind {
         // <number>
@@ -100,7 +92,10 @@ pub fn parse_immediate<'a>(tokenizer: &'a Tokenizer2<'a>) -> AsmResult<'a, Immed
 }
 
 // <register>
-fn parse_register<'a>(tokenizer: &'a Tokenizer2<'a>, s: &str) -> Option<Register<'a>> {
+fn parse_register<'a, T>(tokenizer: &'a T, s: &str) -> Option<Register<'a>>
+where
+    T: Tokenizer<'a>,
+{
     let loc = tokenizer.location();
     if let Some((kind, value, size)) = Register::is_reg(s) {
         tokenizer.next_token();
@@ -111,7 +106,10 @@ fn parse_register<'a>(tokenizer: &'a Tokenizer2<'a>, s: &str) -> Option<Register
 }
 
 // <memory> = "ptr" "(" <base> ","  <index> "," <scale> "," <disp> ")"
-fn parse_memory<'a>(tokenizer: &'a Tokenizer2<'a>) -> AsmResult<'a, Memory<'a>> {
+fn parse_memory<'a, T>(tokenizer: &'a T) -> AsmResult<'a, Memory<'a>>
+where
+    T: Tokenizer<'a>,
+{
     let loc = tokenizer.location();
     // "ptr"
     tokenizer.consume_token(TokenKind::Identifier("ptr"));

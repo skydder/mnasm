@@ -12,7 +12,7 @@ use analyzer::analyze;
 use codegen::codegen_code;
 use parser::parse_code;
 use tokenizer::Tokenizer2;
-use util::{emit_msg_and_exit, set_iw, Location, Source};
+use util::{emit_msg_and_exit, set_iw, Location, Source, Tokenizer};
 
 fn main() {
     unsafe { backtrace_on_stack_overflow::enable() };

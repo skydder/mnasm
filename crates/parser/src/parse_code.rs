@@ -1,13 +1,15 @@
 use std::{cell::RefCell, rc::Rc};
 
 use data::{Code, Scope, Stmt};
-use tokenizer::{TokenKind, Tokenizer2};
-use util::AsmResult;
+use util::{AsmResult, TokenKind, Tokenizer};
 
 use crate::parse_stmt;
 
 // <code> = <label_def>*
-pub fn parse_code<'a>(tokenizer: &'a Tokenizer2<'a>) -> AsmResult<'a, Code<'a>> {
+pub fn parse_code<'a, T>(tokenizer: &'a T) -> AsmResult<'a, Code<'a>>
+where
+    T: Tokenizer<'a>,
+{
     // <label_def>*
     let mut codes = Vec::new();
     let root = Rc::new(RefCell::new(Scope::new(None, None)));
@@ -16,11 +18,14 @@ pub fn parse_code<'a>(tokenizer: &'a Tokenizer2<'a>) -> AsmResult<'a, Code<'a>> 
 }
 
 // <label_def>*
-fn parse_code_inside<'a>(
-    tokenizer: &'a Tokenizer2<'a>,
+fn parse_code_inside<'a, T>(
+    tokenizer: &'a T,
     labels: &mut Vec<Box<dyn Stmt<'a> + 'a>>,
     root: Rc<RefCell<Scope<'a>>>,
-) -> AsmResult<'a, ()> {
+) -> AsmResult<'a, ()>
+where
+    T: Tokenizer<'a>,
+{
     // <space>*<EOS> will be error so it should be fixed
     // => fixed, however, not good?
     if is_eos(tokenizer) {
@@ -33,12 +38,18 @@ fn parse_code_inside<'a>(
     parse_code_inside(tokenizer, labels, root)
 }
 
-fn skip_null_line<'a>(tokenizer: &'a Tokenizer2<'a>) {
+fn skip_null_line<'a, T>(tokenizer: &'a T)
+where
+    T: Tokenizer<'a>,
+{
     tokenizer.skip_space(true);
     tokenizer.consume_newline();
 }
 
-fn is_eos<'a>(tokenizer: &'a Tokenizer2<'a>) -> bool {
+fn is_eos<'a, T>(tokenizer: &'a T) -> bool
+where
+    T: Tokenizer<'a>,
+{
     match tokenizer.peek_token(true).kind {
         TokenKind::EOS => true,
         TokenKind::NewLine | TokenKind::Semicolon | TokenKind::Space => {
