@@ -12,10 +12,10 @@ pub use tokenizer::{consume_token, peek_token, tokenize, KeyWord, Token};
 mod parser;
 pub use parser::parse;
 
-mod data;
 mod eval;
-// mod test_implement;
-pub use data::Data;
+mod data;
+mod test_implement;
+pub use data::{Variable, Constant};
 
 mod asm_tokenizer;
 use asm_tokenizer::TKNZR4ASM;
@@ -41,9 +41,9 @@ impl<'a> DSLConstant<'a> {
 
 #[derive(Clone)]
 pub struct Environment<'a> {
-    local: RefCell<HashMap<String, Data>>,
-    global: Rc<RefCell<HashMap<String, Data>>>,
-    source: Rc<Source2<'a>>,
+    local: RefCell<HashMap<String, Rc<Variable>>>,
+    global: Rc<RefCell<HashMap<String, Rc<Variable>>>>,
+    source: Rc<Source2<'a>>
 }
 
 impl<'a> Environment<'a> {
@@ -54,7 +54,7 @@ impl<'a> Environment<'a> {
             source: Rc::new(source),
         }
     }
-    pub fn get_variable(&self, name: &str) -> DSLResult<Data> {
+    pub fn get_variable(&self, name: &str) -> DSLResult<Rc<Variable>> {
         match name {
             n if self.global.borrow().contains_key(n) => {
                 self.global.borrow().get(&n.to_string()).cloned()
@@ -67,24 +67,24 @@ impl<'a> Environment<'a> {
         .ok_or(DSLError::Eval(format!("{} is unfdefined", name)))
     }
 
-    pub fn push_var(&self, name: String, constant: Data) {
+    pub fn push_var(&self, name: String, constant: Rc<Variable>) {
         self.local.borrow_mut().insert(name, constant);
     }
 
-    pub fn push_global(&self, name: String, constant: Data) {
+    pub fn push_global(&self, name: String, constant: Rc<Variable>) {
         self.global.borrow_mut().insert(name, constant);
     }
 
-    pub fn enter_fn(&self) -> Environment<'a> {
+    pub fn enter_fn(&self) -> Environment<'a>{
         Environment {
             local: RefCell::new(HashMap::new()),
             global: self.global.clone(),
-            source: self.source.clone(),
+            source: self.source.clone()
         }
     }
 }
 
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug)]
 pub enum Operator {
     AddAssign,
     Add,
@@ -97,46 +97,53 @@ pub enum Operator {
     LAnd,
     Mul,
     MulAssign,
-    Index,
-    If,
-    While,
-    Len,
-    Slice,
-    Let,
-    Print,
     FnCall, // fn_name goes to lhs and args go to rhs as list
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug)]
 pub enum AST {
     Expr(
         Operator,
         Rc<AST>,
         Option<Rc<AST>>, // the reason type(rhs) == Option is for unary op
     ),
-    Data(Rc<Data>),
-    List(Rc<Vec<AST>>),
+    Data(Rc<Constant>),
+    List(Vec<AST>),
 }
 
 impl AST {
-    pub fn get_data(&self) -> Option<Data> {
+    pub fn get_data(&self) -> Option<Rc<Constant>> {
         match self {
-            AST::Data(constant) => Some(constant.as_ref().clone()),
+            AST::Data(constant) => Some(constant.clone()),
             _ => None,
         }
     }
 
-    pub fn get_list(&self) -> Option<Rc<Vec<AST>>> {
-        match self {
-            AST::List(l) => Some(l.clone()),
-            _ => None,
-        }
+    pub fn eval(&self, env: Rc<Environment>) -> DSLResult<Rc<Constant>> {
+        eval(self, env) // todo
     }
 
-    pub fn eval_list_nth(&self, env: &Environment, nth: usize) -> DSLResult<Data> {
-        self.get_list()
-            .and_then(|asts| Some(eval(env, asts.get(nth)?)))
-            .ok_or(DSLError::Eval(format!("")))?
+    pub fn eval_list_nth(&self, env: Rc<Environment>, nth: usize) -> DSLResult<Rc<Constant>> {
+        match self {
+            AST::List(list) => list
+                .get(nth)
+                .ok_or(DSLError::Eval(format!("index range error")))?
+                .eval(env),
+            _ => Err(DSLError::Eval(format!(
+                "expected list, but this has other type"
+            ))),
+        }
+    }
+    pub fn get_list_nth(&self, nth: usize) -> DSLResult<AST> {
+        match self {
+            AST::List(list) => Ok(list
+                .get(nth)
+                .ok_or(DSLError::Eval(format!("index range error")))?
+                .clone()),
+            _ => Err(DSLError::Eval(format!(
+                "expected list, but this has other type"
+            ))),
+        }
     }
 }
 

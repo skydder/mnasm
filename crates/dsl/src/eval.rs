@@ -1,303 +1,321 @@
-use std::{cell::RefCell, rc::Rc};
+use std::{
+    cell::{Cell, RefCell},
+    rc::Rc,
+};
 
-use crate::{Constant, DSLError, DSLResult, Environment, Operator, Variable, AST, TKNZR4ASM};
+use crate::{data::DSLFn, DSLError, DSLResult};
 
-pub fn eval(ast: &AST, env: Rc<Environment>) -> DSLResult<Rc<Constant>> {
+use super::{Data, Environment, Operator, AST};
+
+pub fn eval(env: &Environment, ast: &AST) -> DSLResult<Data> {
     match ast {
-        AST::Data(constant) => match constant.as_ref() {
-            Constant::Symbol(name) => Ok(Rc::new(
-                env.get_variable(&name).map(|v| v.to_constant()).unwrap(),
-            )),
-            _ => Ok(constant.clone()),
+        AST::Expr(operator, lhs, rhs) => eval_expr(env, *operator, lhs.clone(), rhs.clone()),
+        AST::Data(data) => match data.as_ref() {
+            Data::Symbol(sym) => env.get_variable(sym.as_str()),
+            _ => Ok(data.as_ref().clone()),
         },
-        AST::Expr(op, lhs, rhs) => apply_op(op, lhs.clone(), rhs.clone(), env),
-        AST::List(ast_list) => {
+        AST::List(asts) => {
+            // // this part is only for making Data::List
+            // // use other function if you want to eval block or function body
             let mut constant_list = Vec::new();
-            for ast in ast_list {
-                if let AST::Expr(Operator::Break, _, _) = ast {
-                    break;
-                }
-                constant_list.push(ast.eval(env.clone())?);
+            for ast in asts.as_ref() {
+                constant_list.push(eval(env, ast)?);
             }
-            Ok(Rc::new(Constant::List(constant_list)))
+            Ok(Data::List(Rc::new(RefCell::new(constant_list))))
         }
     }
 }
 
-fn apply_op(
-    op: &Operator,
+fn eval_expr(
+    env: &Environment,
+    operator: Operator,
     lhs: Rc<AST>,
     rhs: Option<Rc<AST>>,
-    env: Rc<Environment>,
-) -> DSLResult<Rc<Constant>> {
-    match op {
-        Operator::AddAssign => {
-            let evaled_lhs = lhs.get_data().unwrap().get(&env).unwrap();
-            let evaled_rhs = rhs.unwrap().eval(env)?; //todo
-            evaled_lhs.add(&evaled_rhs);
-            Ok(Rc::new(Constant::None))
-        }
+) -> DSLResult<Data> {
+    match operator {
+        Operator::FnCall => apply_fn(env, lhs, rhs.unwrap()),
+        _ => eval_built_in(env, operator, lhs, rhs),
+    }
+}
+
+fn apply_fn(env: &Environment, fn_name: Rc<AST>, fn_args: Rc<AST>) -> DSLResult<Data> {
+    // prep for applying function
+    let fn_name = fn_name
+        .get_data()
+        .ok_or(todo!())?
+        .get_symbol()
+        .ok_or(todo!())?.as_str();
+    let fn_info = env
+        .get_variable(fn_name)?
+        .get_fn()
+        .ok_or(todo!())?
+        .as_ref();
+    let fn_args = fn_args.get_list().ok_or(todo!())?.iter();
+    let fn_env = env.clone().enter_fn();
+
+    // error handling
+    if fn_args.len() != fn_info.params.len() {
+        return Err(todo!());
+    }
+
+    // prep env
+    for (param, arg) in fn_info.params.iter().zip(fn_args) {
+        let param_name = param
+            .get_data()
+            .ok_or(todo!())?
+            .get_symbol()
+            .ok_or(todo!())?.to_string(); // todo: cbb
+        let evaled_arg = eval(env, arg)?; //todo
+        fn_env.push_var(param_name, evaled_arg);
+    }
+
+    eval(&fn_env, &fn_info.body)?
+        .get_list()
+        .unwrap()
+        .borrow()
+        .last()
+        .map(|d| d.clone())
+        .ok_or(DSLError::Eval(format!("something is wrong")))
+}
+
+fn eval_built_in(
+    env: &Environment,
+    operator: Operator,
+    lhs: Rc<AST>,
+    rhs: Option<Rc<AST>>,
+) -> DSLResult<Data> {
+    match operator {
+        Operator::AddAssign => todo!(),
+        Operator::MulAssign => todo!(),
+
         Operator::Add => {
-            let evaled_lhs = lhs.eval(env.clone())?;
-            let evaled_rhs = rhs.unwrap().eval(env)?;
-            match (evaled_lhs.as_ref(), evaled_rhs.as_ref()) {
-                (Constant::Integer(lhs), Constant::Integer(rhs)) => {
-                    Ok(Rc::new(Constant::Integer(lhs + rhs)))
+            let evaled_lhs = eval(env, lhs.as_ref())?;
+            let evaled_rhs = eval(env, rhs.unwrap().as_ref())?;
+            match (evaled_lhs, evaled_rhs) {
+                (Data::Integer(l), Data::Integer(r)) => {
+                    Ok(Data::Integer(Rc::new(Cell::new(l.get() + r.get()))))
                 }
-                (Constant::String(lhs), Constant::String(rhs)) => {
-                    Ok(Rc::new(Constant::String(format!("{}{}", lhs, rhs))))
+                (Data::String(l), Data::String(r)) => Ok(Data::String(Rc::new(RefCell::new(
+                    format!("{}{}", l.borrow(), r.borrow()),
+                )))),
+                (Data::List(l), r) => {
+                    let mut list = l.borrow().clone();
+                    list.push(r);
+                    Ok(Data::List(Rc::new(RefCell::new(list))))
                 }
-                _ => Err(DSLError::Eval(format!(
-                    "cannot evaluate {:#?} + {:#?}",
-                    evaled_lhs, evaled_rhs
-                ))),
+                _ => todo!(),
             }
         }
         Operator::CmpEqual => {
-            let evaled_lhs = lhs.eval(env.clone())?;
-            let evaled_rhs = rhs.unwrap().eval(env)?;
-            match (evaled_lhs.as_ref(), evaled_rhs.as_ref()) {
-                (Constant::Integer(lhs), Constant::Integer(rhs)) => {
-                    Ok(Rc::new(Constant::Integer((*lhs == *rhs) as i64)))
-                }
-                (Constant::String(lhs), Constant::String(rhs)) => {
-                    Ok(Rc::new(Constant::Integer((*lhs == *rhs) as i64)))
-                }
-                _ => Ok(Rc::new(Constant::Integer(0))),
-            }
+            let evaled_lhs = eval(env, lhs.as_ref())?;
+            let evaled_rhs = eval(env, rhs.unwrap().as_ref())?;
+            Ok(Data::Integer(Rc::new(Cell::new(
+                (evaled_lhs == evaled_rhs) as i64,
+            ))))
         }
         Operator::CmpLessThan => {
-            let evaled_lhs = lhs.eval(env.clone())?;
-            let evaled_rhs = rhs.unwrap().eval(env)?;
-            match (evaled_lhs.as_ref(), evaled_rhs.as_ref()) {
-                (Constant::Integer(lhs), Constant::Integer(rhs)) => {
-                    Ok(Rc::new(Constant::Integer((*lhs < *rhs) as i64)))
-                }
-                _ => Ok(Rc::new(Constant::Integer(0))),
+            let evaled_lhs = eval(env, lhs.as_ref())?;
+            let evaled_rhs = eval(env, rhs.unwrap().as_ref())?;
+            match (evaled_lhs, evaled_rhs) {
+                (Data::Integer(l), Data::Integer(r)) => Ok(Data::Integer(Rc::new(Cell::new(
+                    (l.get() < r.get()) as i64,
+                )))),
+                _ => Ok(Data::Integer(Rc::new(Cell::new(0)))),
             }
         }
         Operator::CmpNoMoreThan => {
-            let evaled_lhs = lhs.eval(env.clone())?;
-            let evaled_rhs = rhs.unwrap().eval(env)?;
-            match (evaled_lhs.as_ref(), evaled_rhs.as_ref()) {
-                (Constant::Integer(lhs), Constant::Integer(rhs)) => {
-                    Ok(Rc::new(Constant::Integer((*lhs <= *rhs) as i64)))
-                }
-                _ => Ok(Rc::new(Constant::Integer(0))),
+            let evaled_lhs = eval(env, lhs.as_ref())?;
+            let evaled_rhs = eval(env, rhs.unwrap().as_ref())?;
+            match (evaled_lhs, evaled_rhs) {
+                (Data::Integer(l), Data::Integer(r)) => Ok(Data::Integer(Rc::new(Cell::new(
+                    (l.get() <= r.get()) as i64,
+                )))),
+                _ => Ok(Data::Integer(Rc::new(Cell::new(0)))),
             }
         }
-        Operator::LOr => {
-            let evaled_lhs = lhs.eval(env.clone())?;
-            let evaled_rhs = rhs.unwrap().eval(env)?;
-            match (evaled_lhs.as_ref(), evaled_rhs.as_ref()) {
-                (Constant::Integer(lhs), Constant::Integer(rhs)) => match (*lhs, *rhs) {
-                    (0, 0) => Ok(Rc::new(Constant::Integer(0))),
-                    _ => Ok(Rc::new(Constant::Integer(1))),
-                },
-                _ => Ok(Rc::new(Constant::Integer(0))),
-            }
-        }
-        Operator::LAnd => {
-            let evaled_lhs = lhs.eval(env.clone())?;
-            match evaled_lhs.as_ref() {
-                Constant::Integer(i) if *i != 0 => (),
-                _ => return Ok(Rc::new(Constant::Integer(0))),
-            };
-            let evaled_rhs = rhs.unwrap().eval(env)?;
-            match evaled_rhs.as_ref() {
-                Constant::Integer(i) if *i != 0 => Ok(Rc::new(Constant::Integer(1))),
-                _ => Ok(Rc::new(Constant::Integer(0))),
-            }
-        }
-        Operator::Mul => {
-            let evaled_lhs = lhs.eval(env.clone())?;
-            let evaled_rhs = rhs.unwrap().eval(env)?;
-            match (evaled_lhs.as_ref(), evaled_rhs.as_ref()) {
-                (Constant::Integer(l), Constant::Integer(r)) => {
-                    Ok(Rc::new(Constant::Integer(*l * *r)))
-                }
-                _ => Err(DSLError::Eval(format!("cant mul"))),
-            }
-        }
-        Operator::MulAssign => {
-            let evaled_lhs = lhs.get_data().unwrap().get(&env).unwrap();
-            let evaled_rhs = rhs.unwrap().eval(env)?; //todo
-            evaled_lhs.mul(&evaled_rhs);
-            Ok(Rc::new(Constant::None))
-        }
+        Operator::Break => Ok(Data::None),
         Operator::List => {
             if let AST::List(ast_list) = lhs.clone().as_ref() {
                 let mut evaled = Vec::new();
-                for ast in ast_list {
-                    evaled.push(ast.eval(env.clone())?);
+                for ast in ast_list.as_ref() {
+                    evaled.push(eval(env, ast)?);
                 }
-                Ok(Rc::new(Constant::List(evaled)))
+                Ok(Data::List(Rc::new(RefCell::new(evaled))))
             } else {
                 Err(DSLError::Eval(format!("expected list")))
             }
         }
-        Operator::Break => Ok(Rc::new(Constant::None)),
-        Operator::FnCall => apply_fn(lhs, rhs.unwrap(), env),
-    }
-}
-
-fn apply_fn(fn_name: Rc<AST>, args: Rc<AST>, env: Rc<Environment>) -> DSLResult<Rc<Constant>> {
-    let fn_name = fn_name
-        .get_data()
-        .and_then(|f| f.get_symbol())
-        .ok_or(DSLError::Parse("invalid fn name".to_string()))?;
-    match fn_name.as_str() {
-        "index" => {
-            let list = args.eval_list_nth(env.clone(), 0)?;
-            let nth = args.eval_list_nth(env, 1)?.get_integer().unwrap();
+        Operator::LOr => {
+            let evaled_lhs = eval(env, lhs.as_ref())?;
+            let evaled_rhs = eval(env, rhs.unwrap().as_ref())?;
+            match (evaled_lhs, evaled_rhs) {
+                (Data::Integer(l), Data::Integer(r)) => match (l.get(), r.get()) {
+                    (0, 0) => Ok(Data::Integer(Rc::new(Cell::new(0)))),
+                    _ => Ok(Data::Integer(Rc::new(Cell::new(0)))),
+                },
+                _ => Ok(Data::Integer(Rc::new(Cell::new(0)))),
+            }
+        }
+        Operator::LAnd => {
+            let evaled_lhs = eval(env, lhs.as_ref())?;
+            match evaled_lhs.get_integer() {
+                Some(i) if i.get() != 0 => (),
+                _ => return Ok(Data::Integer(Rc::new(Cell::new(0)))),
+            };
+            let evaled_rhs = eval(env, rhs.unwrap().as_ref())?;
+            match evaled_rhs.get_integer() {
+                Some(i) if i.get() != 0 => Ok(Data::Integer(Rc::new(Cell::new(1)))),
+                _ => Ok(Data::Integer(Rc::new(Cell::new(0)))),
+            }
+        }
+        Operator::Mul => {
+            let evaled_lhs = eval(env, lhs.as_ref())?;
+            let evaled_rhs = eval(env, rhs.unwrap().as_ref())?;
+            match (evaled_lhs, evaled_rhs) {
+                (Data::Integer(l), Data::Integer(r)) => {
+                    Ok(Data::Integer(Rc::new(Cell::new(l.get() * r.get()))))
+                }
+                _ => Err(DSLError::Eval(format!("cant mul"))),
+            }
+        }
+        Operator::Let => todo!(),
+        Operator::Index => {
+            let list = lhs.eval_list_nth(env, 0)?;
+            let nth = lhs.eval_list_nth(env, 1)?.get_integer().unwrap().get() as usize;
             let evaled = list
-                ._index(nth as usize)
+                .get_list()
+                .ok_or(todo!())?
+                .borrow()
+                .get(nth)
                 .ok_or(DSLError::Parse("invalid for indexing".to_string()))?;
 
-            Ok(evaled)
+            Ok(evaled.clone())
         }
-        "slice" => {
-            let list = args.eval_list_nth(env.clone(), 0)?;
-            let begin = args.eval_list_nth(env.clone(), 1)?.get_integer().unwrap();
-            let end = args.eval_list_nth(env, 2)?.get_integer().unwrap();
-            let evaled = list
-                ._slice(begin as usize, end as usize)
-                .ok_or(DSLError::Parse("invalid for slicing".to_string()))?;
-            // eprintln!("slice: {:#?}", evaled);
-            Ok(evaled)
-        }
-        "if" => {
-            let cond = args.eval_list_nth(env.clone(), 0)?;
+        Operator::If => {
+            let cond = lhs.eval_list_nth(env, 0)?;
             let evaled = if cond.is_zero() {
-                args.eval_list_nth(env, 2)?
+                lhs.eval_list_nth(env, 2)?
             } else {
-                args.eval_list_nth(env, 1)?
+                lhs.eval_list_nth(env, 1)?
             };
             Ok(evaled)
         }
-        "print" => {
-            let evaled = args.eval(env)?;
-            eprintln!("dsl: {:?}", evaled);
-            Ok(Rc::new(Constant::None))
+        Operator::While => {
+            while !lhs.eval_list_nth(env, 0)?.is_zero() {
+                lhs.eval_list_nth(env, 1)?;
+            }
+            Ok(Data::None)
         }
-        "let" => {
-            let name = args.get_list_nth(0)?.get_data().unwrap();
-            let constant = args.eval_list_nth(env.clone(), 1)?;
-            env.push_var(
-                name.get_symbol().unwrap(),
-                Rc::new(constant.to_type(&env).unwrap()),
-            );
-            Ok(Rc::new(Constant::None))
+        Operator::Slice => {
+            let list = lhs.eval_list_nth(env, 0)?;
+            let begin = lhs.eval_list_nth(env, 1)?.get_integer().unwrap().get() as usize;
+            let end = lhs.eval_list_nth(env, 2)?.get_integer().unwrap().get() as usize;
+            let evaled = list
+                .get_list()
+                .ok_or(todo!())?
+                .borrow()
+                .get(begin..end)
+                .ok_or(DSLError::Parse("invalid for slicing".to_string()))?
+                .into_iter()
+                .map(|d| d.clone())
+                .collect::<Vec<Data>>();
+            // eprintln!("slice: {:#?}", evaled);
+            Ok(Data::List(Rc::new(RefCell::new(evaled))))
         }
-        "len" => {
-            let item = args.eval_list_nth(env, 0)?;
-            match item.as_ref() {
-                Constant::List(list) => Ok(Rc::new(Constant::Integer(list.len() as i64))),
-                Constant::String(s) => Ok(Rc::new(Constant::Integer(s.len() as i64))),
+
+        Operator::Len => {
+            let item = lhs.eval_list_nth(env, 0)?;
+            match item {
+                Data::List(list) => Ok(Data::Integer(Rc::new(Cell::new(
+                    list.borrow().len() as i64
+                )))),
+                Data::String(s) => Ok(Data::Integer(Rc::new(Cell::new(s.borrow().len() as i64)))),
                 _ => Err(DSLError::Eval(format!(
                     "expected list or string but found other"
                 ))),
             }
         }
-
-        "is_digit" => {
-            let item = args.eval_list_nth(env, 0)?;
-            if let Constant::String(s) = item.as_ref() {
-                Ok(Rc::new(Constant::Integer(
-                    s.chars()
-                        .nth(0)
-                        .and_then(|c| Some(c.is_digit(10)))
-                        .unwrap_or(false) as i64,
-                )))
-            } else {
-                Ok(Rc::new(Constant::Integer(0)))
-            }
+        Operator::Print => {
+            let evaled = eval(env, &lhs)?;
+            eprintln!("dsl: {:?}", evaled);
+            Ok(Data::None)
         }
-
-        "get_digit" => {
-            let item = args.eval_list_nth(env, 0)?;
-            if let Constant::String(s) = item.as_ref() {
-                Ok(Rc::new(Constant::Integer(
-                    s.chars().nth(0).and_then(|c| c.to_digit(10)).unwrap_or(0) as i64,
-                )))
-            } else {
-                Ok(Rc::new(Constant::Integer(0)))
-            }
-        }
-
-        "eval" => args.eval(env),
-        "while" => {
-            while !args.eval_list_nth(env.clone(), 0)?.is_zero() {
-                args.eval_list_nth(env.clone(), 1)?;
-            }
-            Ok(Rc::new(Constant::None))
-        }
-
-        "asm_tok" => {
-            let input = args
-                .eval_list_nth(env, 0)?
-                .get_string()
-                .ok_or(DSLError::Eval(format!("expected string but found other")))?;
-            // TKNZR4ASM::new(input, todo!());
-            todo!()
-        }
-        name if env.global.borrow().contains_key(name) => {
-            let binding = env.clone().get_variable(name)?;
-            let (fn_args, body) = if let Variable::Fn(a, b) = binding.as_ref() {
-                (a, b)
-            } else {
-                todo!()
-            };
-            let fn_env = Rc::new(env.clone().enter_fn());
-            for (i, arg) in fn_args.iter().enumerate() {
-                let arg_name = arg.get_data().unwrap().get_symbol().unwrap(); // todo: cbb
-                let real_arg = Rc::new(
-                    args.eval_list_nth(env.clone(), i)?
-                        .to_type(&fn_env)
-                        .unwrap(),
-                );
-                fn_env.push_var(arg_name, real_arg);
-            }
-            body.eval(fn_env).and_then(|c| Ok(c.tail_of_list()))
-        }
-        _ => Err(DSLError::Eval(format!("undefined function"))),
+        _ => unreachable!(),
     }
 }
 
 pub fn run(ast: &AST, env: Rc<Environment>, input: String) -> DSLResult<String> {
     match ast {
         AST::List(list) => {
-            for func in list {
-                let name = func.get_list_nth(0)?;
-                let args = if let AST::List(list) = func.get_list_nth(1)? {
+            for func in list.as_ref() {
+                let name = func.get_list().ok_or(todo!())?.get(0).ok_or(todo!())?;
+                let params = if let AST::List(list) = func.get_list().ok_or(todo!())?.get(1).ok_or(todo!())? {
                     list
                 } else {
                     todo!()
                 };
-                let body = func.get_list_nth(2)?;
-                let f = Rc::new(Variable::Fn(args, body));
-                env.push_global(name.get_data().unwrap().get_symbol().unwrap(), f);
+                let body = func.get_list().ok_or(todo!())?.get(2).ok_or(todo!())?;
+                let f = Data::Fn(Rc::new(DSLFn { body: body.clone(), params: params.to_vec() }));
+                env.push_global(name.get_data().unwrap().get_symbol().unwrap().to_string(), f);
             }
         }
         _ => todo!(),
     }
+
+    // let fn_name = fn_name
+    //     .get_data()
+    //     .ok_or(todo!())?
+    //     .get_symbol()
+    //     .ok_or(todo!())?;
+    // let fn_info = env
+    //     .get_variable(fn_name.as_str())?
+    //     .get_fn()
+    //     .ok_or(todo!())?
+    //     .as_ref();
+    // let (fn_body, fn_params) = (fn_info.body, fn_info.params);
+    // let fn_args = fn_args.get_list().ok_or(todo!())?;
+    // let fn_env = env.clone().enter_fn();
+
+    // // error handling
+    // if fn_args.len() != fn_params.len() {
+    //     return Err(todo!());
+    // }
+
+    // // prep env
+    // for (param, arg) in fn_params.iter().zip(fn_args.iter()) {
+    //     let param_name = param
+    //         .get_data()
+    //         .ok_or(todo!())?
+    //         .get_symbol()
+    //         .ok_or(todo!())?; // todo: cbb
+    //     let evaled_arg = eval(env, arg)?; //todo
+    //     fn_env.push_var(param_name.to_string(), evaled_arg);
+    // }
+
+    // eval(&fn_env, &fn_body)?
+    //     .get_list()
+    //     .unwrap()
+    //     .borrow()
+    //     .last()
+    //     .map(|d| d.clone())
+    //     .ok_or(DSLError::Eval(format!("something is wrong")))
     // cbb
-    let binding = env.get_variable("main")?;
-    let (args, body) = if let Variable::Fn(a, b) = binding.as_ref() {
-        (a, b)
-    } else {
-        todo!()
-    };
-    let fn_env = Rc::new(env.enter_fn());
+    let fn_info = env
+        .get_variable("main")?
+        .get_fn()
+        .ok_or(todo!())?
+        .as_ref();
+    let fn_body = fn_info.body;
+    let fn_env = env.enter_fn();
     fn_env.push_var(
         "input".to_string(),
-        Rc::new(Variable::String(RefCell::new(input))),
+        Data::String(Rc::new(RefCell::new(input))),
     );
     fn_env.push_var(
         "output".to_string(),
-        Rc::new(Variable::String(RefCell::new(String::new()))),
+        Data::String(Rc::new(RefCell::new(String::new()))),
     );
-    assert!(args.len() == 0);
-    body.eval(fn_env.clone())?;
-    Ok(fn_env.get_variable("output").unwrap().get_string().unwrap())
+    
+    eval(&fn_env, &fn_body)?;
+    Ok(fn_env.get_variable("output").unwrap().get_string().unwrap().borrow().to_string())
 }

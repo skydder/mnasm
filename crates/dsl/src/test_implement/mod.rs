@@ -1,49 +1,18 @@
 use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
-use eval::{eval, run};
-use util::{Location, Source, Source2, Stream};
-
-mod errors;
-pub use errors::{DSLError, DSLResult};
-
-mod tokenizer;
-pub use tokenizer::{consume_token, peek_token, tokenize, KeyWord, Token};
-
-mod parser;
-pub use parser::parse;
-
 mod data;
 mod eval;
-// mod test_implement;
-pub use data::Data;
 
-mod asm_tokenizer;
-use asm_tokenizer::TKNZR4ASM;
+use data::Data;
+use util::Source2;
 
-// ====
-// ++todo++
-// enable dsl to use parser
-// ====
-
-pub struct DSLConstant<'a> {
-    source: Source2<'a>,
-    input: String,
-}
-
-impl<'a> DSLConstant<'a> {
-    fn new(source: Source2<'a>, raw_stream: String) -> Self {
-        Self {
-            source: source,
-            input: raw_stream,
-        }
-    }
-}
+use crate::{DSLError, DSLResult};
 
 #[derive(Clone)]
 pub struct Environment<'a> {
     local: RefCell<HashMap<String, Data>>,
     global: Rc<RefCell<HashMap<String, Data>>>,
-    source: Rc<Source2<'a>>,
+    source: Rc<Source2<'a>>
 }
 
 impl<'a> Environment<'a> {
@@ -75,16 +44,16 @@ impl<'a> Environment<'a> {
         self.global.borrow_mut().insert(name, constant);
     }
 
-    pub fn enter_fn(&self) -> Environment<'a> {
+    pub fn enter_fn(&self) -> Environment<'a>{
         Environment {
             local: RefCell::new(HashMap::new()),
             global: self.global.clone(),
-            source: self.source.clone(),
+            source: self.source.clone()
         }
     }
 }
 
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug)]
 pub enum Operator {
     AddAssign,
     Add,
@@ -97,17 +66,10 @@ pub enum Operator {
     LAnd,
     Mul,
     MulAssign,
-    Index,
-    If,
-    While,
-    Len,
-    Slice,
-    Let,
-    Print,
     FnCall, // fn_name goes to lhs and args go to rhs as list
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug)]
 pub enum AST {
     Expr(
         Operator,
@@ -132,24 +94,4 @@ impl AST {
             _ => None,
         }
     }
-
-    pub fn eval_list_nth(&self, env: &Environment, nth: usize) -> DSLResult<Data> {
-        self.get_list()
-            .and_then(|asts| Some(eval(env, asts.get(nth)?)))
-            .ok_or(DSLError::Eval(format!("")))?
-    }
-}
-
-pub fn read_stream<'a>(stream: Stream<'a>) -> DSLConstant<'a> {
-    let new = DSLConstant::new(stream.source(), stream.stringfiy().to_string());
-    new
-}
-
-// todo: remove used stream in Source2
-pub fn eval_macro<'a>(constant: DSLConstant<'a>, ast: AST) -> Stream<'a> {
-    let env = Rc::new(Environment::new(constant.source));
-    let output = run(&ast, env.clone(), constant.input).unwrap();
-    let begin = Location::new_source(constant.source, Source::new(output, "macro"));
-    let end = begin.end();
-    Stream::new(begin, end)
 }
