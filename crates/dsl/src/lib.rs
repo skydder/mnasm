@@ -18,7 +18,7 @@ mod eval;
 pub use data::Data;
 
 mod asm_tokenizer;
-use asm_tokenizer::TKNZR4ASM;
+// use asm_tokenizer::TKNZR4ASM;
 
 // ====
 // ++todo++
@@ -41,8 +41,8 @@ impl<'a> DSLConstant<'a> {
 
 #[derive(Clone)]
 pub struct Environment<'a> {
-    local: RefCell<HashMap<String, Data>>,
-    global: Rc<RefCell<HashMap<String, Data>>>,
+    local: RefCell<HashMap<Rc<String>, Data<'a>>>,
+    global: Rc<RefCell<HashMap<Rc<String>, Data<'a>>>>,
     source: Rc<Source2<'a>>,
 }
 
@@ -54,12 +54,12 @@ impl<'a> Environment<'a> {
             source: Rc::new(source),
         }
     }
-    pub fn get_variable(&self, name: &str) -> DSLResult<Data> {
-        match name {
-            n if self.global.borrow().contains_key(n) => {
+    pub fn get_variable(&self, name: Rc<String>) -> DSLResult<Data<'a>> {
+        match name.clone() {
+            n if self.global.borrow().contains_key(&n) => {
                 self.global.borrow().get(&n.to_string()).cloned()
             }
-            n if self.local.borrow().contains_key(n) => {
+            n if self.local.borrow().contains_key(&n) => {
                 self.local.borrow().get(&n.to_string()).cloned()
             }
             _ => None,
@@ -67,11 +67,11 @@ impl<'a> Environment<'a> {
         .ok_or(DSLError::Eval(format!("{} is unfdefined", name)))
     }
 
-    pub fn push_var(&self, name: String, constant: Data) {
+    pub fn push_var(&self, name: Rc<String>, constant: Data<'a>) {
         self.local.borrow_mut().insert(name, constant);
     }
 
-    pub fn push_global(&self, name: String, constant: Data) {
+    pub fn push_global(&self, name: Rc<String>, constant: Data<'a>) {
         self.global.borrow_mut().insert(name, constant);
     }
 
@@ -86,7 +86,7 @@ impl<'a> Environment<'a> {
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum Operator {
-    AddAssign,
+    Assign,
     Add,
     CmpEqual,
     CmpLessThan,
@@ -96,7 +96,6 @@ pub enum Operator {
     LOr,
     LAnd,
     Mul,
-    MulAssign,
     Index,
     If,
     While,
@@ -104,36 +103,46 @@ pub enum Operator {
     Slice,
     Let,
     Print,
+    IsDigit,
+    GetDigit,
+    Eval,
     FnCall, // fn_name goes to lhs and args go to rhs as list
 }
 
 #[derive(Clone, Debug, PartialEq)]
-pub enum AST {
+pub enum AST<'a> {
     Expr(
         Operator,
-        Rc<AST>,
-        Option<Rc<AST>>, // the reason type(rhs) == Option is for unary op
+        Rc<AST<'a>>,
+        Option<Rc<AST<'a>>>, // the reason type(rhs) == Option is for unary op
     ),
-    Data(Rc<Data>),
-    List(Rc<Vec<AST>>),
+    Data(Rc<Data<'a>>),
+    List(Rc<Vec<AST<'a>>>),
 }
 
-impl AST {
-    pub fn get_data(&self) -> Option<Data> {
+impl<'a> AST<'a> {
+    pub fn get_data(&self) -> Option<Rc<Data<'a>>> {
         match self {
-            AST::Data(constant) => Some(constant.as_ref().clone()),
+            AST::Data(constant) => Some(constant.clone()),
             _ => None,
         }
     }
 
-    pub fn get_list(&self) -> Option<Rc<Vec<AST>>> {
+    pub fn get_list(&self) -> Option<Rc<Vec<AST<'a>>>> {
         match self {
             AST::List(l) => Some(l.clone()),
             _ => None,
         }
     }
 
-    pub fn eval_list_nth(&self, env: &Environment, nth: usize) -> DSLResult<Data> {
+    pub fn get_list_nth(&self, nth: usize) -> Option<AST<'a>> {
+        match self {
+            AST::List(l) => l.clone().get(nth).cloned(),
+            _ => None,
+        }
+    }
+
+    pub fn eval_list_nth(&self, env: &Environment<'a>, nth: usize) -> DSLResult<Data<'a>> {
         self.get_list()
             .and_then(|asts| Some(eval(env, asts.get(nth)?)))
             .ok_or(DSLError::Eval(format!("")))?
@@ -146,7 +155,7 @@ pub fn read_stream<'a>(stream: Stream<'a>) -> DSLConstant<'a> {
 }
 
 // todo: remove used stream in Source2
-pub fn eval_macro<'a>(constant: DSLConstant<'a>, ast: AST) -> Stream<'a> {
+pub fn eval_macro<'a>(constant: DSLConstant<'a>, ast: AST<'a>) -> Stream<'a> {
     let env = Rc::new(Environment::new(constant.source));
     let output = run(&ast, env.clone(), constant.input).unwrap();
     let begin = Location::new_source(constant.source, Source::new(output, "macro"));

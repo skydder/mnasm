@@ -171,3 +171,9 @@ impl<'a> Token<'a> {
         }
     }
 }
+
+impl<'a> std::cmp::PartialEq for Token<'a> {
+    fn eq(&self, other: &Self) -> bool {
+        self.kind == other.kind
+    }
+}

@@ -1,11 +1,8 @@
-use std::{
-    cell::{Cell, RefCell},
-    rc::Rc,
-};
+use std::rc::Rc;
 
 use crate::{consume_token, peek_token, DSLError, DSLResult, Data, KeyWord, Operator, Token, AST};
 
-pub fn parse<'a>(token_seq: &Vec<Token<'a>>) -> DSLResult<AST> {
+pub fn parse<'a>(token_seq: &Vec<Token<'a>>) -> DSLResult<AST<'a>> {
     let mut counter: usize = 0;
     let mut list = Vec::new();
     while peek_token(token_seq, &mut counter) != None {
@@ -14,7 +11,7 @@ pub fn parse<'a>(token_seq: &Vec<Token<'a>>) -> DSLResult<AST> {
     Ok(AST::List(Rc::new(list)))
 }
 
-fn parse_fn<'a>(token_seq: &Vec<Token<'a>>, counter: &mut usize) -> DSLResult<AST> {
+fn parse_fn<'a>(token_seq: &Vec<Token<'a>>, counter: &mut usize) -> DSLResult<AST<'a>> {
     consume_token(Token::KeyWord(KeyWord::Fn), token_seq, counter)?;
     let name = match peek_token(token_seq, counter) {
         Some(Token::Identifier(s)) => {
@@ -39,7 +36,7 @@ fn parse_fn<'a>(token_seq: &Vec<Token<'a>>, counter: &mut usize) -> DSLResult<AS
     Ok(AST::List(Rc::new(list)))
 }
 
-fn parse_stmt<'a>(token_seq: &Vec<Token<'a>>, counter: &mut usize) -> DSLResult<AST> {
+fn parse_stmt<'a>(token_seq: &Vec<Token<'a>>, counter: &mut usize) -> DSLResult<AST<'a>> {
     match peek_token(token_seq, counter) {
         Some(Token::KeyWord(KeyWord::OpenBrace)) => parse_block(token_seq, counter),
         Some(Token::KeyWord(KeyWord::If)) => parse_if(token_seq, counter),
@@ -50,7 +47,7 @@ fn parse_stmt<'a>(token_seq: &Vec<Token<'a>>, counter: &mut usize) -> DSLResult<
     }
 }
 
-fn parse_while<'a>(token_seq: &Vec<Token<'a>>, counter: &mut usize) -> DSLResult<AST> {
+fn parse_while<'a>(token_seq: &Vec<Token<'a>>, counter: &mut usize) -> DSLResult<AST<'a>> {
     consume_token(Token::KeyWord(KeyWord::While), token_seq, counter)?;
     let cond = parse_expr(token_seq, counter)?;
     eprintln!("test: {:?}", cond);
@@ -62,7 +59,7 @@ fn parse_while<'a>(token_seq: &Vec<Token<'a>>, counter: &mut usize) -> DSLResult
     ))
 }
 
-fn parse_block<'a>(token_seq: &Vec<Token<'a>>, counter: &mut usize) -> DSLResult<AST> {
+fn parse_block<'a>(token_seq: &Vec<Token<'a>>, counter: &mut usize) -> DSLResult<AST<'a>> {
     consume_token(Token::KeyWord(KeyWord::OpenBrace), token_seq, counter)?;
     let mut list = Vec::new();
     while peek_token(token_seq, counter) != Some(Token::KeyWord(KeyWord::CloseBrace)) {
@@ -72,7 +69,7 @@ fn parse_block<'a>(token_seq: &Vec<Token<'a>>, counter: &mut usize) -> DSLResult
     Ok(AST::List(Rc::new(list)))
 }
 
-fn parse_if<'a>(token_seq: &Vec<Token<'a>>, counter: &mut usize) -> DSLResult<AST> {
+fn parse_if<'a>(token_seq: &Vec<Token<'a>>, counter: &mut usize) -> DSLResult<AST<'a>> {
     consume_token(Token::KeyWord(KeyWord::If), token_seq, counter)?;
     let cond = parse_expr(token_seq, counter)?;
     let then = parse_block(token_seq, counter)?;
@@ -93,20 +90,16 @@ fn parse_if<'a>(token_seq: &Vec<Token<'a>>, counter: &mut usize) -> DSLResult<AS
     ))
 }
 
-fn parse_let<'a>(token_seq: &Vec<Token<'a>>, counter: &mut usize) -> DSLResult<AST> {
+fn parse_let<'a>(token_seq: &Vec<Token<'a>>, counter: &mut usize) -> DSLResult<AST<'a>> {
     consume_token(Token::KeyWord(KeyWord::Let), token_seq, counter)?;
     let lhs = parse_data(token_seq, counter)?;
     consume_token(Token::KeyWord(KeyWord::Assign), token_seq, counter)?;
     let rhs = parse_expr(token_seq, counter)?;
     consume_token(Token::KeyWord(KeyWord::SemiColon), token_seq, counter)?;
-    Ok(AST::Expr(
-        Operator::Let,
-        Rc::new(AST::List(Rc::new(vec![lhs, rhs]))),
-        None,
-    ))
+    Ok(AST::Expr(Operator::Let, Rc::new(lhs), Some(Rc::new(rhs))))
 }
 
-fn parse_break<'a>(token_seq: &Vec<Token<'a>>, counter: &mut usize) -> DSLResult<AST> {
+fn parse_break<'a>(token_seq: &Vec<Token<'a>>, counter: &mut usize) -> DSLResult<AST<'a>> {
     consume_token(Token::KeyWord(KeyWord::Break), token_seq, counter)?;
     consume_token(Token::KeyWord(KeyWord::SemiColon), token_seq, counter)?;
     Ok(AST::Expr(
@@ -116,29 +109,34 @@ fn parse_break<'a>(token_seq: &Vec<Token<'a>>, counter: &mut usize) -> DSLResult
     ))
 }
 
-fn parse_expr_stmt<'a>(token_seq: &Vec<Token<'a>>, counter: &mut usize) -> DSLResult<AST> {
+fn parse_expr_stmt<'a>(token_seq: &Vec<Token<'a>>, counter: &mut usize) -> DSLResult<AST<'a>> {
     let expr = parse_expr(token_seq, counter)?;
     consume_token(Token::KeyWord(KeyWord::SemiColon), token_seq, counter)?;
     Ok(expr)
 }
 
-fn parse_expr<'a>(token_seq: &Vec<Token<'a>>, counter: &mut usize) -> DSLResult<AST> {
+fn parse_expr<'a>(token_seq: &Vec<Token<'a>>, counter: &mut usize) -> DSLResult<AST<'a>> {
     parse_assign(token_seq, counter)
 }
 
-fn parse_assign<'a>(token_seq: &Vec<Token<'a>>, counter: &mut usize) -> DSLResult<AST> {
+fn parse_assign<'a>(token_seq: &Vec<Token<'a>>, counter: &mut usize) -> DSLResult<AST<'a>> {
     let lhs = parse_logical(token_seq, counter)?;
     let op = match peek_token(token_seq, counter) {
-        Some(Token::KeyWord(KeyWord::AddAssign)) => Operator::AddAssign,
-        Some(Token::KeyWord(KeyWord::MulAssign)) => Operator::MulAssign,
+        Some(Token::KeyWord(KeyWord::AddAssign)) => Operator::Add,
+        Some(Token::KeyWord(KeyWord::MulAssign)) => Operator::Mul,
         _ => return Ok(lhs),
     };
     *counter += 1;
+    let lhs = Rc::new(lhs);
     let rhs = parse_logical(token_seq, counter)?;
-    Ok(AST::Expr(op, Rc::new(lhs), Some(Rc::new(rhs))))
+    Ok(AST::Expr(
+        Operator::Assign,
+        lhs.clone(),
+        Some(Rc::new(AST::Expr(op, lhs, Some(Rc::new(rhs))))),
+    ))
 }
 
-fn parse_logical<'a>(token_seq: &Vec<Token<'a>>, counter: &mut usize) -> DSLResult<AST> {
+fn parse_logical<'a>(token_seq: &Vec<Token<'a>>, counter: &mut usize) -> DSLResult<AST<'a>> {
     let lhs = parse_cmp(token_seq, counter)?;
     let op = match peek_token(token_seq, counter) {
         Some(Token::KeyWord(KeyWord::LOr)) => Operator::LOr,
@@ -150,7 +148,7 @@ fn parse_logical<'a>(token_seq: &Vec<Token<'a>>, counter: &mut usize) -> DSLResu
     Ok(AST::Expr(op, Rc::new(lhs), Some(Rc::new(rhs))))
 }
 
-fn parse_cmp<'a>(token_seq: &Vec<Token<'a>>, counter: &mut usize) -> DSLResult<AST> {
+fn parse_cmp<'a>(token_seq: &Vec<Token<'a>>, counter: &mut usize) -> DSLResult<AST<'a>> {
     let lhs = parse_rel(token_seq, counter)?;
     let op = match peek_token(token_seq, counter) {
         Some(Token::KeyWord(KeyWord::Equal)) => Operator::CmpEqual,
@@ -161,7 +159,7 @@ fn parse_cmp<'a>(token_seq: &Vec<Token<'a>>, counter: &mut usize) -> DSLResult<A
     Ok(AST::Expr(op, Rc::new(lhs), Some(Rc::new(rhs))))
 }
 
-fn parse_rel<'a>(token_seq: &Vec<Token<'a>>, counter: &mut usize) -> DSLResult<AST> {
+fn parse_rel<'a>(token_seq: &Vec<Token<'a>>, counter: &mut usize) -> DSLResult<AST<'a>> {
     let lhs = parse_add(token_seq, counter)?;
     match peek_token(token_seq, counter) {
         Some(Token::KeyWord(KeyWord::LessThan)) => {
@@ -192,7 +190,7 @@ fn parse_rel<'a>(token_seq: &Vec<Token<'a>>, counter: &mut usize) -> DSLResult<A
     }
 }
 
-fn parse_add<'a>(token_seq: &Vec<Token<'a>>, counter: &mut usize) -> DSLResult<AST> {
+fn parse_add<'a>(token_seq: &Vec<Token<'a>>, counter: &mut usize) -> DSLResult<AST<'a>> {
     let lhs = parse_mul(token_seq, counter)?;
     let op = match peek_token(token_seq, counter) {
         Some(Token::KeyWord(KeyWord::Add)) => Operator::Add,
@@ -203,7 +201,7 @@ fn parse_add<'a>(token_seq: &Vec<Token<'a>>, counter: &mut usize) -> DSLResult<A
     Ok(AST::Expr(op, Rc::new(lhs), Some(Rc::new(rhs))))
 }
 
-fn parse_mul<'a>(token_seq: &Vec<Token<'a>>, counter: &mut usize) -> DSLResult<AST> {
+fn parse_mul<'a>(token_seq: &Vec<Token<'a>>, counter: &mut usize) -> DSLResult<AST<'a>> {
     let lhs = parse_postfix(token_seq, counter)?;
     let op = match peek_token(token_seq, counter) {
         Some(Token::KeyWord(KeyWord::Astar)) => Operator::Mul,
@@ -214,7 +212,7 @@ fn parse_mul<'a>(token_seq: &Vec<Token<'a>>, counter: &mut usize) -> DSLResult<A
     Ok(AST::Expr(op, Rc::new(lhs), Some(Rc::new(rhs))))
 }
 
-fn parse_postfix<'a>(token_seq: &Vec<Token<'a>>, counter: &mut usize) -> DSLResult<AST> {
+fn parse_postfix<'a>(token_seq: &Vec<Token<'a>>, counter: &mut usize) -> DSLResult<AST<'a>> {
     let lhs = parse_data(token_seq, counter)?;
     match peek_token(token_seq, counter) {
         Some(Token::KeyWord(KeyWord::OpenParenthesis)) => {
@@ -227,22 +225,43 @@ fn parse_postfix<'a>(token_seq: &Vec<Token<'a>>, counter: &mut usize) -> DSLResu
                 token_seq,
                 counter,
             )?;
-            if lhs.get_data().is_some_and(|d|d.get_symbol().is_some()) {
+            if lhs.get_data().is_some_and(|d| d.get_symbol().is_some()) {
                 match lhs.get_data().unwrap().get_symbol().unwrap().as_str() {
                     "print" => {
                         return Ok(AST::Expr(
                             Operator::Print,
                             Rc::new(AST::List(Rc::new(list))),
-                            None
+                            None,
                         ));
-                    },
+                    }
                     "len" => {
                         return Ok(AST::Expr(
                             Operator::Len,
                             Rc::new(AST::List(Rc::new(list))),
-                            None
+                            None,
                         ));
-                    },
+                    }
+                    "is_digit" => {
+                        return Ok(AST::Expr(
+                            Operator::IsDigit,
+                            Rc::new(AST::List(Rc::new(list))),
+                            None,
+                        ));
+                    }
+                    "get_digit" => {
+                        return Ok(AST::Expr(
+                            Operator::GetDigit,
+                            Rc::new(AST::List(Rc::new(list))),
+                            None,
+                        ));
+                    }
+                    "eval" => {
+                        return Ok(AST::Expr(
+                            Operator::Eval,
+                            Rc::new(AST::List(Rc::new(list))),
+                            None,
+                        ));
+                    }
                     _ => (),
                 }
             }
@@ -292,7 +311,7 @@ fn parse_postfix<'a>(token_seq: &Vec<Token<'a>>, counter: &mut usize) -> DSLResu
 fn parse_list<'a>(
     token_seq: &Vec<Token<'a>>,
     counter: &mut usize,
-    list: &mut Vec<AST>,
+    list: &mut Vec<AST<'a>>,
     stopper: KeyWord,
 ) -> DSLResult<()> {
     match peek_token(token_seq, counter) {
@@ -308,7 +327,7 @@ fn parse_list<'a>(
     }
 }
 
-fn parse_data<'a>(token_seq: &Vec<Token<'a>>, counter: &mut usize) -> DSLResult<AST> {
+fn parse_data<'a>(token_seq: &Vec<Token<'a>>, counter: &mut usize) -> DSLResult<AST<'a>> {
     match peek_token(token_seq, counter) {
         Some(Token::Identifier(ident)) => {
             *counter += 1;
@@ -316,14 +335,12 @@ fn parse_data<'a>(token_seq: &Vec<Token<'a>>, counter: &mut usize) -> DSLResult<
         }
         Some(Token::String(str)) => {
             *counter += 1;
-            let new = AST::Data(Rc::new(Data::String(Rc::new(RefCell::new(
-                str.to_string(),
-            )))));
+            let new = AST::Data(Rc::new(Data::String(Rc::new(str.to_string()))));
             Ok(new)
         }
         Some(Token::Number(i)) => {
             *counter += 1;
-            let new = AST::Data(Rc::new(Data::Integer(Rc::new(Cell::new(i)))));
+            let new = AST::Data(Rc::new(Data::Integer(i)));
             Ok(new)
         }
         Some(Token::KeyWord(KeyWord::OpenSquareBracket)) => {

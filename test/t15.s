@@ -27,6 +27,8 @@ macro if(cond, then, else,) {
         }
         let t = ["test", in, 0, 3, i];
         print(t);
+        t = "test";
+
     } 
     fn main() {
         let sys = "!syscall()";

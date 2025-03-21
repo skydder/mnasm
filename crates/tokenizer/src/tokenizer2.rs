@@ -76,7 +76,7 @@ pub struct Tokenizer2<'a> {
     macro_depth: Cell<i64>,
     record: Cell<bool>,
 
-    dsl_ast: RefCell<Option<AST>>,
+    dsl_ast: RefCell<Option<AST<'a>>>,
 }
 
 impl<'a> Tokenizer2<'a> {
