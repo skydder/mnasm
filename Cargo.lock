@@ -106,6 +106,8 @@ dependencies = [
 name = "dsl"
 version = "0.1.0"
 dependencies = [
+ "data",
+ "parser",
  "util",
 ]
 

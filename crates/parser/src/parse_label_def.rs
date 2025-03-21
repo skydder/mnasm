@@ -8,7 +8,7 @@ use crate::{parse_block, parse_label};
 // <label_def> = "<" <label> (":" "global")? (":" <section> )? ">" <block>?
 //&'a T,
 pub fn parse_label_def<'a, T>(
-    tokenizer: &'a T,
+    tokenizer: Rc<T>,
     indent_depth: usize,
     scope: Rc<RefCell<Scope<'a>>>,
 ) -> AsmResult<'a, LabelDef<'a>>
@@ -23,7 +23,7 @@ where
     tokenizer.skip_space(true);
 
     // <label>
-    let label_data = parse_label(tokenizer, scope.clone())?;
+    let label_data = parse_label(tokenizer.clone(), scope.clone())?;
     let label = label_data.ident();
     if scope.borrow().find_label_local(&label_data.path).is_some() {
         return Err(AsmError::ParseError(
@@ -54,7 +54,7 @@ where
                 tokenizer.next_token();
                 tokenizer.skip_space(true);
                 // <section>
-                Some(parse_section(tokenizer)?)
+                Some(parse_section(tokenizer.clone())?)
             } else {
                 None
             };
@@ -62,7 +62,7 @@ where
 
         // <section>
         } else {
-            let sec = Some(parse_section(tokenizer)?);
+            let sec = Some(parse_section(tokenizer.clone())?);
             (false, sec)
         }
     } else {
@@ -95,7 +95,7 @@ where
     ))
 }
 
-fn parse_section<'a, T>(tokenizer: &'a T) -> AsmResult<'a, Ident<'a>>
+fn parse_section<'a, T>(tokenizer: Rc<T>) -> AsmResult<'a, Ident<'a>>
 where
     T: Tokenizer<'a>,
 {

@@ -106,6 +106,10 @@ pub enum Operator {
     IsDigit,
     GetDigit,
     Eval,
+    TokenizerNew,
+    TokenizerPeek,
+    TokenizerNext,
+    AsmParse,
     FnCall, // fn_name goes to lhs and args go to rhs as list
 }
 

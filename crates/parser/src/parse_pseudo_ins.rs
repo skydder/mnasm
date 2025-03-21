@@ -6,7 +6,7 @@ use util::{AsmError, AsmResult, TokenKind, Tokenizer};
 use crate::parse_operands;
 
 pub fn parse_pseudo_ins<'a, T>(
-    tokenizer: &'a T,
+    tokenizer: Rc<T>,
     scope: Rc<RefCell<Scope<'a>>>,
 ) -> AsmResult<'a, PseudoIns<'a>>
 where
@@ -25,7 +25,7 @@ where
         tokenizer.skip_space(true);
         let mut operands: Vec<Box<dyn Operand + 'a>> = Vec::new();
         if !tokenizer.peek_token(true).is(TokenKind::CloseParenthesis) {
-            parse_nasm_operands_inside(tokenizer, &mut operands, scope)?;
+            parse_nasm_operands_inside(tokenizer.clone(), &mut operands, scope)?;
         }
         tokenizer.skip_space(true);
         tokenizer.consume_token(TokenKind::CloseParenthesis);
@@ -52,11 +52,11 @@ where
                 "look at the bnf".to_string(),
             ));
         }
-        parse_extern_operands_inside(tokenizer, &mut operands, scope)?;
+        parse_extern_operands_inside(tokenizer.clone(), &mut operands, scope)?;
     } else if ins == "db" || ins == "resb" {
         // <operands>?
         if !tokenizer.peek_token(true).is(TokenKind::CloseParenthesis) {
-            parse_ins_operands_inside(tokenizer, &mut operands)?;
+            parse_ins_operands_inside(tokenizer.clone(), &mut operands)?;
         }
     } else if ins == "nasm" {
         match tokenizer.peek_token(true).kind {
@@ -82,7 +82,7 @@ where
 }
 
 fn parse_ins_operands_inside<'a, T>(
-    tokenizer: &'a T,
+    tokenizer: Rc<T>,
     operands: &mut Vec<String>,
 ) -> AsmResult<'a, ()>
 where
@@ -90,7 +90,7 @@ where
 {
     // <operand>
     let op = match tokenizer.peek_token(true).kind {
-        TokenKind::Minus | TokenKind::Number(_) => parse_operands::parse_immediate(tokenizer)?
+        TokenKind::Minus | TokenKind::Number(_) => parse_operands::parse_immediate(tokenizer.clone())?
             .codegen()
             .clone(),
 
@@ -136,7 +136,7 @@ where
 }
 
 fn parse_extern_operands_inside<'a, T>(
-    tokenizer: &'a T,
+    tokenizer: Rc<T>,
     operands: &mut Vec<String>,
     scope: Rc<RefCell<Scope<'a>>>,
 ) -> AsmResult<'a, ()>
@@ -181,7 +181,7 @@ where
 }
 
 fn parse_nasm_operands_inside<'a, T>(
-    tokenizer: &'a T,
+    tokenizer: Rc<T>,
     operands: &mut Vec<Box<dyn Operand + 'a>>,
     scope: Rc<RefCell<Scope<'a>>>,
 ) -> AsmResult<'a, ()>
@@ -195,7 +195,7 @@ where
             tokenizer.next_token();
             Box::new(UnimplementedOperand::new(ident))
         }
-        _ => parse_operands(tokenizer, scope.clone())?,
+        _ => parse_operands(tokenizer.clone(), scope.clone())?,
     };
     operands.push(op);
     match tokenizer.peek_token(true).kind {

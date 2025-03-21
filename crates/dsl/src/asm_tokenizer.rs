@@ -2,8 +2,8 @@ use std::cell::Cell;
 
 use util::{emit_error, Location, Source, Source2, Token, TokenKind, Tokenizer};
 
-#[derive(Debug, Clone)]
-pub(crate) struct TKNZR4ASM<'a> {
+#[derive(Debug, Clone, PartialEq)]
+pub struct TKNZR4ASM<'a> {
     location: Cell<Location<'a>>,
 }
 

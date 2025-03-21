@@ -5,7 +5,7 @@ use util::{AsmError, AsmResult, TokenKind, Tokenizer};
 
 // "."? <ident> ("." <ident>)*
 pub fn parse_label<'a, T>(
-    tokenizer: &'a T,
+    tokenizer: Rc<T>,
     scope: Rc<RefCell<Scope<'a>>>,
 ) -> AsmResult<'a, Label<'a>>
 where

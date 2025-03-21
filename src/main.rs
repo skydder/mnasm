@@ -1,10 +1,5 @@
 use std::{
-    cell::RefCell,
-    fs::{self, File},
-    io::{self, Write},
-    path::Path,
-    process::Command,
-    result::Result,
+    cell::RefCell, fs::{self, File}, io::{self, Write}, path::Path, process::Command, rc::Rc, result::Result
 };
 use tempfile::NamedTempFile;
 
@@ -24,8 +19,8 @@ fn assemble(file: &str, flag: &RunFlags) -> String {
     let source = vec![source];
     let source = RefCell::new(source);
     let loc = Location::new(&source);
-    let t = Tokenizer2::new_tokenizer(loc);
-    let ast = parse_code(&t).unwrap_or_else(|err| emit_msg_and_exit(format!("{}", err)));
+    let t = Rc::new(Tokenizer2::new_tokenizer(loc));
+    let ast = parse_code(t.clone()).unwrap_or_else(|err| emit_msg_and_exit(format!("{}", err)));
     if flag.is_e {
         println!("{}", t.code());
     }
@@ -85,7 +80,7 @@ fn help() -> ! {
     emit_msg_and_exit!("mnasm [ -o <path> || -c || -S ] <file>\n")
 }
 
-fn parse_run_flags<'a>(args: Vec<String>) -> RunFlags {
+fn parse_run_flags(args: Vec<String>) -> RunFlags {
     let mut arg_iter = args.iter();
     let mut arg: Option<&String>;
     let mut arg_s: &String;
@@ -123,12 +118,12 @@ fn parse_run_flags<'a>(args: Vec<String>) -> RunFlags {
             set_iw();
             continue;
         }
-        if flags.input.len() != 0 {
+        if !flags.input.is_empty() {
             help()
         }
         flags.input = arg_s.clone();
     }
-    if flags.input.len() == 0 {
+    if flags.input.is_empty() {
         help()
     }
     // eprintln!("{:#?}", flags);
@@ -148,7 +143,7 @@ fn run() -> Result<(), io::Error> {
     if flag.is_cs {
         fs::copy(
             nasm_code.path(),
-            if flag.output.len() != 0 {
+            if !flag.output.is_empty() {
                 flag.output
             } else {
                 "out.s".to_string()
@@ -163,7 +158,7 @@ fn run() -> Result<(), io::Error> {
     if flag.is_c {
         fs::copy(
             obj_file.path(),
-            if flag.output.len() != 0 {
+            if !flag.output.is_empty() {
                 flag.output
             } else {
                 "out.o".to_string()
@@ -177,7 +172,7 @@ fn run() -> Result<(), io::Error> {
 
     fs::copy(
         exc.path(),
-        if flag.output.len() != 0 {
+        if !flag.output.is_empty() {
             flag.output
         } else {
             "a.out".to_string()

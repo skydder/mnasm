@@ -4,6 +4,8 @@ mod operands;
 mod path;
 mod stmt;
 
+use std::fmt::Debug;
+
 pub use code::Code;
 pub use ident::Ident;
 pub use operands::{
@@ -21,4 +23,4 @@ pub trait Analyze {
 pub trait Codegen {
     fn codegen(&self) -> String;
 }
-pub trait Object: Analyze + Codegen {}
+pub trait Object: Analyze + Codegen+ Debug {}

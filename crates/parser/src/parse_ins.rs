@@ -6,7 +6,7 @@ use util::{AsmError, AsmResult, TokenKind, Tokenizer};
 use crate::parse_operands;
 
 // <ins> = <instruction(identifier)> "(" <operands>? ")"
-pub fn parse_ins<'a, T>(tokenizer: &'a T, scope: Rc<RefCell<Scope<'a>>>) -> AsmResult<'a, Ins<'a>>
+pub fn parse_ins<'a, T>(tokenizer: Rc<T>, scope: Rc<RefCell<Scope<'a>>>) -> AsmResult<'a, Ins<'a>>
 where
     T: Tokenizer<'a>,
 {
@@ -26,7 +26,7 @@ where
     // <operands>?
     let mut operands: Vec<Box<dyn Operand + 'a>> = Vec::new();
     if !tokenizer.peek_token(true).is(TokenKind::CloseParenthesis) {
-        parse_ins_operands_inside(tokenizer, &mut operands, scope)?;
+        parse_ins_operands_inside(tokenizer.clone(), &mut operands, scope)?;
     }
 
     // ")"
@@ -37,7 +37,7 @@ where
 
 // <operands> = <operand> ("," <operand>)*
 fn parse_ins_operands_inside<'a, T>(
-    tokenizer: &'a T,
+    tokenizer: Rc<T>,
     operands: &mut Vec<Box<dyn Operand + 'a>>,
     scope: Rc<RefCell<Scope<'a>>>,
 ) -> AsmResult<'a, ()>
@@ -45,7 +45,7 @@ where
     T: Tokenizer<'a>,
 {
     // <operand>
-    operands.push(parse_operands(tokenizer, scope.clone())?);
+    operands.push(parse_operands(tokenizer.clone(), scope.clone())?);
     tokenizer.skip_space(true);
     let current = tokenizer.peek_token(true);
     match current.kind {
@@ -72,7 +72,7 @@ where
 
 // <compound_ins> = <ins> ("," <ins>)*
 pub fn parse_compound_ins<'a, T>(
-    tokenizer: &'a T,
+    tokenizer: Rc<T>,
     scope: Rc<RefCell<Scope<'a>>>,
 ) -> AsmResult<'a, CompoundIns<'a>>
 where
@@ -88,7 +88,7 @@ where
 
 // <compound_ins> = <ins> ("," <ins>)*
 fn parse_compound_ins_inside<'a, T>(
-    tokenizer: &'a T,
+    tokenizer: Rc<T>,
     compound: &mut Vec<Ins<'a>>,
     scope: Rc<RefCell<Scope<'a>>>,
 ) -> AsmResult<'a, ()>
@@ -96,7 +96,7 @@ where
     T: Tokenizer<'a>,
 {
     // <ins>
-    compound.push(parse_ins(tokenizer, scope.clone())?);
+    compound.push(parse_ins(tokenizer.clone(), scope.clone())?);
     tokenizer.skip_space(true);
 
     match tokenizer.peek_token(true).kind {

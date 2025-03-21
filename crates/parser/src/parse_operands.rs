@@ -7,7 +7,7 @@ use crate::parse_label;
 
 // <operand> = <memory> | <register> | <immediate> | <label>
 pub fn parse_operands<'a, T>(
-    tokenizer: &'a T,
+    tokenizer: Rc<T>,
     scope: Rc<RefCell<Scope<'a>>>,
 ) -> AsmResult<'a, Box<dyn Operand + 'a>>
 where
@@ -21,7 +21,7 @@ where
                 return Ok(Box::new(parse_memory(tokenizer)?));
 
             // <register>
-            } else if let Some(reg) = parse_register(tokenizer, s) {
+            } else if let Some(reg) = parse_register(tokenizer.clone(), s) {
                 return Ok(Box::new(reg));
 
             // <label>
@@ -50,7 +50,7 @@ where
 }
 
 // <immediate> = ("-")? <number>
-pub fn parse_immediate<'a, T>(tokenizer: &'a T) -> AsmResult<'a, Immediate<'a>>
+pub fn parse_immediate<'a, T>(tokenizer: Rc<T>) -> AsmResult<'a, Immediate<'a>>
 where
     T: Tokenizer<'a>,
 {
@@ -92,7 +92,7 @@ where
 }
 
 // <register>
-fn parse_register<'a, T>(tokenizer: &'a T, s: &str) -> Option<Register<'a>>
+fn parse_register<'a, T>(tokenizer: Rc<T>, s: &str) -> Option<Register<'a>>
 where
     T: Tokenizer<'a>,
 {
@@ -106,7 +106,7 @@ where
 }
 
 // <memory> = "ptr" "(" <base> ","  <index> "," <scale> "," <disp> ")"
-fn parse_memory<'a, T>(tokenizer: &'a T) -> AsmResult<'a, Memory<'a>>
+fn parse_memory<'a, T>(tokenizer: Rc<T>) -> AsmResult<'a, Memory<'a>>
 where
     T: Tokenizer<'a>,
 {
@@ -165,7 +165,7 @@ where
         }
         // <register>
         TokenKind::Identifier(s) => {
-            if let Some(b) = parse_register(tokenizer, s) {
+            if let Some(b) = parse_register(tokenizer.clone(), s) {
                 Some(b)
             } else {
                 todo!()
@@ -191,7 +191,7 @@ where
 
         // <register>
         TokenKind::Identifier(s) => {
-            if let Some(b) = parse_register(tokenizer, s) {
+            if let Some(b) = parse_register(tokenizer.clone(), s) {
                 Some(b)
             } else {
                 todo!()
@@ -257,7 +257,7 @@ where
         }
 
         // <immediate>
-        TokenKind::Number(_) | TokenKind::Minus => Some(parse_immediate(tokenizer)?),
+        TokenKind::Number(_) | TokenKind::Minus => Some(parse_immediate(tokenizer.clone())?),
         _ => {
             todo!()
         }

@@ -9,7 +9,7 @@ pub struct Source<'a> {
 }
 
 impl<'a> Source<'a> {
-    pub fn new_with_file(file: &'a str) -> Self {
+    pub fn new_with_file(file: &'a str) -> Source<'a> {
         let mut code = String::new();
         open_safely(file)
             .read_to_string(&mut code)

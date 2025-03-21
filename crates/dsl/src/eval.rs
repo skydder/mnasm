@@ -1,6 +1,8 @@
 use std::rc::Rc;
 
-use crate::{data::DSLFn, DSLError, DSLResult};
+use util::Tokenizer;
+
+use crate::{asm_tokenizer::TKNZR4ASM, data::DSLFn, DSLError, DSLResult};
 
 use super::{Data, Environment, Operator, AST};
 
@@ -33,7 +35,11 @@ fn eval_expr<'a>(
     }
 }
 
-fn apply_fn<'a>(env: &Environment<'a>, fn_name: Rc<AST<'a>>, fn_args: Rc<AST<'a>>) -> DSLResult<Data<'a>> {
+fn apply_fn<'a>(
+    env: &Environment<'a>,
+    fn_name: Rc<AST<'a>>,
+    fn_args: Rc<AST<'a>>,
+) -> DSLResult<Data<'a>> {
     let fn_info = eval(env, &fn_name)?
         .get_fn()
         .ok_or(DSLError::Eval(format!("")))?;
@@ -174,20 +180,7 @@ fn eval_built_in<'a>(
                 .and_then(|d| d.get_symbol())
                 .ok_or(DSLError::Eval(format!("")))?;
             let evaled_rhs = eval(env, rhs.unwrap().as_ref())?;
-            // if env
-            //     .local
-            //     .borrow_mut()
-            //     .insert(name.clone(), evaled_rhs)
-            //     .is_none()
-            // {
-            //     Ok(Data::None)
-            // } else {
-            //     Err(DSLError::Eval(format!("multiple definion: {}", name)))
-            // }
-            env
-                .local
-                .borrow_mut()
-                .insert(name.clone(), evaled_rhs);
+            env.local.borrow_mut().insert(name.clone(), evaled_rhs);
             Ok(Data::None)
         }
 
@@ -268,6 +261,30 @@ fn eval_built_in<'a>(
         Operator::Eval => {
             let evaled = eval(env, &lhs)?;
             Ok(evaled.get_list_last().unwrap_or(Data::None))
+        }
+        Operator::TokenizerNew => {
+            let evaled = lhs.eval_list_nth(env, 0)?;
+            let tokenizer = TKNZR4ASM::new(evaled.get_string().unwrap().to_string(), *env.source); //todo
+            Ok(Data::AsmTokenizer(Rc::new(tokenizer)))
+        }
+        Operator::TokenizerNext => {
+            let tokenizer = lhs.eval_list_nth(env, 0)?.get_tokenizer().unwrap(); //todo
+
+            Ok(Data::AsmToken(tokenizer.next_token()))
+        }
+        Operator::TokenizerPeek => {
+            let tokenizer = lhs.eval_list_nth(env, 0)?.get_tokenizer().unwrap(); //todo
+
+            Ok(Data::AsmToken(tokenizer.peek_token(false)))
+        }
+        Operator::AsmParse => {
+            let object = lhs.eval_list_nth(env, 0)?.get_symbol().unwrap(); //todo
+            let tokenizer = lhs.eval_list_nth(env, 1)?.get_tokenizer().unwrap(); //todo
+            match object.as_str() {
+                "Ins" => Ok(Data::AsmData(Rc::new(parser::parse_compound_ins(tokenizer, scope).unwrap()))),
+                _ => return Err(DSLError::Eval(format!("expected spesific symbol")))
+            }
+            
         }
         _ => unreachable!(),
     }

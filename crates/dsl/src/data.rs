@@ -1,6 +1,9 @@
 use std::rc::Rc;
 
 use util::Token;
+use data::Object;
+
+use crate::asm_tokenizer::TKNZR4ASM;
 
 use super::AST;
 
@@ -10,14 +13,16 @@ pub struct DSLFn<'a> {
     pub params: Vec<AST<'a>>, // this should be the list of symbol
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Clone, Debug)]
 pub enum Data<'a> {
     Integer(i64),
     String(Rc<String>),
     Symbol(Rc<String>),
     List(Rc<Vec<Data<'a>>>),
     Fn(Rc<DSLFn<'a>>),
+    AsmTokenizer(Rc<TKNZR4ASM<'a>>),
     AsmToken(Token<'a>),
+    AsmData(Rc<dyn Object +'a>),
     None,
 }
 
@@ -73,7 +78,30 @@ impl<'a> Data<'a> {
         }
     }
 
+    pub fn get_tokenizer(&self) -> Option<Rc<TKNZR4ASM<'a>>> {
+        match self {
+            Data::AsmTokenizer(s) => Some(s.clone()),
+            _ => None,
+        }
+    }
+
     pub fn is_zero(&self) -> bool {
         self.get_integer().is_some_and(|i| i == 0)
+    }
+}
+
+impl<'a> std::cmp::PartialEq for Data<'a> {
+    fn eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (Self::Integer(l0), Self::Integer(r0)) => l0 == r0,
+            (Self::String(l0), Self::String(r0)) => l0 == r0,
+            (Self::Symbol(l0), Self::Symbol(r0)) => l0 == r0,
+            (Self::List(l0), Self::List(r0)) => l0 == r0,
+            (Self::Fn(l0), Self::Fn(r0)) => l0 == r0,
+            (Self::AsmTokenizer(l0), Self::AsmTokenizer(r0)) => l0 == r0,
+            (Self::AsmToken(l0), Self::AsmToken(r0)) => l0 == r0,
+            (Self::AsmData(_), Self::AsmData(_)) => false, //todo
+            _ => core::mem::discriminant(self) == core::mem::discriminant(other),
+        }
     }
 }

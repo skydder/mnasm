@@ -262,6 +262,35 @@ fn parse_postfix<'a>(token_seq: &Vec<Token<'a>>, counter: &mut usize) -> DSLResu
                             None,
                         ));
                     }
+
+                    "asm_tokenizer" => {
+                        return Ok(AST::Expr(
+                            Operator::TokenizerNew,
+                            Rc::new(AST::List(Rc::new(list))),
+                            None,
+                        ));
+                    }
+                    "asm_next_token" => {
+                        return Ok(AST::Expr(
+                            Operator::TokenizerNext,
+                            Rc::new(AST::List(Rc::new(list))),
+                            None,
+                        ));
+                    }
+                    "asm_peek_token" => {
+                        return Ok(AST::Expr(
+                            Operator::TokenizerPeek,
+                            Rc::new(AST::List(Rc::new(list))),
+                            None,
+                        ));
+                    }
+                    "asm_parse" => {
+                        return Ok(AST::Expr(
+                            Operator::AsmParse,
+                            Rc::new(AST::List(Rc::new(list))),
+                            None,
+                        ));
+                    }
                     _ => (),
                 }
             }

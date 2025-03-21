@@ -7,7 +7,7 @@ use crate::{parse_stmt, read_indent_by_depth};
 
 // <block> = "{" <stmt>* "}"
 pub fn parse_block<'a, T>(
-    tokenizer: &'a T,
+    tokenizer: Rc<T>,
     indent_depth: usize,
     scope: Rc<RefCell<Scope<'a>>>,
 ) -> AsmResult<'a, Block<'a>>
@@ -22,7 +22,7 @@ where
     // <stmt>*
     let mut stmts: Vec<Box<dyn Stmt + 'a>> = Vec::new();
 
-    parse_inside(tokenizer, indent_depth, &mut stmts, scope.clone())?;
+    parse_inside(tokenizer.clone(), indent_depth, &mut stmts, scope.clone())?;
 
     // "}"
     tokenizer.consume_token(TokenKind::CloseBrace);
@@ -33,7 +33,7 @@ where
 
 // <stmts>*
 fn parse_inside<'a, T>(
-    tokenizer: &'a T,
+    tokenizer: Rc<T>,
     indent_depth: usize,
     stmts: &mut Vec<Box<dyn Stmt<'a> + 'a>>,
     scope: Rc<RefCell<Scope<'a>>>,
@@ -43,7 +43,7 @@ where
 {
     tokenizer.skip_space(true);
     tokenizer.consume_newline();
-    read_indent_by_depth(tokenizer, indent_depth);
+    read_indent_by_depth(tokenizer.clone(), indent_depth);
 
     match tokenizer.peek_token(true).kind {
         TokenKind::CloseBrace => Ok(()),
@@ -53,7 +53,7 @@ where
         }
         // <stmt>*
         _ => {
-            read_indent_by_depth(tokenizer, 1);
+            read_indent_by_depth(tokenizer.clone(), 1);
             tokenizer.skip_space(true);
             // <stmt>
             if !(tokenizer.peek_token(true).is(TokenKind::Space)
@@ -61,7 +61,7 @@ where
                 || tokenizer.peek_token(true).is(TokenKind::Semicolon)
                 || tokenizer.peek_token(true).is(TokenKind::EOS))
             {
-                stmts.push(parse_stmt(tokenizer, indent_depth + 1, scope.clone())?);
+                stmts.push(parse_stmt(tokenizer.clone(), indent_depth + 1, scope.clone())?);
             } else {
                 tokenizer.add_to_code(TokenKind::NewLine);
             }
