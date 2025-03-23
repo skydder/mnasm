@@ -1,5 +1,6 @@
-use std::rc::Rc;
+use std::{cell::RefCell, rc::Rc};
 
+use data::Scope;
 use util::Tokenizer;
 
 use crate::{asm_tokenizer::TKNZR4ASM, data::DSLFn, DSLError, DSLResult};
@@ -42,22 +43,22 @@ fn apply_fn<'a>(
 ) -> DSLResult<Data<'a>> {
     let fn_info = eval(env, &fn_name)?
         .get_fn()
-        .ok_or(DSLError::Eval(format!("")))?;
-    let fn_args = fn_args.get_list().ok_or(DSLError::Eval(format!("")))?;
+        .ok_or(DSLError::Eval(String::new()))?;
+    let fn_args = fn_args.get_list().ok_or(DSLError::Eval(String::new()))?;
     let fn_env = env.clone().enter_fn();
 
     // error handling
     if fn_args.len() != fn_info.params.len() {
-        return Err(DSLError::Eval(format!("")));
+        return Err(DSLError::Eval(String::new()));
     }
 
     // prep env
     for (param, arg) in fn_info.params.iter().zip(fn_args.iter()) {
         let param_name = param
             .get_data()
-            .ok_or(DSLError::Eval(format!("")))?
+            .ok_or(DSLError::Eval(String::new()))?
             .get_symbol()
-            .ok_or(DSLError::Eval(format!("")))?; // todo: cbb
+            .ok_or(DSLError::Eval(String::new()))?; // todo: cbb
         let evaled_arg = eval(env, arg)?; //todo
         fn_env.push_var(param_name, evaled_arg);
     }
@@ -65,9 +66,8 @@ fn apply_fn<'a>(
     eval(&fn_env, &fn_info.body)?
         .get_list()
         .unwrap()
-        .last()
-        .map(|d| d.clone())
-        .ok_or(DSLError::Eval(format!("something is wrong")))
+        .last().cloned()
+        .ok_or(DSLError::Eval("something is wrong".to_string()))
 }
 
 fn eval_built_in<'a>(
@@ -81,7 +81,7 @@ fn eval_built_in<'a>(
             let name = lhs
                 .get_data()
                 .and_then(|d| d.get_symbol())
-                .ok_or(DSLError::Eval(format!("")))?;
+                .ok_or(DSLError::Eval(String::new()))?;
             let evaled_rhs = eval(env, rhs.unwrap().as_ref())?;
             if env
                 .local
@@ -140,7 +140,7 @@ fn eval_built_in<'a>(
                 }
                 Ok(Data::List(Rc::new(evaled)))
             } else {
-                Err(DSLError::Eval(format!("expected list")))
+                Err(DSLError::Eval("expected list".to_string()))
             }
         }
         Operator::LOr => {
@@ -171,14 +171,14 @@ fn eval_built_in<'a>(
             let evaled_rhs = eval(env, rhs.unwrap().as_ref())?;
             match (evaled_lhs, evaled_rhs) {
                 (Data::Integer(l), Data::Integer(r)) => Ok(Data::Integer(l * r)),
-                _ => Err(DSLError::Eval(format!("cant mul"))),
+                _ => Err(DSLError::Eval("cant mul".to_string())),
             }
         }
         Operator::Let => {
             let name = lhs
                 .get_data()
                 .and_then(|d| d.get_symbol())
-                .ok_or(DSLError::Eval(format!("")))?;
+                .ok_or(DSLError::Eval(String::new()))?;
             let evaled_rhs = eval(env, rhs.unwrap().as_ref())?;
             env.local.borrow_mut().insert(name.clone(), evaled_rhs);
             Ok(Data::None)
@@ -214,12 +214,9 @@ fn eval_built_in<'a>(
             let end = lhs.eval_list_nth(env, 2)?.get_integer().unwrap() as usize;
             let evaled = list
                 .get_list()
-                .ok_or(DSLError::Eval(format!("")))?
+                .ok_or(DSLError::Eval(String::new()))?
                 .get(begin..end)
-                .ok_or(DSLError::Parse("invalid for slicing".to_string()))?
-                .into_iter()
-                .map(|d| d.clone())
-                .collect::<Vec<Data>>();
+                .ok_or(DSLError::Parse("invalid for slicing".to_string()))?.to_vec();
             // eprintln!("slice: {:#?}", evaled);
             Ok(Data::List(Rc::new(evaled)))
         }
@@ -229,9 +226,7 @@ fn eval_built_in<'a>(
             match item {
                 Data::List(list) => Ok(Data::Integer(list.len() as i64)),
                 Data::String(s) => Ok(Data::Integer(s.len() as i64)),
-                _ => Err(DSLError::Eval(format!(
-                    "expected list or string but found other"
-                ))),
+                _ => Err(DSLError::Eval("expected list or string but found other".to_string())),
             }
         }
         Operator::Print => {
@@ -245,7 +240,7 @@ fn eval_built_in<'a>(
             Ok(Data::Integer(
                 evaled
                     .get_string()
-                    .and_then(|s| s.chars().nth(0).map(|c| c.is_digit(10) as i64))
+                    .and_then(|s| s.chars().next().map(|c| c.is_ascii_digit() as i64))
                     .unwrap_or(0),
             ))
         }
@@ -254,7 +249,7 @@ fn eval_built_in<'a>(
             Ok(Data::Integer(
                 evaled
                     .get_string()
-                    .and_then(|s| s.chars().nth(0).map(|c| c.to_digit(10).unwrap_or(0) as i64))
+                    .and_then(|s| s.chars().next().map(|c| c.to_digit(10).unwrap_or(0) as i64))
                     .unwrap_or(0),
             ))
         }
@@ -281,8 +276,8 @@ fn eval_built_in<'a>(
             let object = lhs.eval_list_nth(env, 0)?.get_symbol().unwrap(); //todo
             let tokenizer = lhs.eval_list_nth(env, 1)?.get_tokenizer().unwrap(); //todo
             match object.as_str() {
-                "Ins" => Ok(Data::AsmData(Rc::new(parser::parse_compound_ins(tokenizer, scope).unwrap()))),
-                _ => return Err(DSLError::Eval(format!("expected spesific symbol")))
+                "Ins" => Ok(Data::AsmData(Rc::new(parser::parse_compound_ins(tokenizer, Rc::new(RefCell::new(Scope::new(None, None)))).unwrap()))),
+                _ => Err(DSLError::Eval("expected spesific symbol".to_string()))
             }
             
         }
@@ -294,15 +289,15 @@ pub fn run<'a>(ast: &AST<'a>, env: Rc<Environment<'a>>, input: String) -> DSLRes
     match ast {
         AST::List(list) => {
             for func in list.as_ref() {
-                let name = func.get_list_nth(0).ok_or(DSLError::Eval(format!("")))?;
+                let name = func.get_list_nth(0).ok_or(DSLError::Eval(String::new()))?;
                 let params = if let AST::List(list) =
-                    func.get_list_nth(1).ok_or(DSLError::Eval(format!("")))?
+                    func.get_list_nth(1).ok_or(DSLError::Eval(String::new()))?
                 {
                     list
                 } else {
                     todo!()
                 };
-                let body = func.get_list_nth(2).ok_or(DSLError::Eval(format!("")))?;
+                let body = func.get_list_nth(2).ok_or(DSLError::Eval(String::new()))?;
                 let f = Data::Fn(Rc::new(DSLFn {
                     body: body.clone(),
                     params: params.to_vec(),
@@ -316,7 +311,7 @@ pub fn run<'a>(ast: &AST<'a>, env: Rc<Environment<'a>>, input: String) -> DSLRes
     let fn_info = env
         .get_variable(Rc::new("main".to_string()))?
         .get_fn()
-        .ok_or(DSLError::Eval(format!("")))?;
+        .ok_or(DSLError::Eval(String::new()))?;
 
     let fn_body = &fn_info.body;
     let fn_env = env.enter_fn();
@@ -326,7 +321,7 @@ pub fn run<'a>(ast: &AST<'a>, env: Rc<Environment<'a>>, input: String) -> DSLRes
         Data::String(Rc::new(String::new())),
     );
 
-    eval(&fn_env, &fn_body)?;
+    eval(&fn_env, fn_body)?;
     Ok(fn_env
         .get_variable(Rc::new("output".to_string()))
         .unwrap()

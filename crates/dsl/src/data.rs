@@ -66,7 +66,7 @@ impl<'a> Data<'a> {
 
     pub fn get_integer(&self) -> Option<i64> {
         match self {
-            Data::Integer(s) => Some(s.clone()),
+            Data::Integer(s) => Some(*s),
             _ => None,
         }
     }
@@ -90,7 +90,7 @@ impl<'a> Data<'a> {
     }
 }
 
-impl<'a> std::cmp::PartialEq for Data<'a> {
+impl std::cmp::PartialEq for Data<'_> {
     fn eq(&self, other: &Self) -> bool {
         match (self, other) {
             (Self::Integer(l0), Self::Integer(r0)) => l0 == r0,

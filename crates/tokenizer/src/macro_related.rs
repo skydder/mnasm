@@ -25,9 +25,9 @@ pub struct Macro<'a> {
 impl<'a> Macro<'a> {
     pub fn new(name: &'a str, stream: Stream<'a>, args: Vec<&'a str>) -> Self {
         Self {
-            name: name,
-            args: args,
-            stream: stream,
+            name,
+            args,
+            stream,
         }
     }
 }
@@ -49,12 +49,11 @@ pub fn read_macro_def<'a>(tokenizer: &Tokenizer2<'a>) -> Macro<'a> {
     tokenizer.skip_space(false);
 
     let stream = read_macro_body(tokenizer);
-    let new = Macro {
-        name: name,
-        args: args,
-        stream: stream,
-    };
-    new
+    Macro {
+        name,
+        args,
+        stream,
+    }
 }
 
 fn read_macro_def_args2<'a>(tokenizer: &Tokenizer2<'a>, args: &mut Vec<&'a str>) {
@@ -73,9 +72,7 @@ fn read_macro_def_args2<'a>(tokenizer: &Tokenizer2<'a>, args: &mut Vec<&'a str>)
             tokenizer.skip_space(false);
             read_macro_def_args2(tokenizer, args);
         }
-        TokenKind::CloseParenthesis => {
-            return;
-        }
+        TokenKind::CloseParenthesis => (),
         _ => {
             emit_error!(tokenizer.location(), "unexpected token")
         }
@@ -148,12 +145,11 @@ pub fn read_macro_def_label<'a>(tokenizer: &Tokenizer2<'a>) -> Macro<'a> {
 
     let stream = Stream::new(m_begin, m_end);
     eprintln!("{}->{:?}", name, stream);
-    let new = Macro {
-        name: name,
-        args: args,
-        stream: stream,
-    };
-    new
+    Macro {
+        name,
+        args,
+        stream,
+    }
 }
 
 // macro marker: @<label> ("(" (<stream>"@,")*")")?
@@ -169,8 +165,7 @@ pub fn read_macro_call<'a>(tokenizer: &Tokenizer2<'a>) -> (&'a str, Vec<Stream<'
         }
         _ => (),
     };
-    let new = (name, args.clone());
-    new
+    (name, args.clone())
 }
 
 fn read_macro_call_args<'a>(tokenizer: &Tokenizer2<'a>, args: &mut Vec<Stream<'a>>) {
@@ -181,9 +176,7 @@ fn read_macro_call_args<'a>(tokenizer: &Tokenizer2<'a>, args: &mut Vec<Stream<'a
         TokenKind::OpenBrace => {
             read_macro_call_args_b(tokenizer, args);
         }
-        _ => {
-            return;
-        }
+        _ => (),
     }
 }
 

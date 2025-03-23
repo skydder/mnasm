@@ -40,8 +40,8 @@ impl<'a> TokenizerStatus<'a> {
         Self {
             stream: Stream::new(current_location, eos),
             args_data: macro_args,
-            prev_args_data: prev_args_data,
-            macro_status: macro_status,
+            prev_args_data,
+            macro_status,
         }
     }
 
@@ -223,7 +223,7 @@ impl<'a> Tokenizer<'a> for Tokenizer2<'a> {
                 } else if self.peek_token(false).is(TokenKind::OpenParenthesis) {
                     let stream: Stream<'a> = read_dsl_code(self);
                     self.turn_on_the_record();
-                    let ast: AST = parse(&tokenize(&stream.stringfiy()).unwrap()).unwrap(); // todo
+                    let ast: AST = parse(&tokenize(stream.stringfiy()).unwrap()).unwrap(); // todo
                     if self.dsl_ast.replace(Some(ast)).is_some() {
                         todo!()
                     }
@@ -237,7 +237,7 @@ impl<'a> Tokenizer<'a> for Tokenizer2<'a> {
                     .unwrap_or_else(|| emit_error!(self.location(), "undefined macro"));
                 // todo: check args len
                 let args: Rc<Vec<(&'a str, Stream<'a>)>> =
-                    Rc::new(macro_data.args.iter().map(|a| *a).zip(m.1).collect());
+                    Rc::new(macro_data.args.iter().copied().zip(m.1).collect());
                 let mut args_data = HashMap::new();
                 for (name, stream) in args.iter() {
                     args_data.insert(*name, Macro::new(name, *stream, Vec::new()));
@@ -330,6 +330,7 @@ impl<'a> Tokenizer<'a> for Tokenizer2<'a> {
         }
     }
 
+    #[allow(clippy::format_collect)]
     fn code(&self) -> String {
         self.code
             .borrow()
@@ -339,7 +340,7 @@ impl<'a> Tokenizer<'a> for Tokenizer2<'a> {
     }
 }
 
-impl<'a> std::fmt::Debug for Tokenizer2<'a> {
+impl std::fmt::Debug for Tokenizer2<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("Tokenizer2")
             .field("tokenizer", &self.tokenizer)

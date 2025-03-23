@@ -5,7 +5,7 @@ use crate::{consume_token, peek_token, DSLError, DSLResult, Data, KeyWord, Opera
 pub fn parse<'a>(token_seq: &Vec<Token<'a>>) -> DSLResult<AST<'a>> {
     let mut counter: usize = 0;
     let mut list = Vec::new();
-    while peek_token(token_seq, &mut counter) != None {
+    while peek_token(token_seq, &mut counter).is_some() {
         list.push(parse_fn(token_seq, &mut counter)?);
     }
     Ok(AST::List(Rc::new(list)))
@@ -19,9 +19,7 @@ fn parse_fn<'a>(token_seq: &Vec<Token<'a>>, counter: &mut usize) -> DSLResult<AS
         }
         _ => None,
     }
-    .ok_or(DSLError::Parse(format!(
-        "expected identifier, but found other"
-    )))?;
+    .ok_or(DSLError::Parse("expected identifier, but found other".to_string()))?;
     *counter += 1;
     consume_token(Token::KeyWord(KeyWord::OpenParenthesis), token_seq, counter)?;
     let mut args = Vec::new();

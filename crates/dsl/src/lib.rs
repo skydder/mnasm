@@ -149,11 +149,11 @@ impl<'a> AST<'a> {
     pub fn eval_list_nth(&self, env: &Environment<'a>, nth: usize) -> DSLResult<Data<'a>> {
         self.get_list()
             .and_then(|asts| Some(eval(env, asts.get(nth)?)))
-            .ok_or(DSLError::Eval(format!("")))?
+            .ok_or(DSLError::Eval(String::new()))?
     }
 }
 
-pub fn read_stream<'a>(stream: Stream<'a>) -> DSLConstant<'a> {
+pub fn read_stream(stream: Stream<'_>) -> DSLConstant<'_> {
     let new = DSLConstant::new(stream.source(), stream.stringfiy().to_string());
     new
 }

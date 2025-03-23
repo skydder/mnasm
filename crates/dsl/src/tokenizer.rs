@@ -9,7 +9,7 @@ pub enum Token<'a> {
     String(&'a str),
 }
 
-impl<'a> Token<'a> {
+impl Token<'_> {
     pub fn len(&self) -> usize {
         match self {
             Token::Identifier(ident) => ident.len(),
@@ -18,6 +18,10 @@ impl<'a> Token<'a> {
             Token::Char(_) => 1,
             Token::String(string) => string.len(),
         }
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.len() != 0
     }
 }
 
@@ -84,6 +88,10 @@ impl KeyWord {
             KeyWord::MulAssign => 2,
         }
     }
+
+    pub fn is_empty(&self) -> bool {
+        false
+    }
 }
 
 pub fn tokenize<'a>(code: &'a str) -> DSLResult<Vec<Token<'a>>> {
@@ -116,7 +124,7 @@ pub fn tokenize<'a>(code: &'a str) -> DSLResult<Vec<Token<'a>>> {
             '0'..='9' => {
                 let begin = counter;
                 while counter < code.len()
-                    && matches!(code.chars().nth(counter).unwrap(), '0'..='9')
+                    && code.chars().nth(counter).unwrap().is_ascii_digit()
                 {
                     counter += 1;
                 }
