@@ -9,8 +9,8 @@ pub struct Path<'a> {
 impl<'a> Path<'a> {
     pub fn new(is_relative: bool, path: Vec<Ident<'a>>) -> Self {
         Self {
-            is_relative: is_relative,
-            path: path,
+            is_relative,
+            path,
         }
     }
 
@@ -31,7 +31,6 @@ impl<'a> Path<'a> {
     fn _path_name(&self, name: &mut String, nth: usize) {
         if nth == self.path.len() - 1 {
             name.push_str(&self.path[nth].get());
-            return;
         } else {
             name.push_str(&self.path[nth].get());
             name.push_str("__");
@@ -40,10 +39,6 @@ impl<'a> Path<'a> {
     }
 
     pub fn split(&self) -> Option<(Ident<'a>, Path<'a>)> {
-        if let Some(i) = self.path.first() {
-            Some((*i, Path::new(false, self.path[1..].to_vec())))
-        } else {
-            None
-        }
+        self.path.first().map(|i| (*i, Path::new(false, self.path[1..].to_vec())))
     }
 }

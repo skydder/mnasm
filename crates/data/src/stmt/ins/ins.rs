@@ -16,15 +16,15 @@ impl<'a> Ins<'a> {
         location: Location<'a>,
     ) -> Self {
         Self {
-            instruction: instruction,
-            operands: operands,
-            location: location,
+            instruction,
+            operands,
+            location,
         }
     }
 
     pub fn codegen(&self) -> String {
-        let mut code = format!("{}", self.instruction);
-        if self.operands.len() != 0 {
+        let mut code = self.instruction.to_string();
+        if !self.operands.is_empty() {
             stringify_operands(&mut code, &self.operands, 0);
         }
         code

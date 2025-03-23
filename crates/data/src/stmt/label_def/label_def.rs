@@ -18,22 +18,22 @@ impl<'a> LabelDef<'a> {
         location: Location<'a>,
     ) -> Self {
         Self {
-            label: label,
-            gen_label: gen_label,
-            is_global: is_global,
-            section: section,
-            block: block,
-            location: location,
+            label,
+            gen_label,
+            is_global,
+            section,
+            block,
+            location,
         }
     }
 }
 
-impl<'a> Object for LabelDef<'a> {}
-impl<'a> Codegen for LabelDef<'a> {
+impl Object for LabelDef<'_> {}
+impl Codegen for LabelDef<'_> {
     fn codegen(&self) -> String {
         let mut code = String::new();
 
-        if self.section != None {
+        if self.section.is_some() {
             code.push_str(&format!("section {}\n", self.section.unwrap().get()));
         }
 
@@ -49,9 +49,9 @@ impl<'a> Codegen for LabelDef<'a> {
         code
     }
 }
-impl<'a> Analyze for LabelDef<'a> {
+impl Analyze for LabelDef<'_> {
     fn analyze(&self) {
-        self.block.as_ref().and_then(|b| Some(b.analyze()));
+        if let Some(b) = self.block.as_ref() { b.analyze() }
     }
 }
 

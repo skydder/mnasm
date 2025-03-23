@@ -15,7 +15,7 @@ where
     let root = Rc::new(RefCell::new(Scope::new(None, None)));
     parse_code_inside(tokenizer, &mut codes, root.clone())?;
     
-    Ok(Code { codes: codes })
+    Ok(Code { codes })
 }
 
 // <label_def>*

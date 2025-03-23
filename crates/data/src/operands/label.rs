@@ -29,10 +29,10 @@ impl<'a> Label<'a> {
         path: Path<'a>,
     ) -> Self {
         Self {
-            name: name,
-            scope: scope,
-            location: location,
-            path: path,
+            name,
+            scope,
+            location,
+            path,
         }
     }
     pub fn ident(&self) -> Ident<'a> {
@@ -40,10 +40,10 @@ impl<'a> Label<'a> {
     }
 }
 
-impl<'a> Operand for Label<'a> {
+impl Operand for Label<'_> {
     fn codegen(&self) -> String {
         // should be run after analyzed
-        format!("{}", self.scope.borrow().find_label(&self.path).unwrap())
+        self.scope.borrow().find_label(&self.path).unwrap().to_string()
     }
 
     fn size(&self) -> usize {
@@ -73,21 +73,21 @@ impl<'a> Operand for Label<'a> {
     }
 }
 
-impl<'a> std::cmp::PartialEq for Label<'a> {
+impl std::cmp::PartialEq for Label<'_> {
     fn eq(&self, other: &Self) -> bool {
         self.name == other.name
     }
 }
 
-impl<'a> std::cmp::Eq for Label<'a> {}
+impl std::cmp::Eq for Label<'_> {}
 
-impl<'a> std::hash::Hash for Label<'a> {
+impl std::hash::Hash for Label<'_> {
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
         self.name.get().hash(state);
     }
 }
 
-impl<'a> std::fmt::Debug for Label<'a> {
+impl std::fmt::Debug for Label<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("Label")
             .field("name", &self.name)

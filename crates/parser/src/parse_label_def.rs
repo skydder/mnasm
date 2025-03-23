@@ -126,5 +126,5 @@ where
         ))
     };
     tokenizer.next_token();
-    return s;
+    s
 }

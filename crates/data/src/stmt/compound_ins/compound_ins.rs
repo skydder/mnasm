@@ -7,14 +7,14 @@ use super::CompoundIns;
 impl<'a> CompoundIns<'a> {
     pub fn new(compound: Vec<Ins<'a>>, location: Location<'a>) -> Self {
         Self {
-            compound: compound,
-            location: location,
+            compound,
+            location,
         }
     }
 }
 
-impl<'a> Object for CompoundIns<'a> {}
-impl<'a> Codegen for CompoundIns<'a> {
+impl Object for CompoundIns<'_> {}
+impl Codegen for CompoundIns<'_> {
     fn codegen(&self) -> String {
         let mut code = String::new();
         for i in &self.compound {
@@ -23,7 +23,7 @@ impl<'a> Codegen for CompoundIns<'a> {
         code
     }
 }
-impl<'a> Analyze for CompoundIns<'a> {
+impl Analyze for CompoundIns<'_> {
     fn analyze(&self) {
         for i in &self.compound {
             i.analyze();

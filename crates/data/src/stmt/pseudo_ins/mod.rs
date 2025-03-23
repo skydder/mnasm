@@ -16,9 +16,9 @@ pub struct PseudoIns<'a> {
 impl<'a> PseudoIns<'a> {
     pub fn new(instruction: &'a str, operands: Vec<String>, location: Location<'a>) -> Self {
         Self {
-            instruction: instruction,
-            operands: operands,
-            location: location,
+            instruction,
+            operands,
+            location,
             nasm_op: Vec::new(),
             kind: false,
         }
@@ -29,9 +29,9 @@ impl<'a> PseudoIns<'a> {
         location: Location<'a>,
     ) -> Self {
         Self {
-            instruction: instruction,
+            instruction,
             operands: Vec::new(),
-            location: location,
+            location,
             nasm_op: operands,
             kind: true,
         }
@@ -49,17 +49,17 @@ impl<'a> PseudoIns<'a> {
     }
 }
 
-fn stringfy_vec<'a>(v: &Vec<String>, mut n: usize, mut s: String) -> String {
-    if v.len() == 0 {
+fn stringfy_vec(v: &Vec<String>, mut n: usize, mut s: String) -> String {
+    if v.is_empty() {
         return s;
     }
     if n == v.len() - 1 {
         s.push_str(&v[n]);
-        return s;
+        s
     } else {
         s.push_str(&format!("{}, ", v[n]));
         n += 1;
-        return stringfy_vec(v, n, s);
+        stringfy_vec(v, n, s)
     }
 }
 
@@ -68,12 +68,12 @@ impl<'a> Stmt<'a> for PseudoIns<'a> {
         todo!()
     }
 }
-impl<'a> Object for PseudoIns<'a> {}
-impl<'a> Analyze for PseudoIns<'a> {
+impl Object for PseudoIns<'_> {}
+impl Analyze for PseudoIns<'_> {
     fn analyze(&self) {}
 }
 
-impl<'a> Codegen for PseudoIns<'a> {
+impl Codegen for PseudoIns<'_> {
     fn codegen(&self) -> String {
         match self.instruction {
             "include" => String::new(),

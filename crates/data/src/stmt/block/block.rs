@@ -14,16 +14,16 @@ impl<'a> Block<'a> {
         scope: Rc<RefCell<Scope<'a>>>,
     ) -> Self {
         Self {
-            indent_depth: indent_depth,
+            indent_depth,
             stmts: RefCell::new(stmts),
-            location: location,
-            scope: scope,
+            location,
+            scope,
         }
     }
 }
 
-impl<'a> Object for Block<'a> {}
-impl<'a> Codegen for Block<'a> {
+impl Object for Block<'_> {}
+impl Codegen for Block<'_> {
     fn codegen(&self) -> String {
         let mut code = String::new();
         for i in self.stmts.borrow().iter() {
@@ -32,7 +32,7 @@ impl<'a> Codegen for Block<'a> {
         code
     }
 }
-impl<'a> Analyze for Block<'a> {
+impl Analyze for Block<'_> {
     fn analyze(&self) {
         for i in self.stmts.borrow().iter() {
             i.analyze();

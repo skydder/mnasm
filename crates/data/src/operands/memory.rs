@@ -23,7 +23,7 @@ impl Scale {
 }
 
 #[derive(Debug)]
-
+#[allow(clippy::upper_case_acronyms)]
 enum MemoryConstituents<'a> {
     D(Immediate<'a>),
     B(Register<'a>),
@@ -56,7 +56,7 @@ impl<'a> MemoryConstituents<'a> {
     }
 }
 
-impl<'a> std::fmt::Display for MemoryConstituents<'a> {
+impl std::fmt::Display for MemoryConstituents<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             MemoryConstituents::D(disp) => write!(f, "[{}]", disp.codegen()),
@@ -162,13 +162,13 @@ impl<'a> Memory<'a> {
     ) -> Self {
         Self {
             constituents: MemoryConstituents::new(args.0, args.1, args.2, args.3),
-            size: size,
-            location: location,
+            size,
+            location,
         }
     }
 }
 
-impl<'a> Operand for Memory<'a> {
+impl Operand for Memory<'_> {
     fn codegen(&self) -> String {
         match self.size {
             0 => format!("{}", self.constituents),

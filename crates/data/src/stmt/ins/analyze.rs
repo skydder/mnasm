@@ -4,9 +4,9 @@ use crate::{Operand, OperandKind};
 
 use super::{ins_analyzer::ins_analyzer, Ins};
 
-pub fn analyze_ins<'a>(ins: &Ins<'a>) {
+pub fn analyze_ins(ins: &Ins<'_>) {
     match ins_analyzer(ins.instruction, Operands::convert_operands(&ins.operands)) {
-        Ok(_) => return,
+        Ok(_) => (),
         Err(_) => {
             emit_error!(ins.location, "unsuppoted instruction or operands.");
         }
@@ -36,7 +36,7 @@ impl<'a> Operands<'a> {
     fn convert_operands(operands: &'a Vec<Box<dyn Operand + 'a>>) -> Self {
         let mut op = Operands::default();
         for i in 0..4 {
-            op.set(i, operands.get(i).map_or(None, |o| Some(o.op())));
+            op.set(i, operands.get(i).map(|o| o.op()));
         }
         op
     }

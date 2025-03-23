@@ -21,9 +21,9 @@ impl<'a> Macro<'a> {
     ) -> Self {
         Self {
             // stream: Box::new(stream.clone()),
-            stream: stream,
-            args: args,
-            location: location,
+            stream,
+            args,
+            location,
         }
     }
 
@@ -36,13 +36,13 @@ impl<'a> Macro<'a> {
     }
 }
 
-impl<'a> Object for Macro<'a> {}
-impl<'a> Analyze for Macro<'a> {
+impl Object for Macro<'_> {}
+impl Analyze for Macro<'_> {
     fn analyze(&self) {
         // eprintln!("analyzed");
     }
 }
-impl<'a> Codegen for Macro<'a> {
+impl Codegen for Macro<'_> {
     fn codegen(&self) -> String {
         String::new()
     }

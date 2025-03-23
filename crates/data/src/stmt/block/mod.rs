@@ -1,3 +1,4 @@
+#[allow(clippy::module_inception)] // todo
 mod block;
 mod scope;
 
@@ -7,6 +8,7 @@ use super::{Macro, Stmt};
 use crate::Ident;
 use util::Location;
 
+#[allow(clippy::type_complexity)]
 pub struct Scope<'a> {
     scope_name: Ident<'a>,
     parent: Option<Rc<RefCell<Scope<'a>>>>,
@@ -15,7 +17,7 @@ pub struct Scope<'a> {
     path_name: String,
 }
 
-impl<'a> std::fmt::Debug for Scope<'a> {
+impl std::fmt::Debug for Scope<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("Scope")
             .field("scope_name", &self.scope_name)

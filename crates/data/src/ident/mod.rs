@@ -20,25 +20,25 @@ impl<'a> Ident<'a> {
     }
 
     pub fn new_unnamed() -> Self {
-        let new = Self::Unnamed(C.load(Ordering::SeqCst).clone());
+        let new = Self::Unnamed(C.load(Ordering::SeqCst));
         C.fetch_add(1, Ordering::SeqCst);
         new
     }
 
     pub fn get(&self) -> String {
         match self {
-            Ident::Named(name) => format!("{}", name),
+            Ident::Named(name) => name.to_string(),
             Ident::Unnamed(c) => format!("N_L_L_{}", c),
         }
     }
 }
 
-impl<'a> std::fmt::Display for Ident<'a> {
+impl std::fmt::Display for Ident<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.get())
     }
 }
-impl<'a> std::cmp::PartialEq for Ident<'a> {
+impl std::cmp::PartialEq for Ident<'_> {
     fn eq(&self, other: &Self) -> bool {
         match (self, other) {
             (Self::Named(l0), Self::Named(r0)) => l0 == r0,

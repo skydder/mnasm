@@ -13,10 +13,10 @@ pub struct Immediate<'a> {
 impl<'a> Immediate<'a> {
     pub fn new(imm: u64, is_signed: bool, size: usize, location: Location<'a>) -> Self {
         Self {
-            imm: imm,
-            is_signed: is_signed,
-            size: size,
-            location: location,
+            imm,
+            is_signed,
+            size,
+            location,
         }
     }
     pub fn is_signed(&self) -> bool {
@@ -27,7 +27,7 @@ impl<'a> Immediate<'a> {
     }
 }
 
-impl<'a> Operand for Immediate<'a> {
+impl Operand for Immediate<'_> {
     // ad-hoc one
     fn codegen(&self) -> String {
         if self.is_signed {

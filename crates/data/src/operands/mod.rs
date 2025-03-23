@@ -24,14 +24,14 @@ pub struct UnimplementedOperand<'a> {
 
 impl<'a> UnimplementedOperand<'a> {
     pub fn new(opreand: &'a str) -> Self {
-        Self { opreand: opreand }
+        Self { opreand }
     }
 }
 
-impl<'a> Operand for UnimplementedOperand<'a> {
+impl Operand for UnimplementedOperand<'_> {
     fn codegen(&self) -> String {
         // should be run after analyzed
-        format!("{}", self.opreand)
+        self.opreand.to_string()
     }
 
     fn size(&self) -> usize {

@@ -6,22 +6,20 @@ use super::Scope;
 
 impl<'a> Scope<'a> {
     pub fn new(scope_name: Option<Ident<'a>>, parent: Option<Rc<RefCell<Scope<'a>>>>) -> Self {
-        let scope_name = if scope_name.is_none() {
-            if parent.is_none() {
-                Ident::new("")
-            } else {
-                // Ident::new("N_L_L")
-                Ident::new_unnamed()
-            }
+        let scope_name = if let Some(s) = scope_name {
+            s
+        } else if parent.is_none() {
+            Ident::new("")
         } else {
-            scope_name.unwrap()
+            // Ident::new("N_L_L")
+            Ident::new_unnamed()
         };
         Self {
-            scope_name: scope_name,
+            scope_name,
             parent: parent.clone(),
             labels: RefCell::new(Vec::new()),
             macros: RefCell::new(Vec::new()),
-            path_name: parent.filter(|p| p.borrow().path_name != "").map_or_else(
+            path_name: parent.filter(|p| !p.borrow().path_name.is_empty()).map_or_else(
                 || format!("{}", scope_name),
                 |p| format!("{}__{}", p.borrow().path_name.clone(), scope_name),
             ),
@@ -91,16 +89,14 @@ impl<'a> Scope<'a> {
         let parent = self.get_root();
         if parent.is_none() {
             if self._find_label(label) {
-                return Some(label.path_name());
+                Some(label.path_name())
             } else {
-                return None;
+                None
             }
+        } else if parent.unwrap().borrow()._find_label(label) {
+            Some(label.path_name())
         } else {
-            if parent.unwrap().borrow()._find_label(label) {
-                return Some(label.path_name());
-            } else {
-                return None;
-            }
+            None
         }
     }
 

@@ -123,14 +123,14 @@ where
             parse_ins_operands_inside(tokenizer, operands)
         }
         _ => {
-            return Err(AsmError::ParseError(
+            Err(AsmError::ParseError(
                 tokenizer.location(),
                 format!(
                     "invalid expression for db and resb: {:#?}",
                     tokenizer.peek_token(true)
                 ),
                 "look at the bnf".to_string(),
-            ));
+            ))
         }
     }
 }
@@ -171,11 +171,11 @@ where
             parse_extern_operands_inside(tokenizer, operands, scope)
         }
         _ => {
-            return Err(AsmError::ParseError(
+            Err(AsmError::ParseError(
                 tokenizer.location(),
                 "invalid expression for extern:".to_string(),
                 "look at the bnf".to_string(),
-            ));
+            ))
         }
     }
 }

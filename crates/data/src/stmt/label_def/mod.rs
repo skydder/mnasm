@@ -1,3 +1,4 @@
+#[allow(clippy::module_inception)]
 mod label_def;
 
 use crate::{Block, Ident};

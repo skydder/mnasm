@@ -17,15 +17,15 @@ impl<'a> Source<'a> {
                 emit_msg_and_exit!("failed to load '{}' into 'String'\n", file);
             });
         Self {
-            code: code,
-            file: file,
+            code,
+            file,
         }
     }
 
     pub fn new(code: String, file: &'a str) -> Self {
         Self {
-            code: code,
-            file: file,
+            code,
+            file,
         }
     }
 
@@ -48,8 +48,8 @@ pub struct Source2<'a> {
 impl<'a> Source2<'a> {
     fn new(source: &'a RefCell<Vec<Source<'a>>>, nth: usize) -> Self {
         Self {
-            source: source,
-            nth: nth,
+            source,
+            nth,
         }
     }
 
@@ -84,13 +84,13 @@ pub struct Location<'a> {
     nth: usize,
 }
 
-impl<'a> std::fmt::Display for Location<'a> {
+impl std::fmt::Display for Location<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}:{}:{}", self.source.file(), self.line, self.column)
     }
 }
 
-impl<'a> std::fmt::Debug for Location<'a> {
+impl std::fmt::Debug for Location<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
@@ -137,10 +137,10 @@ impl<'a> Location<'a> {
 
     pub fn create_location(source: Source2<'a>, line: usize, column: usize, nth: usize) -> Self {
         Self {
-            source: source,
-            line: line,
-            column: column,
-            nth: nth,
+            source,
+            line,
+            column,
+            nth,
         }
     }
 
@@ -167,13 +167,13 @@ impl<'a> Location<'a> {
     }
 }
 
-impl<'a> std::cmp::PartialEq for Location<'a> {
+impl std::cmp::PartialEq for Location<'_> {
     fn eq(&self, other: &Self) -> bool {
         self.source == other.source && self.nth == other.nth
     }
 }
 
-impl<'a> std::cmp::PartialOrd for Location<'a> {
+impl std::cmp::PartialOrd for Location<'_> {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
         self.nth.partial_cmp(&other.nth)
     }
@@ -188,8 +188,8 @@ pub struct Stream<'a> {
 impl<'a> Stream<'a> {
     pub fn new(begin: Location<'a>, end: Location<'a>) -> Self {
         Self {
-            begin: begin,
-            end: end,
+            begin,
+            end,
         }
     }
 
@@ -210,7 +210,7 @@ impl<'a> Stream<'a> {
     }
 }
 
-impl<'a> Debug for Stream<'a> {
+impl Debug for Stream<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.stringfiy())
     }

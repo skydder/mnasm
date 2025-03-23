@@ -1,4 +1,5 @@
 mod analyze;
+#[allow(clippy::module_inception)]
 mod ins;
 mod ins_analyzer;
 

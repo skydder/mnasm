@@ -33,7 +33,7 @@ pub struct DSLConstant<'a> {
 impl<'a> DSLConstant<'a> {
     fn new(source: Source2<'a>, raw_stream: String) -> Self {
         Self {
-            source: source,
+            source,
             input: raw_stream,
         }
     }

@@ -18,7 +18,7 @@ where
         TokenKind::Identifier(s) => {
             // <memory>
             if s == "ptr" {
-                return Ok(Box::new(parse_memory(tokenizer)?));
+                Ok(Box::new(parse_memory(tokenizer)?))
 
             // <register>
             } else if let Some(reg) = parse_register(tokenizer.clone(), s) {
@@ -34,7 +34,7 @@ where
 
         // <immediate>
         TokenKind::Number(_) | TokenKind::Minus => {
-            return Ok(Box::new(parse_immediate(tokenizer)?));
+            Ok(Box::new(parse_immediate(tokenizer)?))
         }
         TokenKind::Dot => Ok(Box::new(parse_label(tokenizer, scope)?)),
 
@@ -59,12 +59,12 @@ where
         // <number>
         TokenKind::Number(imm) => {
             tokenizer.next_token();
-            return Ok(Immediate::new(
+            Ok(Immediate::new(
                 imm,
                 false,
                 32,
-                current_token.location.clone(),
-            ));
+                current_token.location,
+            ))
         }
         // "-" <number>
         TokenKind::Minus => {
@@ -74,7 +74,7 @@ where
             match tokenizer.peek_token(true).kind {
                 TokenKind::Number(imm) => {
                     tokenizer.next_token();
-                    return Ok(Immediate::new(imm, true, 32, current_token.location));
+                    Ok(Immediate::new(imm, true, 32, current_token.location))
                 }
                 _ => Err(AsmError::ParseError(
                     current_token.location,
@@ -83,11 +83,7 @@ where
                 )),
             }
         }
-        _ => {
-            // never happends
-            assert!(false);
-            panic!();
-        }
+        _ => unreachable!(),
     }
 }
 
@@ -99,7 +95,7 @@ where
     let loc = tokenizer.location();
     if let Some((kind, value, size)) = Register::is_reg(s) {
         tokenizer.next_token();
-        return Some(Register::new(kind, value, size, loc));
+        Some(Register::new(kind, value, size, loc))
     } else {
         None
     }

@@ -49,7 +49,7 @@ pub enum AsmError<'a> {
     ParseError(Location<'a>, String, String),
 }
 
-impl<'a> std::fmt::Display for AsmError<'a> {
+impl std::fmt::Display for AsmError<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             AsmError::ParseError(location, msg, sub_msg) => {
@@ -63,6 +63,6 @@ impl<'a> std::fmt::Display for AsmError<'a> {
     }
 }
 
-impl<'a> std::error::Error for AsmError<'a> {}
+impl std::error::Error for AsmError<'_> {}
 
 pub type AsmResult<'a, T> = Result<T, AsmError<'a>>;

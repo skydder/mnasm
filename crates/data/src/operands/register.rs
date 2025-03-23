@@ -28,10 +28,10 @@ pub struct Register<'a> {
 impl<'a> Register<'a> {
     pub fn new(kind: RegisterKind, value: u8, size: usize, location: Location<'a>) -> Self {
         Self {
-            kind: kind,
-            value: value,
-            size: size,
-            location: location,
+            kind,
+            value,
+            size,
+            location,
         }
     }
 
@@ -64,24 +64,24 @@ impl<'a> Register<'a> {
     }
 }
 
-const REG8: &[&'static str] = &[
+const REG8: &[&str] = &[
     "al", "cl", "dl", "bl", "ah", "ch", "dh", "bh", "r8b", "r9b", "r10b", "r11b", "r12b", "r13b",
     "r14b", "r15b", "al", "cl", "dl", "bl", "spl", "bpl", "sil", "dil",
 ];
-const REG16: &[&'static str] = &[
+const REG16: &[&str] = &[
     "ax", "cx", "dx", "bx", "sp", "bp", "si", "di", "r8w", "r9w", "r10w", "r11w", "r12w", "r13w",
     "r14w", "r15w",
 ];
-const REG32: &[&'static str] = &[
+const REG32: &[&str] = &[
     "eax", "ecx", "edx", "ebx", "esp", "ebp", "esi", "edi", "r8d", "r9d", "r10d", "r11d", "r12d",
     "r13d", "r14d", "r15d",
 ];
-const REG64: &[&'static str] = &[
+const REG64: &[&str] = &[
     "rax", "rcx", "rdx", "rbx", "rsp", "rbp", "rsi", "rdi", "r8", "r9", "r10", "r11", "r12", "r13",
     "r14", "r15",
 ];
 
-impl<'a> std::fmt::Display for Register<'a> {
+impl std::fmt::Display for Register<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self.kind {
             RegisterKind::GR8 => {
@@ -103,7 +103,7 @@ impl<'a> std::fmt::Display for Register<'a> {
     }
 }
 
-impl<'a> Operand for Register<'a> {
+impl Operand for Register<'_> {
     fn codegen(&self) -> String {
         format!("{}", self)
     }
