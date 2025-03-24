@@ -14,7 +14,7 @@ where
     let mut codes = Vec::new();
     let root = Rc::new(RefCell::new(Scope::new(None, None)));
     parse_code_inside(tokenizer, &mut codes, root.clone())?;
-    
+
     Ok(Code { codes })
 }
 
@@ -43,7 +43,7 @@ fn skip_null_line<'a, T>(tokenizer: Rc<T>)
 where
     T: Tokenizer<'a>,
 {
-    tokenizer.skip_space(true);
+    tokenizer.skip_space();
     tokenizer.consume_newline();
 }
 
@@ -51,7 +51,7 @@ fn is_eos<'a, T>(tokenizer: Rc<T>) -> bool
 where
     T: Tokenizer<'a>,
 {
-    match tokenizer.peek_token(true).kind {
+    match tokenizer.peek_token().kind {
         TokenKind::EOS => true,
         TokenKind::NewLine | TokenKind::Semicolon | TokenKind::Space => {
             // eprintln!("{:#?}", tokenizer);

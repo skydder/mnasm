@@ -29,6 +29,10 @@ impl<'a> TKNZR4ASM<'a> {
             self.location.replace(new_loc);
         }
     }
+
+    pub(crate) fn back_to(&self, loc: Location<'a>) {
+        self.location.set(loc);
+    }
 }
 
 #[allow(unused_variables)]
@@ -37,8 +41,7 @@ impl<'a> Tokenizer<'a> for TKNZR4ASM<'a> {
         self.location.get()
     }
 
-    fn peek_token(&self, macro_expand: bool) -> util::Token<'a> {
-        assert!(!macro_expand);
+    fn peek_token(&self) -> util::Token<'a> {
         if self.location().is_eos() {
             Token::new(TokenKind::EOS, 0, self.location())
         } else {
@@ -47,13 +50,13 @@ impl<'a> Tokenizer<'a> for TKNZR4ASM<'a> {
     }
 
     fn next_token(&self) -> util::Token<'a> {
-        let token = self.peek_token(false);
+        let token = self.peek_token();
         self.advance_location_by_token(&token);
         token
     }
 
-    fn skip_space(&self, macro_expand: bool) {
-        while self.peek_token(macro_expand).is(TokenKind::Space) {
+    fn skip_space(&self) {
+        while self.peek_token().is(TokenKind::Space) {
             self.skip_token();
         }
     }
@@ -63,7 +66,7 @@ impl<'a> Tokenizer<'a> for TKNZR4ASM<'a> {
     }
 
     fn consume_token(&self, consumeing_token: util::TokenKind<'a>) {
-        let current_token = self.peek_token(false);
+        let current_token = self.peek_token();
         if current_token.is(consumeing_token) {
             self.advance_location_by_token(&current_token);
         } else {
@@ -77,7 +80,7 @@ impl<'a> Tokenizer<'a> for TKNZR4ASM<'a> {
     }
 
     fn consume_newline(&self) {
-        let current_token = self.peek_token(false);
+        let current_token = self.peek_token();
         match current_token.kind {
             TokenKind::NewLine => {
                 self.skip_token();
@@ -98,7 +101,7 @@ impl<'a> Tokenizer<'a> for TKNZR4ASM<'a> {
 
     fn consume_indent(&self) {
         for _ in 0..4 {
-            match self.peek_token(false).kind {
+            match self.peek_token().kind {
                 TokenKind::Space => {
                     self.skip_token();
                 }

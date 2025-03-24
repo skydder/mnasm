@@ -48,10 +48,29 @@ impl Codegen for LabelDef<'_> {
         code.push('\n');
         code
     }
+
+    fn to_code(&self) -> String {
+        let mut code = format!("<{}", self.label);
+        if self.is_global {
+            code.push_str("global");
+        }
+        if let Some(sec) = self.section {
+            code.push_str(&sec.get());
+        }
+        code.push('>');
+        if let Some(block) = &self.block {
+            code.push_str(&block.to_code());
+        } else {
+            code.push('\n');
+        }
+        code
+    }
 }
 impl Analyze for LabelDef<'_> {
     fn analyze(&self) {
-        if let Some(b) = self.block.as_ref() { b.analyze() }
+        if let Some(b) = self.block.as_ref() {
+            b.analyze()
+        }
     }
 }
 

@@ -14,7 +14,7 @@ pub fn parse_stmt<'a, T>(
 where
     T: Tokenizer<'a>,
 {
-    let currrent_token = tokenizer.peek_token(true);
+    let currrent_token = tokenizer.peek_token();
     let new: AsmResult<Box<dyn Stmt<'a> + 'a>> = match currrent_token.kind {
         TokenKind::Not => Ok(Box::new(parse_pseudo_ins(tokenizer.clone(), scope)?)),
         TokenKind::Identifier("db") => Ok(Box::new(parse_pseudo_ins(tokenizer.clone(), scope)?)),
@@ -34,12 +34,16 @@ where
         )?)),
 
         // <label_def>
-        TokenKind::LessThan => Ok(Box::new(parse_label_def(tokenizer.clone(), indent_depth, scope)?)),
+        TokenKind::LessThan => Ok(Box::new(parse_label_def(
+            tokenizer.clone(),
+            indent_depth,
+            scope,
+        )?)),
         _ => Err(AsmError::ParseError(
             currrent_token.location,
             format!(
                 "expected stmt, but found other!:{:?}",
-                tokenizer.peek_token(true)
+                tokenizer.peek_token()
             ),
             "look at Stmt bnfs".to_string(),
         )),

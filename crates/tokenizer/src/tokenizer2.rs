@@ -75,7 +75,7 @@ pub struct Tokenizer2<'a> {
     macro_depth2: Cell<i64>,
     macro_depth: Cell<i64>,
     record: Cell<bool>,
-
+    macro_expand: Cell<bool>,
     dsl_ast: RefCell<Option<AST<'a>>>,
 }
 
@@ -100,6 +100,7 @@ impl<'a> Tokenizer2<'a> {
             macro_depth: Cell::new(0),
 
             dsl_ast: RefCell::new(None),
+            macro_expand: Cell::new(true),
         };
         new
     }
@@ -166,6 +167,13 @@ impl<'a> Tokenizer2<'a> {
     pub(crate) fn turn_off_the_record(&self) {
         self.record.set(false);
     }
+
+    pub(crate) fn turn_on_macroexpand(&self) {
+        self.macro_expand.set(true);
+    }
+    pub(crate) fn turn_off_macroexpand(&self) {
+        self.macro_expand.set(false);
+    }
 }
 
 impl<'a> Tokenizer<'a> for Tokenizer2<'a> {
@@ -173,9 +181,9 @@ impl<'a> Tokenizer<'a> for Tokenizer2<'a> {
         self.tokenizer.borrow().location()
     }
 
-    fn peek_token(&self, macro_expand: bool) -> Token<'a> {
+    fn peek_token(&self) -> Token<'a> {
         let current = self.tokenizer.borrow().peek_token();
-        if !macro_expand {
+        if !self.macro_expand.get() {
             return current;
         }
         if current.is(TokenKind::EOS) {
@@ -189,7 +197,7 @@ impl<'a> Tokenizer<'a> for Tokenizer2<'a> {
             TokenKind::BackQuote => {
                 self.skip_token();
                 let name = self
-                    .peek_token(true)
+                    .peek_token()
                     .get_identifier()
                     .unwrap_or_else(|| emit_error!(self.location(), "expected identifier"));
                 self.skip_token();
@@ -208,26 +216,29 @@ impl<'a> Tokenizer<'a> for Tokenizer2<'a> {
                 drop(stack);
                 self.enter_macro(macro_data, args.clone(), MacroStatus::Arg);
 
-                self.peek_token(true)
+                self.peek_token()
             }
             TokenKind::At => {
                 self.turn_off_the_record();
                 self.consume_token(TokenKind::At);
-                if self.peek_token(false).is(TokenKind::OpenSquareBracket) {
+                self.turn_off_macroexpand();
+                if self.peek_token().is(TokenKind::OpenSquareBracket) {
                     let stream = read_macro_call_dsl(self);
                     self.turn_on_the_record();
                     let stream =
                         eval_macro(read_stream(stream), self.dsl_ast.borrow().clone().unwrap());
                     self.enter_macro(stream, Rc::new(HashMap::new()), MacroStatus::Other);
-                    return self.peek_token(true);
-                } else if self.peek_token(false).is(TokenKind::OpenParenthesis) {
+                    self.turn_on_macroexpand();
+                    return self.peek_token();
+                } else if self.peek_token().is(TokenKind::OpenParenthesis) {
                     let stream: Stream<'a> = read_dsl_code(self);
                     self.turn_on_the_record();
                     let ast: AST = parse(&tokenize(stream.stringfiy()).unwrap()).unwrap(); // todo
                     if self.dsl_ast.replace(Some(ast)).is_some() {
                         todo!()
                     }
-                    return self.peek_token(true);
+                    self.turn_on_macroexpand();
+                    return self.peek_token();
                 }
                 let m = read_macro_call(self);
                 self.turn_on_the_record();
@@ -243,28 +254,33 @@ impl<'a> Tokenizer<'a> for Tokenizer2<'a> {
                     args_data.insert(*name, Macro::new(name, *stream, Vec::new()));
                 }
                 self.enter_macro(macro_data.stream, Rc::new(args_data), MacroStatus::Macro);
-                self.peek_token(true)
+                self.turn_on_macroexpand();
+                self.peek_token()
             }
             TokenKind::Identifier("macro") => {
                 self.turn_off_the_record();
+                self.turn_off_macroexpand();
                 let m = read_macro_def(self);
                 self.turn_on_the_record();
                 self.macro_data.borrow_mut().insert(m.name, m);
-                self.peek_token(true)
+                self.turn_on_macroexpand();
+                self.peek_token()
             }
             TokenKind::Identifier("let") => {
                 self.turn_off_the_record();
+                self.turn_off_macroexpand();
                 let m = read_macro_def_label(self);
                 self.turn_on_the_record();
                 self.macro_data.borrow_mut().insert(m.name, m);
-                self.peek_token(true)
+                self.turn_on_macroexpand();
+                self.peek_token()
             }
             _ => current,
         }
     }
 
     fn next_token(&self) -> Token<'a> {
-        let current = self.peek_token(true);
+        let current = self.peek_token();
         if current.kind != TokenKind::EOS {
             self.tokenizer.borrow().next_token();
         }
@@ -273,8 +289,8 @@ impl<'a> Tokenizer<'a> for Tokenizer2<'a> {
         current
     }
 
-    fn skip_space(&self, macro_expand: bool) {
-        while self.peek_token(macro_expand).is(TokenKind::Space) {
+    fn skip_space(&self) {
+        while self.peek_token().is(TokenKind::Space) {
             self.skip_token();
         }
     }
@@ -289,7 +305,7 @@ impl<'a> Tokenizer<'a> for Tokenizer2<'a> {
     }
 
     fn consume_newline(&self) {
-        let current_token = self.peek_token(true);
+        let current_token = self.peek_token();
         match current_token.kind {
             TokenKind::NewLine => {
                 self.skip_token();
@@ -314,7 +330,7 @@ impl<'a> Tokenizer<'a> for Tokenizer2<'a> {
         self.code.borrow_mut().push(TokenKind::Space);
         self.code.borrow_mut().push(TokenKind::Space);
         for _ in 0..4 {
-            match self.peek_token(true).kind {
+            match self.peek_token().kind {
                 TokenKind::Space => {
                     self.skip_token();
                 }

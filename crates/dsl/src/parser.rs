@@ -19,7 +19,9 @@ fn parse_fn<'a>(token_seq: &Vec<Token<'a>>, counter: &mut usize) -> DSLResult<AS
         }
         _ => None,
     }
-    .ok_or(DSLError::Parse("expected identifier, but found other".to_string()))?;
+    .ok_or(DSLError::Parse(
+        "expected identifier, but found other".to_string(),
+    ))?;
     *counter += 1;
     consume_token(Token::KeyWord(KeyWord::OpenParenthesis), token_seq, counter)?;
     let mut args = Vec::new();
@@ -246,6 +248,13 @@ fn parse_postfix<'a>(token_seq: &Vec<Token<'a>>, counter: &mut usize) -> DSLResu
                             None,
                         ));
                     }
+                    "is_none" => {
+                        return Ok(AST::Expr(
+                            Operator::IsNone,
+                            Rc::new(AST::List(Rc::new(list))),
+                            None,
+                        ));
+                    }
                     "get_digit" => {
                         return Ok(AST::Expr(
                             Operator::GetDigit,
@@ -278,6 +287,13 @@ fn parse_postfix<'a>(token_seq: &Vec<Token<'a>>, counter: &mut usize) -> DSLResu
                     "asm_peek_token" => {
                         return Ok(AST::Expr(
                             Operator::TokenizerPeek,
+                            Rc::new(AST::List(Rc::new(list))),
+                            None,
+                        ));
+                    }
+                    "asm_skip_space" => {
+                        return Ok(AST::Expr(
+                            Operator::TokenizerSpace,
                             Rc::new(AST::List(Rc::new(list))),
                             None,
                         ));

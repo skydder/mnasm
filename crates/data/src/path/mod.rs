@@ -8,10 +8,7 @@ pub struct Path<'a> {
 
 impl<'a> Path<'a> {
     pub fn new(is_relative: bool, path: Vec<Ident<'a>>) -> Self {
-        Self {
-            is_relative,
-            path,
-        }
+        Self { is_relative, path }
     }
 
     pub fn is_relative(&self) -> bool {
@@ -39,6 +36,8 @@ impl<'a> Path<'a> {
     }
 
     pub fn split(&self) -> Option<(Ident<'a>, Path<'a>)> {
-        self.path.first().map(|i| (*i, Path::new(false, self.path[1..].to_vec())))
+        self.path
+            .first()
+            .map(|i| (*i, Path::new(false, self.path[1..].to_vec())))
     }
 }

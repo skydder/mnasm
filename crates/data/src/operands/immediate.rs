@@ -1,5 +1,7 @@
 use util::Location;
 
+use crate::{Analyze, Codegen, Object};
+
 use super::{Operand, OperandKind};
 
 #[derive(Debug)]
@@ -29,6 +31,21 @@ impl<'a> Immediate<'a> {
 
 impl Operand for Immediate<'_> {
     // ad-hoc one
+
+    fn size(&self) -> usize {
+        self.size
+    }
+
+    fn kind_op(&self) -> super::OperandKind {
+        OperandKind::Immediate(self.is_signed)
+    }
+
+    fn op(&self) -> (OperandKind, usize) {
+        (self.kind_op(), self.size)
+    }
+}
+
+impl Codegen for Immediate<'_> {
     fn codegen(&self) -> String {
         if self.is_signed {
             format!("-{}", self.imm)
@@ -37,16 +54,17 @@ impl Operand for Immediate<'_> {
         }
     }
 
-    fn size(&self) -> usize {
-        self.size
-    }
-
-    fn kind(&self) -> super::OperandKind {
-        OperandKind::Immediate(self.is_signed)
-    }
-
-    fn analyze(&self) {}
-    fn op(&self) -> (OperandKind, usize) {
-        (self.kind(), self.size)
+    fn to_code(&self) -> String {
+        if self.is_signed {
+            format!("-{}", self.imm)
+        } else {
+            format!("{}", self.imm)
+        }
     }
 }
+
+impl Analyze for Immediate<'_> {
+    fn analyze(&self) {}
+}
+
+impl Object for Immediate<'_> {}

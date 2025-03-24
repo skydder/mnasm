@@ -31,6 +31,14 @@ impl Codegen for Block<'_> {
         }
         code
     }
+
+    fn to_code(&self) -> String {
+        let mut code = String::new();
+        for i in self.stmts.borrow().iter() {
+            code.push_str(&i.to_code());
+        }
+        code
+    }
 }
 impl Analyze for Block<'_> {
     fn analyze(&self) {

@@ -7,9 +7,9 @@ where
     Self: Clone + Debug,
 {
     fn location(&self) -> crate::Location<'a>;
-    fn peek_token(&self, macro_expand: bool) -> Token<'a>;
+    fn peek_token(&self) -> Token<'a>;
     fn next_token(&self) -> Token<'a>;
-    fn skip_space(&self, macro_expand: bool);
+    fn skip_space(&self);
     fn skip_token(&self);
     fn consume_token(&self, consumeing_token: TokenKind<'a>);
     fn consume_newline(&self);

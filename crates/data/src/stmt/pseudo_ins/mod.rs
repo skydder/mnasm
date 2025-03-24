@@ -81,4 +81,24 @@ impl Codegen for PseudoIns<'_> {
             _ => format!("\t{} {}\n", self.instruction, self.codegen_operands()),
         }
     }
+
+    fn to_code(&self) -> String {
+        if self.kind {
+            format!(
+                "{}({})",
+                self.instruction,
+                stringfy_vec(
+                    &self.nasm_op.iter().map(|o| o.to_code()).collect(),
+                    0,
+                    String::new()
+                )
+            )
+        } else {
+            format!(
+                "{}({})",
+                self.instruction,
+                stringfy_vec(&self.operands, 0, String::new())
+            )
+        }
+    }
 }

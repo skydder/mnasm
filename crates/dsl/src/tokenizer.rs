@@ -123,9 +123,7 @@ pub fn tokenize<'a>(code: &'a str) -> DSLResult<Vec<Token<'a>>> {
             }
             '0'..='9' => {
                 let begin = counter;
-                while counter < code.len()
-                    && code.chars().nth(counter).unwrap().is_ascii_digit()
-                {
+                while counter < code.len() && code.chars().nth(counter).unwrap().is_ascii_digit() {
                     counter += 1;
                 }
                 token_seq.push(Token::Number(code[begin..counter].parse().unwrap()));

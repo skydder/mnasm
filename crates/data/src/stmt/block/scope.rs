@@ -1,6 +1,6 @@
 use std::{cell::RefCell, rc::Rc};
 
-use crate::{stmt::Macro, Ident, Path};
+use crate::{Ident, Path};
 
 use super::Scope;
 
@@ -18,34 +18,18 @@ impl<'a> Scope<'a> {
             scope_name,
             parent: parent.clone(),
             labels: RefCell::new(Vec::new()),
-            macros: RefCell::new(Vec::new()),
-            path_name: parent.filter(|p| !p.borrow().path_name.is_empty()).map_or_else(
-                || format!("{}", scope_name),
-                |p| format!("{}__{}", p.borrow().path_name.clone(), scope_name),
-            ),
+            // macros: RefCell::new(Vec::new()),
+            path_name: parent
+                .filter(|p| !p.borrow().path_name.is_empty())
+                .map_or_else(
+                    || format!("{}", scope_name),
+                    |p| format!("{}__{}", p.borrow().path_name.clone(), scope_name),
+                ),
         }
     }
 
     pub fn add_label(&self, label: Ident<'a>, scope: Option<Rc<RefCell<Scope<'a>>>>) {
         self.labels.borrow_mut().push((label, scope));
-    }
-
-    pub fn add_macro(&self, label: Ident<'a>, macros: Rc<Macro<'a>>) {
-        // eprintln!("{:#?}", (label, macros.clone()));
-        self.labels.borrow_mut().push((label, None));
-        self.macros.borrow_mut().push((label, macros));
-    }
-
-    pub fn find_macro(&self, label: Ident<'a>) -> Option<Rc<Macro<'a>>> {
-        for (l, m) in self.macros.borrow().iter() {
-            if label == *l {
-                return Some(m.clone());
-            }
-        }
-        if let Some(p) = &self.parent {
-            return p.borrow().find_macro(label);
-        }
-        None
     }
 
     fn is_root(&self) -> bool {

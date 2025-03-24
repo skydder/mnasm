@@ -6,10 +6,7 @@ use super::CompoundIns;
 
 impl<'a> CompoundIns<'a> {
     pub fn new(compound: Vec<Ins<'a>>, location: Location<'a>) -> Self {
-        Self {
-            compound,
-            location,
-        }
+        Self { compound, location }
     }
 }
 
@@ -19,6 +16,19 @@ impl Codegen for CompoundIns<'_> {
         let mut code = String::new();
         for i in &self.compound {
             code.push_str(&format!("\t{}\n", i.codegen()));
+        }
+        code
+    }
+
+    fn to_code(&self) -> String {
+        let mut code = String::new();
+        for (n, ins) in self.compound.iter().enumerate() {
+            if self.compound.len() - n == 1 {
+                code.push_str(&ins.to_code());
+            } else {
+                code.push_str(&ins.to_code());
+                code.push_str(", ");
+            }
         }
         code
     }
@@ -35,14 +45,4 @@ impl<'a> Stmt<'a> for CompoundIns<'a> {
     fn kind(&self) -> crate::StmtKind {
         StmtKind::Ins
     }
-
-    // fn analyze(
-    //     &self,
-    //     mut labels: &'a mut LabelInfo<'a>,
-    // ) -> &mut LabelInfo<'a> {
-    //     for ins in &self.compound {
-    //         labels = ins.analyze(labels);
-    //     }
-    //     labels
-    // }
 }

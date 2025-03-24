@@ -20,7 +20,6 @@ pub enum TokenKind<'a> {
     Not,
     At,
     BackQuote,
-    // MacroEnd,
     Number(u64),
     String(&'a str),
     Identifier(&'a str),
@@ -28,11 +27,7 @@ pub enum TokenKind<'a> {
     NewLine,
     Space,
     EOS,
-    Arcane(&'a str), // for infix macro
-                     // Add,
-                     // Mov,
-                     // And,
-                     // Sub,
+    Arcane(&'a str),
 }
 
 impl std::fmt::Display for TokenKind<'_> {
@@ -64,7 +59,7 @@ impl std::fmt::Display for TokenKind<'_> {
                 TokenKind::NewLine => "\n".to_string(),
                 TokenKind::Space => " ".to_string(),
                 TokenKind::EOS => "\n".to_string(),
-                TokenKind::Arcane(_) => String::new(),
+                TokenKind::Arcane(s) => s.to_string(),
                 // TokenKind::Add => format!("+="),
                 // TokenKind::And => format!("&="),
                 // TokenKind::Mov => format!("="),

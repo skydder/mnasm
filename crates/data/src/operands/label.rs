@@ -2,7 +2,7 @@ use std::{cell::RefCell, rc::Rc};
 
 use util::{emit_error, Location};
 
-use crate::{Ident, Path, Scope};
+use crate::{Analyze, Codegen, Ident, Object, Path, Scope};
 
 use super::{Operand, OperandKind};
 
@@ -41,19 +41,34 @@ impl<'a> Label<'a> {
 }
 
 impl Operand for Label<'_> {
-    fn codegen(&self) -> String {
-        // should be run after analyzed
-        self.scope.borrow().find_label(&self.path).unwrap().to_string()
-    }
-
     fn size(&self) -> usize {
         64
     }
 
-    fn kind(&self) -> super::OperandKind {
+    fn kind_op(&self) -> super::OperandKind {
         OperandKind::Label
     }
 
+    fn op(&self) -> (OperandKind, usize) {
+        (OperandKind::Immediate(false), 64)
+    }
+}
+
+impl Codegen for Label<'_> {
+    fn codegen(&self) -> String {
+        self.scope
+            .borrow()
+            .find_label(&self.path)
+            .unwrap()
+            .to_string()
+    }
+
+    fn to_code(&self) -> String {
+        self.ident().get()
+    }
+}
+
+impl Analyze for Label<'_> {
     fn analyze(&self) {
         self.scope
             .borrow()
@@ -67,11 +82,9 @@ impl Operand for Label<'_> {
                 )
             });
     }
-
-    fn op(&self) -> (OperandKind, usize) {
-        (OperandKind::Immediate(false), 64)
-    }
 }
+
+impl Object for Label<'_> {}
 
 impl std::cmp::PartialEq for Label<'_> {
     fn eq(&self, other: &Self) -> bool {

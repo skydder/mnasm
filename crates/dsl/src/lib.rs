@@ -1,3 +1,4 @@
+// #![feature(trait_upcasting)]
 use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
 use eval::{eval, run};
@@ -104,12 +105,15 @@ pub enum Operator {
     Let,
     Print,
     IsDigit,
+    IsNone,
     GetDigit,
     Eval,
     TokenizerNew,
     TokenizerPeek,
     TokenizerNext,
+    TokenizerSpace,
     AsmParse,
+    AsmToken,
     FnCall, // fn_name goes to lhs and args go to rhs as list
 }
 

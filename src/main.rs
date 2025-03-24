@@ -1,5 +1,11 @@
 use std::{
-    cell::RefCell, fs::{self, File}, io::{self, Write}, path::Path, process::Command, rc::Rc, result::Result
+    cell::RefCell,
+    fs::{self, File},
+    io::{self, Write},
+    path::Path,
+    process::Command,
+    rc::Rc,
+    result::Result,
 };
 use tempfile::NamedTempFile;
 

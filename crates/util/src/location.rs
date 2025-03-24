@@ -16,17 +16,11 @@ impl<'a> Source<'a> {
             .unwrap_or_else(|_| {
                 emit_msg_and_exit!("failed to load '{}' into 'String'\n", file);
             });
-        Self {
-            code,
-            file,
-        }
+        Self { code, file }
     }
 
     pub fn new(code: String, file: &'a str) -> Self {
-        Self {
-            code,
-            file,
-        }
+        Self { code, file }
     }
 
     pub fn nth(&self, n: usize) -> &str {
@@ -47,10 +41,7 @@ pub struct Source2<'a> {
 
 impl<'a> Source2<'a> {
     fn new(source: &'a RefCell<Vec<Source<'a>>>, nth: usize) -> Self {
-        Self {
-            source,
-            nth,
-        }
+        Self { source, nth }
     }
 
     fn file(&self) -> &str {
@@ -187,10 +178,7 @@ pub struct Stream<'a> {
 
 impl<'a> Stream<'a> {
     pub fn new(begin: Location<'a>, end: Location<'a>) -> Self {
-        Self {
-            begin,
-            end,
-        }
+        Self { begin, end }
     }
 
     pub fn begin(&self) -> Location<'a> {

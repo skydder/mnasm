@@ -37,14 +37,14 @@ macro if(cond, then, else,) {
         } 
         fn tokenize2(in) {
             let tokenizer = asm_tokenizer(in);
-            print(asm_next_token(tokenizer));
+            print(asm_parse(Operand, tokenizer));
             print(asm_next_token(tokenizer));
             print(asm_next_token(tokenizer));
         } 
         fn main() {
-            print(tokenize(input));
+            
             tokenize2(input);
         }
     )
-    @[10 200 23 32]
+    @[rax 200 23 32]
 }

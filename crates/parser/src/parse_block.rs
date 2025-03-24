@@ -26,7 +26,7 @@ where
 
     // "}"
     tokenizer.consume_token(TokenKind::CloseBrace);
-    tokenizer.skip_space(true);
+    tokenizer.skip_space();
 
     Ok(Block::new(indent_depth, stmts, loc, scope))
 }
@@ -41,11 +41,11 @@ fn parse_inside<'a, T>(
 where
     T: Tokenizer<'a>,
 {
-    tokenizer.skip_space(true);
+    tokenizer.skip_space();
     tokenizer.consume_newline();
     read_indent_by_depth(tokenizer.clone(), indent_depth);
 
-    match tokenizer.peek_token(true).kind {
+    match tokenizer.peek_token().kind {
         TokenKind::CloseBrace => Ok(()),
         TokenKind::NewLine | TokenKind::Semicolon | TokenKind::EOS => {
             tokenizer.add_to_code(TokenKind::NewLine);
@@ -54,14 +54,18 @@ where
         // <stmt>*
         _ => {
             read_indent_by_depth(tokenizer.clone(), 1);
-            tokenizer.skip_space(true);
+            tokenizer.skip_space();
             // <stmt>
-            if !(tokenizer.peek_token(true).is(TokenKind::Space)
-                || tokenizer.peek_token(true).is(TokenKind::NewLine)
-                || tokenizer.peek_token(true).is(TokenKind::Semicolon)
-                || tokenizer.peek_token(true).is(TokenKind::EOS))
+            if !(tokenizer.peek_token().is(TokenKind::Space)
+                || tokenizer.peek_token().is(TokenKind::NewLine)
+                || tokenizer.peek_token().is(TokenKind::Semicolon)
+                || tokenizer.peek_token().is(TokenKind::EOS))
             {
-                stmts.push(parse_stmt(tokenizer.clone(), indent_depth + 1, scope.clone())?);
+                stmts.push(parse_stmt(
+                    tokenizer.clone(),
+                    indent_depth + 1,
+                    scope.clone(),
+                )?);
             } else {
                 tokenizer.add_to_code(TokenKind::NewLine);
             }

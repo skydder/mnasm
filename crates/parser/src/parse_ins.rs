@@ -10,7 +10,7 @@ pub fn parse_ins<'a, T>(tokenizer: Rc<T>, scope: Rc<RefCell<Scope<'a>>>) -> AsmR
 where
     T: Tokenizer<'a>,
 {
-    let currrent_token = tokenizer.peek_token(true);
+    let currrent_token = tokenizer.peek_token();
     assert!(currrent_token.is_identifier());
 
     // <instruction>
@@ -20,12 +20,12 @@ where
         "look at the bnf".to_string(),
     ))?;
     tokenizer.next_token();
-    tokenizer.skip_space(true);
+    tokenizer.skip_space();
     tokenizer.consume_token(TokenKind::OpenParenthesis);
-    tokenizer.skip_space(true);
+    tokenizer.skip_space();
     // <operands>?
     let mut operands: Vec<Box<dyn Operand + 'a>> = Vec::new();
-    if !tokenizer.peek_token(true).is(TokenKind::CloseParenthesis) {
+    if !tokenizer.peek_token().is(TokenKind::CloseParenthesis) {
         parse_ins_operands_inside(tokenizer.clone(), &mut operands, scope)?;
     }
 
@@ -46,15 +46,15 @@ where
 {
     // <operand>
     operands.push(parse_operands(tokenizer.clone(), scope.clone())?);
-    tokenizer.skip_space(true);
-    let current = tokenizer.peek_token(true);
+    tokenizer.skip_space();
+    let current = tokenizer.peek_token();
     match current.kind {
         TokenKind::CloseParenthesis => Ok(()),
         // ("," <operand>)*
         TokenKind::Comma => {
             // ","
             tokenizer.next_token();
-            tokenizer.skip_space(true);
+            tokenizer.skip_space();
 
             // <operand>)*
             parse_ins_operands_inside(tokenizer, operands, scope)
@@ -63,7 +63,7 @@ where
             tokenizer.location(),
             format!(
                 "unexpected token, not for operands: {:?}",
-                tokenizer.peek_token(true),
+                tokenizer.peek_token(),
             ),
             "look at the bnf".to_string(),
         )),
@@ -97,22 +97,22 @@ where
 {
     // <ins>
     compound.push(parse_ins(tokenizer.clone(), scope.clone())?);
-    tokenizer.skip_space(true);
+    tokenizer.skip_space();
 
-    match tokenizer.peek_token(true).kind {
+    match tokenizer.peek_token().kind {
         TokenKind::NewLine | TokenKind::Semicolon => Ok(()),
         // ("," <ins>)*
         TokenKind::Comma => {
             // ","
             tokenizer.next_token();
-            tokenizer.skip_space(true);
+            tokenizer.skip_space();
 
             // <ins>)*
             parse_compound_ins_inside(tokenizer, compound, scope)
         }
         _ => Err(AsmError::ParseError(
             tokenizer.location(),
-            format!("invalid expression: {:?}", tokenizer.peek_token(true),),
+            format!("invalid expression: {:?}", tokenizer.peek_token(),),
             "look at the bnf".to_string(),
         )),
     }

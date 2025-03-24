@@ -1,7 +1,7 @@
 use std::rc::Rc;
 
-use util::Token;
 use data::Object;
+use util::Token;
 
 use crate::asm_tokenizer::TKNZR4ASM;
 
@@ -22,7 +22,7 @@ pub enum Data<'a> {
     Fn(Rc<DSLFn<'a>>),
     AsmTokenizer(Rc<TKNZR4ASM<'a>>),
     AsmToken(Token<'a>),
-    AsmData(Rc<dyn Object +'a>),
+    AsmData(Rc<dyn Object + 'a>),
     None,
 }
 

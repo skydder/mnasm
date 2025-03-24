@@ -66,7 +66,8 @@ fn apply_fn<'a>(
     eval(&fn_env, &fn_info.body)?
         .get_list()
         .unwrap()
-        .last().cloned()
+        .last()
+        .cloned()
         .ok_or(DSLError::Eval("something is wrong".to_string()))
 }
 
@@ -97,7 +98,7 @@ fn eval_built_in<'a>(
         Operator::Add => {
             let evaled_lhs = eval(env, lhs.as_ref())?;
             let evaled_rhs = eval(env, rhs.unwrap().as_ref())?;
-            match (evaled_lhs, evaled_rhs) {
+            match (evaled_lhs.clone(), evaled_rhs.clone()) {
                 (Data::Integer(l), Data::Integer(r)) => Ok(Data::Integer(l + r)),
                 (Data::String(l), Data::String(r)) => {
                     Ok(Data::String(Rc::new(format!("{}{}", l, r))))
@@ -107,13 +108,46 @@ fn eval_built_in<'a>(
                     list.push(r);
                     Ok(Data::List(Rc::new(list)))
                 }
-                _ => todo!(),
+                (Data::String(l), Data::AsmToken(r)) => {
+                    Ok(Data::String(Rc::new(format!("{}{}", l, r.kind))))
+                }
+                (Data::AsmToken(l), Data::AsmToken(r)) => {
+                    Ok(Data::String(Rc::new(format!("{}{}", l.kind, r.kind))))
+                }
+                (Data::AsmToken(l), Data::String(r)) => {
+                    Ok(Data::String(Rc::new(format!("{}{}", l.kind, r))))
+                }
+                (Data::String(l), Data::AsmData(r)) => {
+                    Ok(Data::String(Rc::new(format!("{}{}", l, r.to_code()))))
+                }
+                (Data::AsmData(l), Data::AsmData(r)) => Ok(Data::String(Rc::new(format!(
+                    "{}{}",
+                    l.to_code(),
+                    r.to_code()
+                )))),
+                (Data::AsmData(l), Data::String(r)) => {
+                    Ok(Data::String(Rc::new(format!("{}{}", l.to_code(), r))))
+                }
+                _ =>{
+                    eprintln!("{:?}, {:?}", evaled_lhs, evaled_rhs);
+                    todo!()
+                },
             }
         }
         Operator::CmpEqual => {
             let evaled_lhs = eval(env, lhs.as_ref())?;
             let evaled_rhs = eval(env, rhs.unwrap().as_ref())?;
-            Ok(Data::Integer((evaled_lhs == evaled_rhs) as i64))
+            match (&evaled_lhs, &evaled_rhs) {
+                (Data::AsmToken(t), Data::String(s)) => {
+                    eprintln!("{}, {}",t.kind, s.as_str());
+
+                    Ok(Data::Integer((format!("{}", t.kind) == s.as_str()) as i64))
+                }
+                (Data::String(s), Data::AsmToken(t)) => {
+                    Ok(Data::Integer((format!("{}", t.kind) == s.as_str()) as i64))
+                }
+                _ => Ok(Data::Integer((evaled_lhs == evaled_rhs) as i64)),
+            }
         }
         Operator::CmpLessThan => {
             let evaled_lhs = eval(env, lhs.as_ref())?;
@@ -216,7 +250,8 @@ fn eval_built_in<'a>(
                 .get_list()
                 .ok_or(DSLError::Eval(String::new()))?
                 .get(begin..end)
-                .ok_or(DSLError::Parse("invalid for slicing".to_string()))?.to_vec();
+                .ok_or(DSLError::Parse("invalid for slicing".to_string()))?
+                .to_vec();
             // eprintln!("slice: {:#?}", evaled);
             Ok(Data::List(Rc::new(evaled)))
         }
@@ -226,7 +261,9 @@ fn eval_built_in<'a>(
             match item {
                 Data::List(list) => Ok(Data::Integer(list.len() as i64)),
                 Data::String(s) => Ok(Data::Integer(s.len() as i64)),
-                _ => Err(DSLError::Eval("expected list or string but found other".to_string())),
+                _ => Err(DSLError::Eval(
+                    "expected list or string but found other".to_string(),
+                )),
             }
         }
         Operator::Print => {
@@ -253,6 +290,13 @@ fn eval_built_in<'a>(
                     .unwrap_or(0),
             ))
         }
+        Operator::IsNone => {
+            let evaled = lhs.eval_list_nth(env, 0)?;
+            eprintln!("isnoen{:?}", evaled);
+            Ok(Data::Integer(
+                (evaled == Data::None) as i64
+            ))
+        }
         Operator::Eval => {
             let evaled = eval(env, &lhs)?;
             Ok(evaled.get_list_last().unwrap_or(Data::None))
@@ -270,16 +314,93 @@ fn eval_built_in<'a>(
         Operator::TokenizerPeek => {
             let tokenizer = lhs.eval_list_nth(env, 0)?.get_tokenizer().unwrap(); //todo
 
-            Ok(Data::AsmToken(tokenizer.peek_token(false)))
+            Ok(Data::AsmToken(tokenizer.peek_token()))
+        }
+        Operator::TokenizerSpace => {
+            let tokenizer = lhs.eval_list_nth(env, 0)?.get_tokenizer().unwrap(); //todo
+            tokenizer.skip_space();
+            Ok(Data::None)
         }
         Operator::AsmParse => {
-            let object = lhs.eval_list_nth(env, 0)?.get_symbol().unwrap(); //todo
+            let object = lhs
+                .get_list_nth(0)
+                .unwrap()
+                .get_data()
+                .unwrap()
+                .get_symbol()
+                .unwrap(); //todo
             let tokenizer = lhs.eval_list_nth(env, 1)?.get_tokenizer().unwrap(); //todo
+            let loc = tokenizer.location();
             match object.as_str() {
-                "Ins" => Ok(Data::AsmData(Rc::new(parser::parse_compound_ins(tokenizer, Rc::new(RefCell::new(Scope::new(None, None)))).unwrap()))),
-                _ => Err(DSLError::Eval("expected spesific symbol".to_string()))
+                "Ins" => {
+                    let ins = parser::parse_compound_ins(
+                        tokenizer.clone(),
+                        Rc::new(RefCell::new(Scope::new(None, None))),
+                    );
+                    match ins {
+                        Ok(i) => Ok(Data::AsmData(Rc::new(i))),
+                        Err(_) => {
+                            tokenizer.back_to(loc);
+                            Ok(Data::None)
+                        }
+                    }
+                }
+                "Operand" => {
+                    let op = parser::parse_operands_obj(
+                        tokenizer.clone(),
+                        Rc::new(RefCell::new(Scope::new(None, None))),
+                    );
+                    match op {
+                        Ok(o) => Ok(Data::AsmData(Rc::from(o))),
+                        Err(_) => {
+                            tokenizer.back_to(loc);
+                            Ok(Data::None)
+                        }
+                    }
+                }
+                "Block" => {
+                    let op = parser::parse_block(
+                        tokenizer.clone(),
+                        0,
+                        Rc::new(RefCell::new(Scope::new(None, None))),
+                    );
+                    match op {
+                        Ok(o) => Ok(Data::AsmData(Rc::from(o))),
+                        Err(_) => {
+                            tokenizer.back_to(loc);
+                            Ok(Data::None)
+                        }
+                    }
+                }
+                "LabelDef" => {
+                    let op = parser::parse_label_def(
+                        tokenizer.clone(),
+                        0,
+                        Rc::new(RefCell::new(Scope::new(None, None))),
+                    );
+                    match op {
+                        Ok(o) => Ok(Data::AsmData(Rc::from(o))),
+                        Err(_) => {
+                            tokenizer.back_to(loc);
+                            Ok(Data::None)
+                        }
+                    }
+                }
+                "Pseudo" => {
+                    let op = parser::parse_pseudo_ins(
+                        tokenizer.clone(),
+                        Rc::new(RefCell::new(Scope::new(None, None))),
+                    );
+                    match op {
+                        Ok(o) => Ok(Data::AsmData(Rc::from(o))),
+                        Err(_) => {
+                            tokenizer.back_to(loc);
+                            Ok(Data::None)
+                        }
+                    }
+                }
+                _ => Err(DSLError::Eval("expected spesific symbol".to_string())),
             }
-            
         }
         _ => unreachable!(),
     }

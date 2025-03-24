@@ -13,14 +13,13 @@ pub use operands::{
     UnimplementedOperand,
 };
 pub use path::Path;
-pub use stmt::{
-    Block, CompoundIns, Ins, LabelDef, LabelInfo, Macro, PseudoIns, Scope, Stmt, StmtKind,
-};
+pub use stmt::{Block, CompoundIns, Ins, LabelDef, LabelInfo, PseudoIns, Scope, Stmt, StmtKind};
 pub trait Analyze {
     fn analyze(&self);
 }
 
 pub trait Codegen {
     fn codegen(&self) -> String;
+    fn to_code(&self) -> String;
 }
-pub trait Object: Analyze + Codegen+ Debug {}
+pub trait Object: Analyze + Codegen + Debug {}

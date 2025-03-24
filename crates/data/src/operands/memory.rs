@@ -1,5 +1,7 @@
 use util::{emit_error, Location};
 
+use crate::{Analyze, Codegen, Object};
+
 use super::{Immediate, Operand, OperandKind, Register};
 
 #[derive(Debug)]
@@ -169,6 +171,20 @@ impl<'a> Memory<'a> {
 }
 
 impl Operand for Memory<'_> {
+    fn size(&self) -> usize {
+        self.size
+    }
+
+    fn kind_op(&self) -> super::OperandKind {
+        OperandKind::Memory
+    }
+
+    fn op(&self) -> (OperandKind, usize) {
+        (self.kind_op(), self.size)
+    }
+}
+
+impl Codegen for Memory<'_> {
     fn codegen(&self) -> String {
         match self.size {
             0 => format!("{}", self.constituents),
@@ -182,18 +198,59 @@ impl Operand for Memory<'_> {
         }
     }
 
-    fn size(&self) -> usize {
-        self.size
-    }
-
-    fn kind(&self) -> super::OperandKind {
-        OperandKind::Memory
-    }
-
-    fn analyze(&self) {
-        // todo!();
-    }
-    fn op(&self) -> (OperandKind, usize) {
-        (self.kind(), self.size)
+    fn to_code(&self) -> String {
+        let mut code = "ptr".to_string();
+        code.push_str(match self.size {
+            0 => "",
+            8 => "byte",
+            16 => "word",
+            32 => "dword",
+            64 => "qword",
+            _ => {
+                emit_error!(self.location, "unexpected size")
+            }
+        });
+        code.push_str(&match &self.constituents {
+            MemoryConstituents::D(immediate) => format!("(_, _, _, {})", immediate.to_code()),
+            MemoryConstituents::B(register) => format!("({}, _, _, _)", register.to_code()),
+            MemoryConstituents::BI(register, register1) => {
+                format!("({}, {}, _, )", register.to_code(), register1.to_code())
+            }
+            MemoryConstituents::BD(register, immediate) => {
+                format!("({}, _, _, {})", register.to_code(), immediate.to_code())
+            }
+            MemoryConstituents::BID(register, register1, immediate) => format!(
+                "({}, {}, _, {})",
+                register.to_code(),
+                register1.to_code(),
+                immediate.to_code()
+            ),
+            MemoryConstituents::BIS(register, register1, scale) => format!(
+                "({}, {}, {}, _)",
+                register.to_code(),
+                register1.to_code(),
+                scale.value()
+            ),
+            MemoryConstituents::ISD(register, scale, immediate) => format!(
+                "(, {}, {}, {})",
+                register.to_code(),
+                scale.value(),
+                immediate.to_code()
+            ),
+            MemoryConstituents::BISD(register, register1, scale, immediate) => format!(
+                "({}, {}, {}, {})",
+                register.to_code(),
+                register1.to_code(),
+                scale.value(),
+                immediate.to_code()
+            ),
+        });
+        code
     }
 }
+
+impl Analyze for Memory<'_> {
+    fn analyze(&self) {}
+}
+
+impl Object for Memory<'_> {}

@@ -1,5 +1,7 @@
 use util::Location;
 
+use crate::{Analyze, Codegen, Object};
+
 use super::{Operand, OperandKind};
 
 #[derive(Debug, Clone, Copy)]
@@ -104,20 +106,31 @@ impl std::fmt::Display for Register<'_> {
 }
 
 impl Operand for Register<'_> {
-    fn codegen(&self) -> String {
-        format!("{}", self)
-    }
     fn size(&self) -> usize {
         self.size
     }
 
-    fn kind(&self) -> OperandKind {
+    fn kind_op(&self) -> OperandKind {
         OperandKind::Register(self.value, self.kind)
     }
 
-    fn analyze(&self) {}
-
     fn op(&self) -> (OperandKind, usize) {
-        (self.kind(), self.size)
+        (self.kind_op(), self.size)
     }
 }
+
+impl Codegen for Register<'_> {
+    fn codegen(&self) -> String {
+        format!("{}", self)
+    }
+
+    fn to_code(&self) -> String {
+        format!("{}", self)
+    }
+}
+
+impl Analyze for Register<'_> {
+    fn analyze(&self) {}
+}
+
+impl Object for Register<'_> {}

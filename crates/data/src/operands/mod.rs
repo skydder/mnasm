@@ -9,6 +9,8 @@ pub use label::{Label, LabelState};
 pub use memory::{Memory, Scale};
 pub use register::{Register, RegisterKind};
 
+use crate::{Analyze, Codegen, Object};
+
 pub enum OperandKind<'a> {
     Register(u8, RegisterKind),
     Memory,
@@ -29,30 +31,39 @@ impl<'a> UnimplementedOperand<'a> {
 }
 
 impl Operand for UnimplementedOperand<'_> {
-    fn codegen(&self) -> String {
-        // should be run after analyzed
-        self.opreand.to_string()
-    }
-
     fn size(&self) -> usize {
         64
     }
 
-    fn kind(&self) -> super::OperandKind {
+    fn kind_op(&self) -> super::OperandKind {
         OperandKind::Label
     }
-
-    fn analyze(&self) {}
 
     fn op(&self) -> (OperandKind, usize) {
         (OperandKind::Immediate(false), 64)
     }
 }
 
-pub trait Operand: Debug {
-    fn codegen(&self) -> String;
-    fn analyze(&self);
-    fn kind(&self) -> OperandKind;
+impl Codegen for UnimplementedOperand<'_> {
+    fn codegen(&self) -> String {
+        self.opreand.to_string()
+    }
+
+    fn to_code(&self) -> String {
+        self.opreand.to_string()
+    }
+}
+
+impl Analyze for UnimplementedOperand<'_> {
+    fn analyze(&self) {}
+}
+
+impl Object for UnimplementedOperand<'_> {}
+
+pub trait Operand: Debug + Object {
+    // fn codegen(&self) -> String;
+    // fn analyze(&self);
+    fn kind_op(&self) -> OperandKind;
     fn size(&self) -> usize;
     fn op(&self) -> (OperandKind, usize);
 }

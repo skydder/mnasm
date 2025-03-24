@@ -25,8 +25,19 @@ impl<'a> Ins<'a> {
     pub fn codegen(&self) -> String {
         let mut code = self.instruction.to_string();
         if !self.operands.is_empty() {
+            code.push(' ');
             stringify_operands(&mut code, &self.operands, 0);
         }
+        code
+    }
+
+    pub fn to_code(&self) -> String {
+        let mut code = self.instruction.to_string();
+        code.push('(');
+        if !self.operands.is_empty() {
+            stringify_operands(&mut code, &self.operands, 0);
+        }
+        code.push(')');
         code
     }
 
@@ -44,9 +55,9 @@ fn stringify_operands<'a>(
     n: usize,
 ) {
     if n >= operands.len() - 1 {
-        code.push_str(&format!(" {}", operands[n].codegen()));
+        code.push_str(&operands[n].codegen().to_string());
         return;
     }
-    code.push_str(&format!(" {},", operands[n].codegen()));
+    code.push_str(&format!("{}, ", operands[n].codegen()));
     stringify_operands(code, operands, n + 1);
 }
