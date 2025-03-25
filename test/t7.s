@@ -3,7 +3,7 @@
 }
 let(tsa, ptr<byte>(rax, _, _, -100)@)
 < test> {
-    test(rax, rbx), nop(), ret()
+    test(rax, rbx), !nop(), !ret()
     mov(rax, -1), mov(rbx, 100)
     mov(rax, helloworld)
     mov(al, ptr<byte>(rax, _, _, -100))

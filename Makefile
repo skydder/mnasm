@@ -9,4 +9,7 @@ test: test/t1.s test/t2.s test/t3.s test/t4.s test/t5.s test/t6.s test/t7.s
 
 5cc:
 	./test/test-5cc.sh
-.PHONY: test 5cc
+
+fizzbuzz:
+	./test/fizzbuzz/5cc.sh
+.PHONY: test 5cc fizzbuzz

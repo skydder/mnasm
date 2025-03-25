@@ -1,4 +1,4 @@
-use util::emit_error;
+use util::emit_warning;
 
 use crate::{Operand, OperandKind};
 
@@ -8,7 +8,7 @@ pub fn analyze_ins(ins: &Ins<'_>) {
     match ins_analyzer(ins.instruction, Operands::convert_operands(&ins.operands)) {
         Ok(_) => (),
         Err(_) => {
-            emit_error!(ins.location, "unsuppoted instruction or operands.");
+            emit_warning!(ins.location, "unsuppoted instruction or operands.");
         }
     }
 }

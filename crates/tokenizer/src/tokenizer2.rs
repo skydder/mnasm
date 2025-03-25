@@ -114,13 +114,22 @@ impl<'a> Tokenizer2<'a> {
         let p = self.current_status.borrow();
         let prev = p.args_data.clone();
         drop(p);
-        let status = self.current_status.replace(TokenizerStatus::new(
-            stream.begin(),
-            stream.end(),
-            args,
-            prev.clone(),
-            macro_status,
-        ));
+        let status = match macro_status {
+            MacroStatus::Other => self.current_status.replace(TokenizerStatus::new(
+                stream.begin(),
+                stream.end(),
+                prev.clone(),
+                prev.clone(),
+                macro_status,
+            )),
+            _ => self.current_status.replace(TokenizerStatus::new(
+                stream.begin(),
+                stream.end(),
+                args,
+                prev.clone(),
+                macro_status,
+            ))
+        };
         self.status_stack
             .borrow_mut()
             .push(status.clone().update(self.location())); // adhoc

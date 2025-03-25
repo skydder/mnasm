@@ -97,16 +97,6 @@ macro if(cond, then, else) {
     <end>
 }
 
-<fizz:global:.data> {
-    db("fizz")
-    db(10)#5
-}
-
-<buzz:global:.data> {
-    db("buzz")
-    db(10)#5
-}
-
 macro print(len, str,) {
     @[rax = 1]
     @[rdi = 1]
@@ -160,18 +150,55 @@ macro l(lhs, rhs,) {
     cmp(rax, 0)
 }
 
+<fizz:global:.data> {
+    db("fizz")
+    db(10)#5
+}
+
+<buzz:global:.data> {
+    db("buzz")
+    db(10)#5
+}
+
+<fizzbuzz:global:.data> {
+    db("fizzbuzz")
+    db(10)#9
+}
+
+<num:global:.data> {
+    db("num")
+    db(10)#4
+}
+
+
 <_start:global:.text> {
     let(counter, r8) #r8:counter
-    @for(@[@counter=1])(@l(@counter)(15))(@[@counter+=1]) {
-        @divide(counter)(3)
 
-        @if (cmp(rdx, 0)) {
-            @print(5)(fizz)
-        } {
-            @divide(counter)(5)
-            @if (cmp(rdx, 0)) {
+    @for(@[@counter=1])(@l(@counter)(40))(@[@counter+=1]) {
+        let(is_mul3, r9)
+        let(is_mul5, r10)
+        let(is_mul15, r11)
+
+        @divide(@counter)(3)
+        @[@is_mul3 = rdx]
+        
+        @divide(@counter)(5)
+        @[@is_mul5 = rdx]
+        @[@is_mul15 = rdx]
+        or(@is_mul15, @is_mul3)
+
+        @if (cmp(@is_mul15, 0)) {
+            @print(9)(fizzbuzz)
+        }{
+            @if (cmp(@is_mul5, 0)) {
                 @print(5)(buzz)
-            }()
+            }{
+                @if (cmp(@is_mul3, 0)) {
+                    @print(5)(fizz)
+                }{
+                    @print(4)(num)
+                }
+            }
         }
     }
     @exit(0)
