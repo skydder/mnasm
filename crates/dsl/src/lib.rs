@@ -164,10 +164,10 @@ pub fn read_stream(stream: Stream<'_>) -> DSLConstant<'_> {
 }
 
 // todo: remove used stream in Source2
-pub fn eval_macro<'a>(constant: DSLConstant<'a>, ast: AST<'a>) -> Stream<'a> {
+pub fn eval_macro<'a>(constant: DSLConstant<'a>, ast: AST<'a>) -> DSLResult<Stream<'a>> {
     let env = Rc::new(Environment::new(constant.source));
-    let output = run(&ast, env.clone(), constant.input).unwrap();
+    let output = run(&ast, env.clone(), constant.input)?;
     let begin = Location::new_source(constant.source, Source::new(output, "macro"));
     let end = begin.end();
-    Stream::new(begin, end)
+    Ok(Stream::new(begin, end))
 }

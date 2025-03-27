@@ -51,7 +51,7 @@ fn parse_stmt<'a>(token_seq: &Vec<Token<'a>>, counter: &mut usize) -> DSLResult<
 fn parse_while<'a>(token_seq: &Vec<Token<'a>>, counter: &mut usize) -> DSLResult<AST<'a>> {
     consume_token(Token::KeyWord(KeyWord::While), token_seq, counter)?;
     let cond = parse_expr(token_seq, counter)?;
-    eprintln!("test: {:?}", cond);
+    // eprintln!("test: {:?}", cond);
     let then = parse_block(token_seq, counter)?;
     Ok(AST::Expr(
         Operator::While,

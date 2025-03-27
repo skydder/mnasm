@@ -128,10 +128,10 @@ fn eval_built_in<'a>(
                 (Data::AsmData(l), Data::String(r)) => {
                     Ok(Data::String(Rc::new(format!("{}{}", l.to_code(), r))))
                 }
-                _ =>{
+                _ => {
                     eprintln!("{:?}, {:?}", evaled_lhs, evaled_rhs);
                     todo!()
-                },
+                }
             }
         }
         Operator::CmpEqual => {
@@ -282,9 +282,7 @@ fn eval_built_in<'a>(
         }
         Operator::IsNone => {
             let evaled = lhs.eval_list_nth(env, 0)?;
-            Ok(Data::Integer(
-                (evaled == Data::None) as i64
-            ))
+            Ok(Data::Integer((evaled == Data::None) as i64))
         }
         Operator::Eval => {
             let evaled = eval(env, &lhs)?;
@@ -414,7 +412,7 @@ fn is_equal<'a>(evaled_lhs: &Data<'a>, evaled_rhs: &Data<'a>) -> Data<'a> {
     }
 }
 
-fn eval_cases<'a>(env: &Environment<'a>, cond: &Data<'a>, cases: AST<'a>) -> DSLResult<Data<'a>>{
+fn eval_cases<'a>(env: &Environment<'a>, cond: &Data<'a>, cases: AST<'a>) -> DSLResult<Data<'a>> {
     for case in cases.get_list().unwrap().iter() {
         if !is_equal(cond, &case.eval_list_nth(env, 0)?).is_zero() {
             return case.eval_list_nth(env, 1);

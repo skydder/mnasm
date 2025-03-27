@@ -128,7 +128,7 @@ impl<'a> Tokenizer2<'a> {
                 args,
                 prev.clone(),
                 macro_status,
-            ))
+            )),
         };
         self.status_stack
             .borrow_mut()
@@ -232,17 +232,28 @@ impl<'a> Tokenizer<'a> for Tokenizer2<'a> {
                 self.consume_token(TokenKind::At);
                 self.turn_off_macroexpand();
                 if self.peek_token().is(TokenKind::OpenSquareBracket) {
+                    let loc = self.location();
                     let stream = read_macro_call_dsl(self);
                     self.turn_on_the_record();
-                    let stream =
-                        eval_macro(read_stream(stream), self.dsl_ast.borrow().clone().unwrap());
+                    let stream = eval_macro(
+                        read_stream(stream),
+                        self.dsl_ast
+                            .borrow()
+                            .clone()
+                            .unwrap_or_else(|| emit_error!(loc, "the dsl definition is missing.")),
+                    )
+                    .unwrap_or_else(|e| emit_error!(loc, "{}", e));
                     self.enter_macro(stream, Rc::new(HashMap::new()), MacroStatus::Other);
                     self.turn_on_macroexpand();
                     return self.peek_token();
                 } else if self.peek_token().is(TokenKind::OpenParenthesis) {
+                    let loc = self.location();
                     let stream: Stream<'a> = read_dsl_code(self);
                     self.turn_on_the_record();
-                    let ast: AST = parse(&tokenize(stream.stringfiy()).unwrap()).unwrap(); // todo
+                    let ast: AST = parse(
+                        &tokenize(stream.stringfiy()).unwrap_or_else(|e| emit_error!(loc, "{}", e)),
+                    )
+                    .unwrap_or_else(|e| emit_error!(loc, "{}", e)); // todo
                     if self.dsl_ast.replace(Some(ast)).is_some() {
                         todo!()
                     }
@@ -255,7 +266,9 @@ impl<'a> Tokenizer<'a> for Tokenizer2<'a> {
                 let macro_data = macro_data
                     .get(m.0)
                     .unwrap_or_else(|| emit_error!(self.location(), "undefined macro"));
-                // todo: check args len
+                if m.1.len() != macro_data.args.len() {
+                    emit_error!(self.location(), "unmacthed argment");
+                }
                 let args: Rc<Vec<(&'a str, Stream<'a>)>> =
                     Rc::new(macro_data.args.iter().copied().zip(m.1).collect());
                 let mut args_data = HashMap::new();
