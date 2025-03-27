@@ -1,0 +1,8 @@
+=== restructure plan ===
+
+flow:
+    now : strem - tokenizer -> token - parser - analyzer - codegen -> code
+    plan: stream - tokenizer -> token - parser -> ASTm -> AST - analyzer - codegen -> code
+
+macro:
+    ASTm -> AST 
