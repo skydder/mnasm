@@ -115,6 +115,7 @@ pub enum Operator {
     AsmParse,
     AsmToken,
     FnCall, // fn_name goes to lhs and args go to rhs as list
+    Match,
 }
 
 #[derive(Clone, Debug, PartialEq)]

@@ -43,6 +43,7 @@ fn parse_stmt<'a>(token_seq: &Vec<Token<'a>>, counter: &mut usize) -> DSLResult<
         Some(Token::KeyWord(KeyWord::Let)) => parse_let(token_seq, counter),
         Some(Token::KeyWord(KeyWord::While)) => parse_while(token_seq, counter),
         Some(Token::KeyWord(KeyWord::Break)) => parse_break(token_seq, counter),
+        Some(Token::KeyWord(KeyWord::Match)) => parse_match(token_seq, counter),
         _ => parse_expr_stmt(token_seq, counter),
     }
 }
@@ -86,6 +87,25 @@ fn parse_if<'a>(token_seq: &Vec<Token<'a>>, counter: &mut usize) -> DSLResult<AS
     Ok(AST::Expr(
         Operator::If,
         Rc::new(AST::List(Rc::new(vec![cond, then, _else]))),
+        None,
+    ))
+}
+
+fn parse_match<'a>(token_seq: &Vec<Token<'a>>, counter: &mut usize) -> DSLResult<AST<'a>> {
+    consume_token(Token::KeyWord(KeyWord::Match), token_seq, counter)?;
+    let mut cases = Vec::new();
+    let cond = parse_expr(token_seq, counter)?;
+    consume_token(Token::KeyWord(KeyWord::OpenBrace), token_seq, counter)?;
+    while peek_token(token_seq, counter) == Some(Token::KeyWord(KeyWord::Case)) {
+        consume_token(Token::KeyWord(KeyWord::Case), token_seq, counter)?;
+        let cond = parse_expr(token_seq, counter)?;
+        let block = parse_block(token_seq, counter)?;
+        cases.push(AST::List(Rc::new(vec![cond, block])));
+    }
+    consume_token(Token::KeyWord(KeyWord::CloseBrace), token_seq, counter)?;
+    Ok(AST::Expr(
+        Operator::Match,
+        Rc::new(AST::List(Rc::new(vec![cond, AST::List(Rc::new(cases))]))),
         None,
     ))
 }

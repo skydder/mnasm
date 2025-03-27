@@ -137,17 +137,7 @@ fn eval_built_in<'a>(
         Operator::CmpEqual => {
             let evaled_lhs = eval(env, lhs.as_ref())?;
             let evaled_rhs = eval(env, rhs.unwrap().as_ref())?;
-            match (&evaled_lhs, &evaled_rhs) {
-                (Data::AsmToken(t), Data::String(s)) => {
-                    eprintln!("{}, {}",t.kind, s.as_str());
-
-                    Ok(Data::Integer((format!("{}", t.kind) == s.as_str()) as i64))
-                }
-                (Data::String(s), Data::AsmToken(t)) => {
-                    Ok(Data::Integer((format!("{}", t.kind) == s.as_str()) as i64))
-                }
-                _ => Ok(Data::Integer((evaled_lhs == evaled_rhs) as i64)),
-            }
+            Ok(is_equal(&evaled_lhs, &evaled_rhs))
         }
         Operator::CmpLessThan => {
             let evaled_lhs = eval(env, lhs.as_ref())?;
@@ -292,7 +282,6 @@ fn eval_built_in<'a>(
         }
         Operator::IsNone => {
             let evaled = lhs.eval_list_nth(env, 0)?;
-            eprintln!("isnoen{:?}", evaled);
             Ok(Data::Integer(
                 (evaled == Data::None) as i64
             ))
@@ -402,8 +391,36 @@ fn eval_built_in<'a>(
                 _ => Err(DSLError::Eval("expected spesific symbol".to_string())),
             }
         }
+
+        Operator::Match => {
+            let cond = lhs.eval_list_nth(env, 0)?;
+            eval_cases(env, &cond, lhs.get_list_nth(1).unwrap())
+        }
         _ => unreachable!(),
     }
+}
+
+fn is_equal<'a>(evaled_lhs: &Data<'a>, evaled_rhs: &Data<'a>) -> Data<'a> {
+    match (&evaled_lhs, &evaled_rhs) {
+        (Data::AsmToken(t), Data::String(s)) => {
+            // eprintln!("{}, {}",t.kind, s.as_str());
+
+            Data::Integer((format!("{}", t.kind) == s.as_str()) as i64)
+        }
+        (Data::String(s), Data::AsmToken(t)) => {
+            Data::Integer((format!("{}", t.kind) == s.as_str()) as i64)
+        }
+        _ => Data::Integer((evaled_lhs == evaled_rhs) as i64),
+    }
+}
+
+fn eval_cases<'a>(env: &Environment<'a>, cond: &Data<'a>, cases: AST<'a>) -> DSLResult<Data<'a>>{
+    for case in cases.get_list().unwrap().iter() {
+        if !is_equal(cond, &case.eval_list_nth(env, 0)?).is_zero() {
+            return case.eval_list_nth(env, 1);
+        }
+    }
+    Ok(Data::None)
 }
 
 pub fn run<'a>(ast: &AST<'a>, env: Rc<Environment<'a>>, input: String) -> DSLResult<String> {

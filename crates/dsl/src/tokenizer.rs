@@ -54,6 +54,8 @@ pub enum KeyWord {
     LAnd,
     Astar,
     MulAssign,
+    Match,
+    Case,
 }
 
 impl KeyWord {
@@ -86,6 +88,8 @@ impl KeyWord {
             KeyWord::LAnd => 2,
             KeyWord::Astar => 1,
             KeyWord::MulAssign => 2,
+            KeyWord::Match => 5,
+            KeyWord::Case => 4,
         }
     }
 
@@ -117,6 +121,8 @@ pub fn tokenize<'a>(code: &'a str) -> DSLResult<Vec<Token<'a>>> {
                     "fn" => token_seq.push(Token::KeyWord(KeyWord::Fn)),
                     "while" => token_seq.push(Token::KeyWord(KeyWord::While)),
                     "break" => token_seq.push(Token::KeyWord(KeyWord::Break)),
+                    "match" => token_seq.push(Token::KeyWord(KeyWord::Match)),
+                    "case" => token_seq.push(Token::KeyWord(KeyWord::Case)),
                     _ => token_seq.push(Token::Identifier(&code[begin..counter])),
                 }
                 continue;
