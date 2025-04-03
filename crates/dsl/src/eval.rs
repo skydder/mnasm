@@ -1,9 +1,9 @@
-use std::{cell::RefCell, rc::Rc};
+use std::{cell::RefCell, fs, io::Read, rc::Rc};
 
 use data::Scope;
 use util::Tokenizer;
 
-use crate::{asm_tokenizer::TKNZR4ASM, data::DSLFn, DSLError, DSLResult};
+use crate::{asm_tokenizer::TKNZR4ASM, data::DSLFn, parse, tokenize, DSLError, DSLResult};
 
 use super::{Data, Environment, Operator, AST};
 
@@ -394,6 +394,16 @@ fn eval_built_in<'a>(
             let cond = lhs.eval_list_nth(env, 0)?;
             eval_cases(env, &cond, lhs.get_list_nth(1).unwrap())
         }
+        // Operator::Import => {
+        //     let file = lhs.eval_list_nth(env, 0)?.get_string().unwrap();
+        //     if fs::exists(file.as_ref()).is_ok_and(|x|x) {
+        //         let mut code = fs::File::open(file.as_ref()).unwrap();
+        //         let mut buf = String::new();
+        //         code.read_to_string(&mut buf);
+        //         eval_code(env, &parse(&tokenize(&buf)?)?);
+        //     }
+        //     todo!()
+        // }
         _ => unreachable!(),
     }
 }
@@ -421,6 +431,42 @@ fn eval_cases<'a>(env: &Environment<'a>, cond: &Data<'a>, cases: AST<'a>) -> DSL
     Ok(Data::None)
 }
 
+fn eval_code<'a>(env: &Environment<'a>, ast: &AST<'a>) -> DSLResult<()> {
+    match ast {
+        AST::List(list) => {
+            for func in list.as_ref() {
+                let name = func.get_list_nth(0).ok_or(DSLError::Eval(String::new()))?;
+                let params = if let AST::List(list) =
+                    func.get_list_nth(1).ok_or(DSLError::Eval(String::new()))?
+                {
+                    list
+                } else {
+                    todo!()
+                };
+                let body = func.get_list_nth(2).ok_or(DSLError::Eval(String::new()))?;
+                let f = Data::Fn(Rc::new(DSLFn {
+                    body: body.clone(),
+                    params: params.to_vec(),
+                }));
+                env.push_global(name.get_data().unwrap().get_symbol().unwrap(), f);
+            }
+            Ok(())
+        }
+        // AST::Expr(Operator::Import, lhs, None) => {
+        //     let file = lhs.eval_list_nth(env, 0)?.get_string().unwrap();
+        //     if fs::exists(file.as_ref()).is_ok_and(|x|x) {
+        //         let mut code = fs::File::open(file.as_ref()).unwrap();
+
+        //         let mut buf = String::new();
+        //         code.read_to_string(&mut buf);
+        //         eval_code(env, &parse(&tokenize(&buf)?)?);
+        //     }
+        //     todo!()
+        // }
+        _ => todo!(),
+    }
+}
+
 pub fn run<'a>(ast: &AST<'a>, env: Rc<Environment<'a>>, input: String) -> DSLResult<String> {
     match ast {
         AST::List(list) => {
@@ -441,6 +487,16 @@ pub fn run<'a>(ast: &AST<'a>, env: Rc<Environment<'a>>, input: String) -> DSLRes
                 env.push_global(name.get_data().unwrap().get_symbol().unwrap(), f);
             }
         }
+        // AST::Expr(Operator::Import, lhs, None) => {
+        //     let file = lhs.eval_list_nth(&env, 0)?.get_string().unwrap();
+        //     if fs::exists(file.as_ref()).is_ok_and(|x|x) {
+        //         let mut code = fs::File::open(file.as_ref()).unwrap();
+        //         let mut buf = String::new();
+        //         code.read_to_string(&mut buf);
+        //         eval_code(&env, &parse(&tokenize(&buf)?)?);
+        //     }
+        //     todo!()
+        // }
         _ => todo!(),
     }
 

@@ -21,11 +21,6 @@ pub use data::Data;
 mod asm_tokenizer;
 // use asm_tokenizer::TKNZR4ASM;
 
-// ====
-// ++todo++
-// enable dsl to use parser
-// ====
-
 pub struct DSLConstant<'a> {
     source: Source2<'a>,
     input: String,
@@ -116,6 +111,7 @@ pub enum Operator {
     AsmToken,
     FnCall, // fn_name goes to lhs and args go to rhs as list
     Match,
+    Import,
 }
 
 #[derive(Clone, Debug, PartialEq)]

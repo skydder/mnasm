@@ -325,6 +325,13 @@ fn parse_postfix<'a>(token_seq: &Vec<Token<'a>>, counter: &mut usize) -> DSLResu
                             None,
                         ));
                     }
+                    "import" => {
+                        return Ok(AST::Expr(
+                            Operator::Import,
+                            Rc::new(AST::List(Rc::new(list))),
+                            None,
+                        ));
+                    }
                     _ => (),
                 }
             }

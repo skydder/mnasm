@@ -23,3 +23,5 @@ pub trait Codegen {
     fn to_code(&self) -> String;
 }
 pub trait Object: Analyze + Codegen + Debug {}
+
+mod new_data;
