@@ -1,19 +1,19 @@
-use std::{cell::RefCell, rc::{Rc, Weak}};
+use std::{cell::RefCell, rc::Rc};
 
 use util::{AsmError, Location};
 
 use super::{
-    operand::{Immediate, Label, Memory, Register},
-    path::Path,
+    operand::{Immediate, Path, Memory, Register},
+    ident::Ident,
 };
 
 pub enum Ast<'code> {
-    Ins(Label<'code>, Vec<Ast<'code>>),
+    Ins(Ident<'code>, Vec<Ast<'code>>),
     Label(Path<'code>),
-    LabelDef(Label<'code>, Box<Ast<'code>>),
-    Block(Vec<Ast<'code>>),
-    BlockLessBlock(Vec<Ast<'code>>),
-    Macro(Label<'code>, Box<Ast<'code>>, Vec<Label<'code>>),
+    LabelDef(Ident<'code>, Box<Ast<'code>>),
+    Block(Vec<Ast<'code>>, Location<'code>),
+    BlockLessBlock(Vec<Ast<'code>>, Location<'code>),
+    Macro(Ident<'code>, Box<Ast<'code>>, Vec<Ast<'code>>), // 1 -> argument
     Register(Register<'code>),
     Memory(Memory<'code>),
     Immediate(Immediate<'code>),
@@ -33,7 +33,17 @@ impl<'code> Ast<'code> {
     }
 
     pub fn location(&self) -> Location<'code> {
-        todo!()
+        match self {
+            Ast::Ins(label, _) => label.location(),
+            Ast::Label(path) => path.location(),
+            Ast::LabelDef(label, _) => label.location(),
+            Ast::Block(_, loc) => loc.clone(),
+            Ast::BlockLessBlock(_, loc) => loc.clone(),
+            Ast::Macro(label, ..) => label.location(),
+            Ast::Register(register) => register.location(),
+            Ast::Memory(memory) => memory.location(),
+            Ast::Immediate(immediate) => immediate.location(),
+        }
     }
 
     pub fn print_ast(&self) -> String {
@@ -42,8 +52,8 @@ impl<'code> Ast<'code> {
                 // format!("{}(", label, )
             }
             Ast::Label(path) => todo!(),
-            Ast::Block(asts) => todo!(),
-            Ast::BlockLessBlock(asts) => todo!(),
+            Ast::Block(asts, _) => todo!(),
+            Ast::BlockLessBlock(asts, _) => todo!(),
             Ast::Macro(label, ast, labels) => todo!(),
             Ast::Register(register) => todo!(),
             Ast::Memory(memory) => todo!(),
@@ -56,12 +66,12 @@ impl<'code> Ast<'code> {
 
 pub struct Scope<'code> {
     global: Option<Rc<Scope<'code>>>,
-    name: Label<'code>,
+    name: Ident<'code>,
     in_scope: RefCell<Vec<Rc<Scope<'code>>>>,
 }
 
 impl<'code> Scope<'code> {
-    pub fn new(global: Rc<Scope<'code>>, name: Label<'code>) -> Rc<Self> {
+    pub fn new(global: Rc<Scope<'code>>, name: Ident<'code>) -> Rc<Self> {
         Rc::new(Self {
             global: Some(global),
             name,
@@ -69,7 +79,7 @@ impl<'code> Scope<'code> {
         })
     }
 
-    fn new_global(name: Label<'code>) -> Rc<Self> {
+    fn new_global(name: Ident<'code>) -> Rc<Self> {
         Rc::new(Self {
             global: None,
             name,
@@ -77,7 +87,7 @@ impl<'code> Scope<'code> {
         })
     }
 
-    fn has(&self, name: Label<'code>) -> bool {
+    fn has(&self, name: Ident<'code>) -> bool {
         for scope in self.in_scope.borrow().iter() {
             if scope.name == name {
                 return true;
@@ -90,8 +100,15 @@ impl<'code> Scope<'code> {
         // recursive
         todo!()
     }
-    pub fn add_new_scope(self: Rc<Self>, name: Label<'code>) -> Rc<Scope<'code>> {
-        let new = Scope::new(if self.global.is_none() {self.clone()} else {self.global.clone().unwrap()}, name);
+    pub fn add_new_scope(self: Rc<Self>, name: Ident<'code>) -> Rc<Scope<'code>> {
+        let new = Scope::new(
+            if self.global.is_none() {
+                self.clone()
+            } else {
+                self.global.clone().unwrap()
+            },
+            name,
+        );
         self.in_scope.borrow_mut().push(new.clone());
         new
     }
@@ -132,13 +149,13 @@ pub fn analyze<'code>(ast: &Ast<'code>, scope: Rc<Scope<'code>>) -> Result<(), A
             }
             Ok(())
         }
-        Ast::Block(asts) => {
+        Ast::Block(asts, _) => {
             for a in asts {
                 analyze(a, scope.clone())?;
             }
             Ok(())
         }
-        Ast::BlockLessBlock(asts) => {
+        Ast::BlockLessBlock(asts, _) => {
             for a in asts {
                 analyze(a, scope.clone())?;
             }

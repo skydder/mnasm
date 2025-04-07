@@ -46,6 +46,7 @@ macro_rules! emit_warning {
 
 #[derive(Debug)]
 pub enum AsmError<'a> {
+    IOError(String),
     ParseError(Location<'a>, String, String),
 }
 
@@ -58,6 +59,9 @@ impl std::fmt::Display for AsmError<'_> {
                     "[Error in Parsing] {}\n-> {}\n: (tips) {}\n",
                     msg, location, sub_msg
                 )
+            }
+            AsmError::IOError(msg) => {
+                write!(f, "[Error] {}", msg)
             }
         }
     }

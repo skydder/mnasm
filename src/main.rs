@@ -9,10 +9,10 @@ use std::{
 };
 use tempfile::NamedTempFile;
 
-use analyzer::analyze;
-use codegen::codegen_code;
-use parser::parse_code;
-use tokenizer::Tokenizer2;
+// use analyzer::analyze;
+// use codegen::codegen_code;
+// use parser::parse_code;
+// use tokenizer::Tokenizer2;
 use util::{emit_msg_and_exit, set_iw, Location, Source, Tokenizer};
 
 fn main() {
@@ -21,17 +21,18 @@ fn main() {
 }
 
 fn assemble(file: &str, flag: &RunFlags) -> String {
-    let source = Source::new_with_file(file);
-    let source = vec![source];
-    let source = RefCell::new(source);
-    let loc = Location::new(&source);
-    let t = Rc::new(Tokenizer2::new_tokenizer(loc));
-    let ast = parse_code(t.clone()).unwrap_or_else(|err| emit_msg_and_exit(format!("{}", err)));
-    if flag.is_e {
-        println!("{}", t.code());
-    }
-    analyze(&ast);
-    codegen_code(&ast)
+    // let source = Source::new_with_file(file);
+    // let source = vec![source];
+    // let source = RefCell::new(source);
+    // let loc = Location::new(&source);
+    // let t = Rc::new(Tokenizer2::new_tokenizer(loc));
+    // let ast = parse_code(t.clone()).unwrap_or_else(|err| emit_msg_and_exit(format!("{}", err)));
+    // if flag.is_e {
+    //     println!("{}", t.code());
+    // }
+    // analyze(&ast);
+    // codegen_code(&ast)
+    todo!()
 }
 
 fn assemble_by_nasm(nasm_file: &Path, out_file: &Path) -> Result<(), io::Error> {

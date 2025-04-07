@@ -1,19 +1,17 @@
 use std::fmt::Debug;
 
-use crate::token::{Token, TokenKind};
+use crate::{
+    token::{Token, TokenKind},
+    AsmResult,
+};
 
-pub trait Tokenizer<'a>
+pub trait Tokenizer<'code>
 where
     Self: Clone + Debug,
 {
-    fn location(&self) -> crate::Location<'a>;
-    fn peek_token(&self) -> Token<'a>;
-    fn next_token(&self) -> Token<'a>;
+    fn location(&self) -> crate::Location<'code>;
+    fn peek_token(&self) -> Token<'code>;
+    fn next_token(&self) -> Token<'code>;
     fn skip_space(&self);
-    fn skip_token(&self);
-    fn consume_token(&self, consumeing_token: TokenKind<'a>);
-    fn consume_newline(&self);
-    fn consume_indent(&self);
-    fn add_to_code(&self, tokenkind: TokenKind<'a>);
-    fn code(&self) -> String;
+    fn consume_token(&self, consumeing_token: TokenKind) -> AsmResult<'code, ()>;
 }

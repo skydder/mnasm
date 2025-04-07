@@ -11,7 +11,7 @@ use crate::{
     tokenizer::Tokenizer as InnerTokenizer,
     Macro,
 };
-use dsl::{eval_macro, parse, read_stream, tokenize, AST};
+// use dsl::{eval_macro, parse, read_stream, tokenize, AST};
 use util::{emit_error, Location, Stream, Token, TokenKind, Tokenizer};
 
 #[derive(Debug, Clone, PartialEq)]
@@ -69,7 +69,7 @@ pub struct Tokenizer2<'a> {
     status_stack: RefCell<Vec<TokenizerStatus<'a>>>,
 
     macro_data: RefCell<HashMap<&'a str, Macro<'a>>>,
-    code: RefCell<Vec<TokenKind<'a>>>, // code itself doesn't need location
+    code: RefCell<Vec<TokenKind>>, // code itself doesn't need location
 
     macro_stack: RefCell<Vec<Rc<HashMap<&'a str, Macro<'a>>>>>,
     macro_depth2: Cell<i64>,

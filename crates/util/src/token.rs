@@ -1,9 +1,11 @@
 // const PUNCTUATOR: &[&str] = &["<", ">", "{", "}", "(", ")", ":", ";"];
 
+use std::rc::Rc;
+
 use crate::Location;
 
-#[derive(PartialEq, Debug, Clone, Copy)]
-pub enum TokenKind<'a> {
+#[derive(PartialEq, Debug, Clone)]
+pub enum TokenKind {
     LessThan,
     GreaterThan,
     OpenParenthesis,
@@ -21,21 +23,21 @@ pub enum TokenKind<'a> {
     At,
     BackQuote,
     Number(u64),
-    String(&'a str),
-    Identifier(&'a str),
-    // Reserved(&'a str),
+    String(Rc<String>),
+    Identifier(Rc<String>),
+    // Reserved(&'code str),
     NewLine,
     Space,
     EOS,
-    Arcane(&'a str),
+    Arcane(char),
 }
 
-impl std::fmt::Display for TokenKind<'_> {
+impl std::fmt::Display for TokenKind {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
             "{}",
-            match *self {
+            match self {
                 TokenKind::LessThan => "<".to_string(),
                 TokenKind::GreaterThan => ">".to_string(),
                 TokenKind::OpenParenthesis => "(".to_string(),
@@ -69,15 +71,15 @@ impl std::fmt::Display for TokenKind<'_> {
     }
 }
 
-#[derive(Debug, Clone, Copy)]
-pub struct Token<'a> {
-    pub kind: TokenKind<'a>,
+#[derive(Debug, Clone)]
+pub struct Token<'code> {
+    pub kind: TokenKind,
     pub len: usize,
-    pub location: Location<'a>,
+    pub location: Location<'code>,
 }
 
-impl<'a> Token<'a> {
-    pub fn new(kind: TokenKind<'a>, len: usize, location: Location<'a>) -> Self {
+impl<'code> Token<'code> {
+    pub fn new(kind: TokenKind, len: usize, location: Location<'code>) -> Self {
         Self {
             kind,
             len,
@@ -89,18 +91,18 @@ impl<'a> Token<'a> {
         matches!(self.kind, TokenKind::Identifier(_))
     }
 
-    pub fn is(&self, token: TokenKind) -> bool {
-        self.kind == token
+    pub fn is(&self, token: &TokenKind) -> bool {
+        self.kind == *token
     }
 
-    pub fn get_identifier(&self) -> Option<&'a str> {
-        match self.kind {
-            TokenKind::Identifier(ident) => Some(ident),
+    pub fn get_identifier(&self) -> Option<Rc<String>> {
+        match &self.kind {
+            TokenKind::Identifier(ident) => Some(ident.clone()),
             _ => None,
         }
     }
 
-    pub fn tokenize(location: Location<'a>) -> Token<'a> {
+    pub fn tokenize(location: Location<'code>) -> Token<'code> {
         let raw = location.current_slice();
         match raw.chars().nth(0) {
             None => Token::new(TokenKind::EOS, 0, location),
@@ -130,14 +132,22 @@ impl<'a> Token<'a> {
                 {
                     i += 1;
                 }
-                Token::new(TokenKind::Identifier(&raw[..i]), i, location)
+                Token::new(
+                    TokenKind::Identifier(Rc::new(raw[..i].to_string())),
+                    i,
+                    location,
+                )
             }
             Some('\"') => {
                 let mut i = 1;
                 while raw.chars().nth(i).is_none_or(|c| c != '"') {
                     i += 1;
                 }
-                Token::new(TokenKind::String(&raw[1..i]), i + 1, location)
+                Token::new(
+                    TokenKind::String(Rc::new(raw[1..i].to_string())),
+                    i + 1,
+                    location,
+                )
             }
             Some('>') => Token::new(TokenKind::GreaterThan, 1, location),
             Some('<') => Token::new(TokenKind::LessThan, 1, location),
@@ -155,7 +165,7 @@ impl<'a> Token<'a> {
             Some('!') => Token::new(TokenKind::Not, 1, location),
             Some('[') => Token::new(TokenKind::OpenSquareBracket, 1, location),
             Some(']') => Token::new(TokenKind::CloseSquareBracket, 1, location),
-            _ => Token::new(TokenKind::Arcane(&raw[..1]), 1, location),
+            _ => Token::new(TokenKind::Arcane(raw.chars().nth(0).unwrap()), 1, location),
         }
     }
 }
