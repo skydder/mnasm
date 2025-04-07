@@ -1,0 +1,14 @@
+### plan of DSL
+- c-like grammar
+- DSL -> stream -> codes
+- like rust proc macro
+
+- raw stream(str or Token seq) : input(global variable)
+- way to access: per token or per letter or per word
+- way to generate stream: output (global variable)
+- variable type is only token or str? or add list (under planning)
+- gensym
+- operator: ==, +, =,
+- control: match, loop,  
+
+- read, eval, output

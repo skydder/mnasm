@@ -1,0 +1,16 @@
+/target
+/legacy
+/scripts
+/a.out
+/5cc-n
+/out.s
+/test/5cc-n
+/out.o
+/test/target/
+/.gdb_history
+/peda-session-arith.txt
+/test.txt
+/test1.txt
+/test2.txt
+/testsasa
+/junk

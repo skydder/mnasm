@@ -1,0 +1,13 @@
+<ident> = alphabete (alphabete | number)*
+
+<code> = <stmt>*
+<stmt> = <compound_ins> | <block> | <label_def> | <pseudo_ins> | <gramatic_macro>
+<block> = "{\n" <stmt>* "\n}"
+<label_def> = "<" <label> (":" <visibility>)? (":" <section>)? ">" (<block> | null)
+<visibility> = "global"
+<section> = ".text" | ".data" | ".bss" | <ident>
+<compound_ins> = <ins> ("," <ins>)*
+<ins> = <ins_name> "(" <operand> ("," <operand>)* ")"
+<pseudo_ins> = ("extern" "(" <fn_name> ("," <fn_name>)* ")") | (("db" | "resb") "(" <data>* ")") | ("nasm" "(" <nasm-code>* ")") | <nasm-ins> "("<nasm-operands>?")"
+<gramatic_macro> = "let" "(" <label> "," <operand>? ")"
+<operand>
