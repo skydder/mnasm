@@ -1,7 +1,6 @@
 use std::rc::Rc;
 
-use data::{Ast, Ident};
-use util::{AsmError, AsmResult, TokenKind, Tokenizer};
+use util::{AsmResult, TokenKind, Tokenizer};
 
 use crate::Parser;
 

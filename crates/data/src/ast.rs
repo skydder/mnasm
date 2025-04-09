@@ -2,21 +2,30 @@ use std::{cell::RefCell, rc::Rc};
 
 use util::{AsmError, Location};
 
+use crate::Strings;
+
 use super::{
     operand::{Immediate, Path, Memory, Register},
     ident::Ident,
 };
 
+pub enum Section {
+    Text,
+    Data,
+    Bss,
+    Custom(Rc<String>)
+}
+
 pub enum Ast<'code> {
     Ins(Ident<'code>, Vec<Ast<'code>>),
     Label(Path<'code>),
-    LabelDef(Ident<'code>, Box<Ast<'code>>),
-    Block(Vec<Ast<'code>>, Location<'code>),
-    BlockLessBlock(Vec<Ast<'code>>, Location<'code>),
-    Macro(Ident<'code>, Box<Ast<'code>>, Vec<Ast<'code>>), // 1 -> argument
+    LabelDef(Ident<'code>, Option<Section>, bool, Option<Box<Ast<'code>>>),
+    Block(Vec<Ast<'code>>, Location<'code>, bool),
+    Macro(Ident<'code>, Box<Ast<'code>>, Vec<Ast<'code>>), // 1 ->
     Register(Register<'code>),
     Memory(Memory<'code>),
     Immediate(Immediate<'code>),
+    String(Strings<'code>),
 }
 
 #[allow(clippy::needless_lifetimes)]
@@ -36,29 +45,29 @@ impl<'code> Ast<'code> {
         match self {
             Ast::Ins(label, _) => label.location(),
             Ast::Label(path) => path.location(),
-            Ast::LabelDef(label, _) => label.location(),
-            Ast::Block(_, loc) => loc.clone(),
-            Ast::BlockLessBlock(_, loc) => loc.clone(),
+            Ast::LabelDef(label, ..) => label.location(),
+            Ast::Block(_, loc, ..) => loc.clone(),
             Ast::Macro(label, ..) => label.location(),
             Ast::Register(register) => register.location(),
             Ast::Memory(memory) => memory.location(),
             Ast::Immediate(immediate) => immediate.location(),
+            Ast::String(strings) => todo!(),
         }
     }
 
     pub fn print_ast(&self) -> String {
         match self {
             Ast::Ins(label, asts) => {
-                // format!("{}(", label, )
-            }
+                        // format!("{}(", label, )
+                    }
             Ast::Label(path) => todo!(),
-            Ast::Block(asts, _) => todo!(),
-            Ast::BlockLessBlock(asts, _) => todo!(),
+            Ast::Block(asts, ..) => todo!(),
             Ast::Macro(label, ast, labels) => todo!(),
             Ast::Register(register) => todo!(),
             Ast::Memory(memory) => todo!(),
             Ast::Immediate(immediate) => todo!(),
             Ast::LabelDef(..) => todo!(),
+            Ast::String(strings) => todo!(),
         }
         todo!()
     }
@@ -140,7 +149,7 @@ pub fn analyze<'code>(ast: &Ast<'code>, scope: Rc<Scope<'code>>) -> Result<(), A
                 Ok(())
             }
         }
-        Ast::LabelDef(label, labeled_ast) => {
+        Ast::LabelDef(label, _, _, Some(labeled_ast)) => {
             let new = scope.clone().add_new_scope(label.clone()); // nl
             if labeled_ast.is_block() {
                 analyze(labeled_ast, new)?;
@@ -149,13 +158,11 @@ pub fn analyze<'code>(ast: &Ast<'code>, scope: Rc<Scope<'code>>) -> Result<(), A
             }
             Ok(())
         }
-        Ast::Block(asts, _) => {
-            for a in asts {
-                analyze(a, scope.clone())?;
-            }
+        Ast::LabelDef(label, _, _, None) => {
+            let new = scope.clone().add_new_scope(label.clone()); 
             Ok(())
         }
-        Ast::BlockLessBlock(asts, _) => {
+        Ast::Block(asts, ..) => {
             for a in asts {
                 analyze(a, scope.clone())?;
             }
@@ -165,5 +172,6 @@ pub fn analyze<'code>(ast: &Ast<'code>, scope: Rc<Scope<'code>>) -> Result<(), A
         Ast::Register(register) => Ok(()),
         Ast::Memory(memory) => Ok(()),
         Ast::Immediate(immediate) => Ok(()),
+        Ast::String(_) => Ok(()),
     }
 }

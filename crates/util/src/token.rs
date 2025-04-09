@@ -102,6 +102,13 @@ impl<'code> Token<'code> {
         }
     }
 
+    pub fn get_strings(&self) -> Option<Rc<String>> {
+        match &self.kind {
+            TokenKind::String(ident) => Some(ident.clone()),
+            _ => None,
+        }
+    }
+
     pub fn tokenize(location: Location<'code>) -> Token<'code> {
         let raw = location.current_slice();
         match raw.chars().nth(0) {

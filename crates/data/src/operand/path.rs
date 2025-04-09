@@ -23,6 +23,14 @@ impl<'code> Path<'code> {
     pub fn location(&self) -> Location<'code> {
         self.location.clone()
     }
+
+    pub fn new(
+        location: Location<'code>,
+        path: Vec<Ident<'code>>,
+        is_relative: bool,
+    ) -> Self {
+        Self { is_relative, path, location }
+    }
 }
 
 impl Operand for Path<'_> {}

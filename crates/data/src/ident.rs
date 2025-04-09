@@ -15,4 +15,8 @@ impl<'code> Ident<'code> {
     pub fn location(&self) -> Location<'code> {
         self.location.clone()
     }
+
+    pub fn get_str(&self) -> &str {
+        self.label.as_str()
+    } 
 }
