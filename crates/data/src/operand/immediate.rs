@@ -2,6 +2,7 @@ use util::Location;
 
 use super::Operand;
 
+#[derive(Debug)]
 pub struct Immediate<'code> {
     location: Location<'code>,
     data: u64,

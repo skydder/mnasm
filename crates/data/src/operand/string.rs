@@ -1,6 +1,7 @@
 use std::rc::Rc;
 
 use util::Location;
+#[derive(Debug)]
 
 pub struct Strings<'code> {
     location: Location<'code>,

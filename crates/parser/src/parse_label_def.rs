@@ -25,6 +25,7 @@ where
         
         is_global = if parse_global(tokenizer.clone()) {
             section = if tokenizer.peek_token().is(&TokenKind::Colon) {
+                tokenizer.next_token();
                 parse_section(tokenizer.clone())
             } else {
                 None
@@ -35,7 +36,9 @@ where
             false
         };
     }
-    
+    tokenizer.consume_token(TokenKind::GreaterThan)?;
+    tokenizer.skip_space();
+
     let next =  if tokenizer.peek_token().is(&TokenKind::NewLine) {
         None
     } else {
@@ -66,18 +69,24 @@ where
             tokenizer.next_token();
             match tokenizer.peek_token().kind {
                 TokenKind::Identifier(s) if s.as_str() == "text" =>  {
+                    tokenizer.next_token();
                     Some(Section::Text)
                 }
                 TokenKind::Identifier(s) if s.as_str() == "data" =>  {
+                    tokenizer.next_token();
                     Some(Section::Data)
                 }
                 TokenKind::Identifier(s) if s.as_str() == "bss" =>  {
+                    tokenizer.next_token();
                     Some(Section::Bss)
                 }
                 _ => todo!()
             }
         }
-        TokenKind::Identifier(s) => Some(Section::Custom(s.clone())),
+        TokenKind::Identifier(s) => {
+            tokenizer.next_token();
+            Some(Section::Custom(s.clone()))
+        }
         _ => None
     }
 }

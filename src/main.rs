@@ -1,5 +1,4 @@
 use std::{
-    cell::RefCell,
     fs::{self, File},
     io::{self, Write},
     path::Path,
@@ -13,7 +12,9 @@ use tempfile::NamedTempFile;
 // use codegen::codegen_code;
 // use parser::parse_code;
 // use tokenizer::Tokenizer2;
-use util::{emit_msg_and_exit, set_iw, Location, Source, Tokenizer};
+use util::{emit_msg_and_exit, set_iw, Location, Source};
+use tokenizer::Tokenizer;
+use parser::parse;
 
 fn main() {
     unsafe { backtrace_on_stack_overflow::enable() };
@@ -21,12 +22,11 @@ fn main() {
 }
 
 fn assemble(file: &str, flag: &RunFlags) -> String {
-    // let source = Source::new_with_file(file);
-    // let source = vec![source];
-    // let source = RefCell::new(source);
-    // let loc = Location::new(&source);
-    // let t = Rc::new(Tokenizer2::new_tokenizer(loc));
-    // let ast = parse_code(t.clone()).unwrap_or_else(|err| emit_msg_and_exit(format!("{}", err)));
+    let source = Source::new_with_file(file);
+    let loc = Location::new(source.unwrap());
+    let t = Rc::new(Tokenizer::new(loc.clone(), loc.end()));
+    let ast = parse(t.clone()).unwrap_or_else(|err| emit_msg_and_exit(format!("{}", err)));
+    println!("{:#?}", ast);
     // if flag.is_e {
     //     println!("{}", t.code());
     // }

@@ -4,13 +4,14 @@ use crate::ast::Ast;
 
 use super::{Operand, Register};
 
+#[derive(Debug)]
 pub enum Scale {
     S1,
     S2,
     S4,
     S8,
 }
-
+#[derive(Debug)]
 pub struct Memory<'code> {
     location: Location<'code>,
     size: u8,
