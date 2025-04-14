@@ -5,8 +5,8 @@ use util::{AsmError, Location};
 use crate::Strings;
 
 use super::{
-    operand::{Immediate, Path, Memory, Register},
     ident::Ident,
+    operand::{Immediate, Memory, Path, Register},
 };
 
 #[derive(Debug)]
@@ -14,7 +14,7 @@ pub enum Section {
     Text,
     Data,
     Bss,
-    Custom(Rc<String>)
+    Custom(Rc<String>),
 }
 
 #[derive(Debug)]
@@ -60,8 +60,8 @@ impl<'code> Ast<'code> {
     pub fn print_ast(&self) -> String {
         match self {
             Ast::Ins(label, asts) => {
-                        // format!("{}(", label, )
-                    }
+                // format!("{}(", label, )
+            }
             Ast::Label(path) => todo!(),
             Ast::Block(asts, ..) => todo!(),
             Ast::Macro(label, ast, labels) => todo!(),

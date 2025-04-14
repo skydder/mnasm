@@ -1,7 +1,7 @@
 use std::rc::Rc;
 
 use data::Ast;
-use util::{AsmResult, Tokenizer, TokenKind};
+use util::{AsmResult, TokenKind, Tokenizer};
 
 use crate::{parse, util::parse_list};
 
@@ -14,7 +14,12 @@ where
     if tokenizer.peek_token().is(&TokenKind::NewLine) {
         tokenizer.next_token();
     }
-    let list = parse_list(tokenizer.clone(), TokenKind::NewLine, TokenKind::CloseBrace, parse)?;
+    let list = parse_list(
+        tokenizer.clone(),
+        TokenKind::NewLine,
+        TokenKind::CloseBrace,
+        parse,
+    )?;
 
     tokenizer.consume_token(TokenKind::CloseBrace)?;
     Ok(Ast::Block(list, location, true))

@@ -4,7 +4,12 @@ use util::{AsmResult, TokenKind, Tokenizer};
 
 use crate::Parser;
 
-pub fn parse_list<'code, T, R>(tokenizer: Rc<T>, sep: TokenKind, end: TokenKind, parser: impl Parser<'code, T, R>) -> AsmResult<'code, Vec<R>>
+pub fn parse_list<'code, T, R>(
+    tokenizer: Rc<T>,
+    sep: TokenKind,
+    end: TokenKind,
+    parser: impl Parser<'code, T, R>,
+) -> AsmResult<'code, Vec<R>>
 where
     T: Tokenizer<'code>,
 {
@@ -13,7 +18,13 @@ where
     Ok(list)
 }
 
-fn parse_list_inside<'code, T, R>(tokenizer: Rc<T>, sep: TokenKind, end: TokenKind, parser: impl Parser<'code, T, R>, list: &mut Vec<R>) -> AsmResult<'code, ()>
+fn parse_list_inside<'code, T, R>(
+    tokenizer: Rc<T>,
+    sep: TokenKind,
+    end: TokenKind,
+    parser: impl Parser<'code, T, R>,
+    list: &mut Vec<R>,
+) -> AsmResult<'code, ()>
 where
     T: Tokenizer<'code>,
 {

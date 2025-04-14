@@ -11,6 +11,10 @@ where
         let token = tokenizer.next_token();
         Ok(Strings::new(s, token.location))
     } else {
-        Err(AsmError::ParseError(tokenizer.location(), "expected label, but could not find it".to_string(), String::new()))
+        Err(AsmError::ParseError(
+            tokenizer.location(),
+            "expected label, but could not find it".to_string(),
+            String::new(),
+        ))
     }
 }

@@ -8,7 +8,7 @@ where
     T: Tokenizer<'code>,
 {
     let location = tokenizer.location();
-    let signed= if matches!(tokenizer.peek_token().kind, TokenKind::Minus) {
+    let signed = if matches!(tokenizer.peek_token().kind, TokenKind::Minus) {
         tokenizer.next_token();
         true
     } else {
@@ -19,9 +19,10 @@ where
             tokenizer.next_token();
             Ok(Ast::Immediate(Immediate::new(location, data, signed)))
         }
-        _ => {
-            Err(AsmError::ParseError(location, "expected Immediate, but there isn't".to_string(), String::new()))
-        }
+        _ => Err(AsmError::ParseError(
+            location,
+            "expected Immediate, but there isn't".to_string(),
+            String::new(),
+        )),
     }
-    
 }

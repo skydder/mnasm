@@ -7,14 +7,16 @@ pub struct Scope<'code> {
     global: Option<Rc<Scope<'code>>>,
     name: Ident<'code>,
     in_scope: RefCell<Vec<Rc<Scope<'code>>>>,
+    is_defined: bool,
 }
 
 impl<'code> Scope<'code> {
-    pub fn new(global: Rc<Scope<'code>>, name: Ident<'code>) -> Rc<Self> {
+    pub fn new(global: Rc<Scope<'code>>, name: Ident<'code>, is_defined: bool) -> Rc<Self> {
         Rc::new(Self {
             global: Some(global),
             name,
             in_scope: RefCell::new(Vec::new()),
+            is_defined,
         })
     }
 
@@ -23,6 +25,7 @@ impl<'code> Scope<'code> {
             global: None,
             name,
             in_scope: RefCell::new(Vec::new()),
+            is_defined: true,
         })
     }
 
@@ -34,12 +37,14 @@ impl<'code> Scope<'code> {
                 } else {
                     return label.clone().has_path_of(&path.next_path().unwrap());
                 }
-                
             }
         }
+        let new = self.add_new_scope(path.current(), false);
+        new.has_path_of(&path.next_path().unwrap());
         false
     }
-    pub fn add_new_scope(self: Rc<Self>, name: Ident<'code>) -> Rc<Scope<'code>> {
+
+    pub fn add_new_scope(self: Rc<Self>, name: Ident<'code>, is_defined: bool) -> Rc<Scope<'code>> {
         let new = Scope::new(
             if self.global.is_none() {
                 self.clone()
@@ -47,13 +52,17 @@ impl<'code> Scope<'code> {
                 self.global.clone().unwrap()
             },
             name,
+            is_defined,
         );
         self.in_scope.borrow_mut().push(new.clone());
         new
     }
 }
 
-pub fn analyze<'code>(ast: &Ast<'code>, scope: Rc<Scope<'code>>) -> Result<(), AsmError<'code>> {
+pub fn construct_scope<'code>(
+    ast: &Ast<'code>,
+    scope: Rc<Scope<'code>>,
+) -> Result<(), AsmError<'code>> {
     match ast {
         Ast::Ins(label, asts) => {
             for op in asts {
@@ -64,12 +73,17 @@ pub fn analyze<'code>(ast: &Ast<'code>, scope: Rc<Scope<'code>>) -> Result<(), A
                         String::new(),
                     ));
                 }
-                analyze(op, scope.clone())?;
+                construct_scope(op, scope.clone())?;
             }
             Ok(())
         }
         Ast::Label(path) => {
-            if !scope.has_path_of(path) {
+            let global = scope.global.clone().unwrap();
+            if if path.is_relative() {
+                !scope.has_path_of(path)
+            } else {
+                !global.has_path_of(path)
+            } {
                 Err(AsmError::ParseError(
                     ast.location(),
                     String::new(),
@@ -80,21 +94,24 @@ pub fn analyze<'code>(ast: &Ast<'code>, scope: Rc<Scope<'code>>) -> Result<(), A
             }
         }
         Ast::LabelDef(label, _, _, Some(labeled_ast)) => {
-            let new = scope.clone().add_new_scope(label.clone()); // nl
+            let new = scope.clone().add_new_scope(label.clone(), true); // nl
             if labeled_ast.is_block() {
-                analyze(labeled_ast, new)?;
+                construct_scope(labeled_ast, new)?;
             } else {
-                analyze(labeled_ast, scope)?;
+                construct_scope(labeled_ast, scope)?;
             }
             Ok(())
         }
         Ast::LabelDef(label, _, _, None) => {
-            let new = scope.clone().add_new_scope(label.clone()); 
+            let new = scope.clone().add_new_scope(label.clone(), true);
             Ok(())
         }
-        Ast::Block(asts, ..) => {
+        Ast::Block(asts, loc, ..) => {
+            let new = scope
+                .clone()
+                .add_new_scope(Ident::anonymous_ident(loc.clone()), true); // nl
             for a in asts {
-                analyze(a, scope.clone())?;
+                construct_scope(a, new.clone())?;
             }
             Ok(())
         }
@@ -105,4 +122,3 @@ pub fn analyze<'code>(ast: &Ast<'code>, scope: Rc<Scope<'code>>) -> Result<(), A
         Ast::String(_) => Ok(()),
     }
 }
-

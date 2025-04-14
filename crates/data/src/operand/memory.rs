@@ -34,7 +34,14 @@ impl<'code> Memory<'code> {
         scale: Option<Scale>,
         disp: Option<Box<Ast<'code>>>,
     ) -> Self {
-        Self { location, size, base, index, scale, disp }
+        Self {
+            location,
+            size,
+            base,
+            index,
+            scale,
+            disp,
+        }
     }
 }
 

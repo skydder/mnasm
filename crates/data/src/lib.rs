@@ -1,6 +1,6 @@
 mod ast;
-mod operand;
 mod ident;
+mod operand;
 pub use ast::{Ast, Section};
 pub use ident::Ident;
-pub use operand::{Register, RegisterKind, Path, Immediate, Memory, Scale, Strings};
+pub use operand::{Immediate, Memory, Path, Register, RegisterKind, Scale, Strings};

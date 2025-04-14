@@ -17,6 +17,10 @@ where
             tokenizer.next_token();
             parse(tokenizer)
         }
-        _ => Err(util::AsmError::ParseError(tokenizer.location(), "unexpected token".to_string(), String::new()))
+        _ => Err(util::AsmError::ParseError(
+            tokenizer.location(),
+            "unexpected token".to_string(),
+            String::new(),
+        )),
     }
 }

@@ -1,9 +1,9 @@
 use std::rc::Rc;
 
 use data::Ast;
-use util::{AsmResult, Tokenizer, TokenKind};
+use util::{AsmResult, TokenKind, Tokenizer};
 
-use crate::{parse_ident, util::parse_list, parse_operand};
+use crate::{parse_ident, parse_operand, util::parse_list};
 
 pub fn parse_ins<'code, T>(tokenizer: Rc<T>) -> AsmResult<'code, Ast<'code>>
 where
@@ -12,7 +12,12 @@ where
     let ins_name = parse_ident(tokenizer.clone())?;
     tokenizer.skip_space();
     tokenizer.consume_token(TokenKind::OpenParenthesis)?;
-    let list = parse_list(tokenizer.clone(), TokenKind::Comma, TokenKind::CloseParenthesis, parse_operand)?;
+    let list = parse_list(
+        tokenizer.clone(),
+        TokenKind::Comma,
+        TokenKind::CloseParenthesis,
+        parse_operand,
+    )?;
     tokenizer.consume_token(TokenKind::CloseParenthesis)?;
     Ok(Ast::Ins(ins_name, list))
 }

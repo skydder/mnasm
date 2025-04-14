@@ -27,20 +27,24 @@ impl<'code> Path<'code> {
         self.location.clone()
     }
 
-    pub fn new(
-        location: Location<'code>,
-        path: Vec<Ident<'code>>,
-        is_relative: bool,
-    ) -> Self {
+    pub fn new(location: Location<'code>, path: Vec<Ident<'code>>, is_relative: bool) -> Self {
         if path.is_empty() {
             unreachable!()
         }
-        Self { is_relative, path, location }
+        Self {
+            is_relative,
+            path,
+            location,
+        }
     }
 
     pub fn next_path(&self) -> Option<Rc<Self>> {
         if self.path.len() > 1 {
-            Some(Rc::new(Self { is_relative: self.is_relative, path: self.path[1..].to_vec(), location: self.path.get(1).unwrap().location() }))
+            Some(Rc::new(Self {
+                is_relative: self.is_relative,
+                path: self.path[1..].to_vec(),
+                location: self.path.get(1).unwrap().location(),
+            }))
         } else {
             None
         }

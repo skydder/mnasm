@@ -15,7 +15,11 @@ where
     if tokenizer.peek_token().is(&TokenKind::NewLine) {
         return Ok(ins);
     } else if !tokenizer.peek_token().is(&TokenKind::Comma) {
-        return Err(util::AsmError::ParseError(tokenizer.location(), "expected comma, but found other".to_string(), String::new()));
+        return Err(util::AsmError::ParseError(
+            tokenizer.location(),
+            "expected comma, but found other".to_string(),
+            String::new(),
+        ));
     }
     tokenizer.consume_token(TokenKind::Comma)?;
     let mut list = parse_list(tokenizer, TokenKind::Comma, TokenKind::NewLine, parse_ins)?;

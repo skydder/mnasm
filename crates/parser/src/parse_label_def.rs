@@ -3,7 +3,7 @@ use std::rc::Rc;
 use data::{Ast, Section};
 use util::{AsmResult, TokenKind, Tokenizer};
 
-use crate::{parse_ident, parse};
+use crate::{parse, parse_ident};
 
 pub fn parse_label_def<'code, T>(tokenizer: Rc<T>) -> AsmResult<'code, Ast<'code>>
 where
@@ -22,7 +22,7 @@ where
     if tokenizer.peek_token().is(&TokenKind::Colon) {
         tokenizer.next_token();
         tokenizer.skip_space();
-        
+
         is_global = if parse_global(tokenizer.clone()) {
             section = if tokenizer.peek_token().is(&TokenKind::Colon) {
                 tokenizer.next_token();
@@ -39,7 +39,7 @@ where
     tokenizer.consume_token(TokenKind::GreaterThan)?;
     tokenizer.skip_space();
 
-    let next =  if tokenizer.peek_token().is(&TokenKind::NewLine) {
+    let next = if tokenizer.peek_token().is(&TokenKind::NewLine) {
         None
     } else {
         Some(Box::new(parse(tokenizer)?))
@@ -68,25 +68,25 @@ where
         TokenKind::Dot => {
             tokenizer.next_token();
             match tokenizer.peek_token().kind {
-                TokenKind::Identifier(s) if s.as_str() == "text" =>  {
+                TokenKind::Identifier(s) if s.as_str() == "text" => {
                     tokenizer.next_token();
                     Some(Section::Text)
                 }
-                TokenKind::Identifier(s) if s.as_str() == "data" =>  {
+                TokenKind::Identifier(s) if s.as_str() == "data" => {
                     tokenizer.next_token();
                     Some(Section::Data)
                 }
-                TokenKind::Identifier(s) if s.as_str() == "bss" =>  {
+                TokenKind::Identifier(s) if s.as_str() == "bss" => {
                     tokenizer.next_token();
                     Some(Section::Bss)
                 }
-                _ => todo!()
+                _ => todo!(),
             }
         }
         TokenKind::Identifier(s) => {
             tokenizer.next_token();
             Some(Section::Custom(s.clone()))
         }
-        _ => None
+        _ => None,
     }
 }

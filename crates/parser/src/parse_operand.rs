@@ -1,8 +1,7 @@
-
 use std::rc::Rc;
 
 use data::Ast;
-use util::{AsmResult, Tokenizer, TokenKind};
+use util::{AsmResult, TokenKind, Tokenizer};
 
 use crate::{parse_immediate, parse_label, parse_memory, parse_register, parse_strings};
 
