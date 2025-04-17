@@ -29,5 +29,5 @@ where
         tokenizer.skip_space();
     }
 
-    Ok(Ast::Label(Path::new(location, path, is_relative)))
+    Ok(Ast::Label(Path::new(location, Rc::new(path), is_relative)))
 }

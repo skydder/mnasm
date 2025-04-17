@@ -1,4 +1,4 @@
-use std::rc::Rc;
+use std::{cell::RefCell, rc::Rc};
 
 use util::Location;
 
@@ -9,8 +9,9 @@ use super::Operand;
 #[derive(Debug)]
 pub struct Path<'code> {
     is_relative: bool,
-    path: Vec<Ident<'code>>,
+    path: Rc<Vec<Ident<'code>>>,
     location: Location<'code>,
+    name: RefCell<String>
 }
 
 #[allow(clippy::needless_lifetimes)]
@@ -19,7 +20,7 @@ impl<'code> Path<'code> {
         self.is_relative
     }
 
-    pub fn path(&self) -> Vec<Ident<'code>> {
+    pub fn path(&self) -> Rc<Vec<Ident<'code>>> {
         self.path.clone()
     }
 
@@ -27,7 +28,7 @@ impl<'code> Path<'code> {
         self.location.clone()
     }
 
-    pub fn new(location: Location<'code>, path: Vec<Ident<'code>>, is_relative: bool) -> Self {
+    pub fn new(location: Location<'code>, path: Rc<Vec<Ident<'code>>>, is_relative: bool) -> Self {
         if path.is_empty() {
             unreachable!()
         }
@@ -35,6 +36,7 @@ impl<'code> Path<'code> {
             is_relative,
             path,
             location,
+            name: RefCell::new(String::new()),
         }
     }
 
@@ -42,8 +44,9 @@ impl<'code> Path<'code> {
         if self.path.len() > 1 {
             Some(Rc::new(Self {
                 is_relative: self.is_relative,
-                path: self.path[1..].to_vec(),
+                path: Rc::new(self.path[1..].to_vec()),
                 location: self.path.get(1).unwrap().location(),
+                name: RefCell::new(String::new())
             }))
         } else {
             None
@@ -56,6 +59,14 @@ impl<'code> Path<'code> {
 
     pub fn is_last(&self) -> bool {
         self.path.len() == 1
+    }
+
+    pub fn len(&self) -> usize {
+        self.path.len()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.len() == 0
     }
 }
 
