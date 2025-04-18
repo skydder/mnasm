@@ -6,7 +6,7 @@ use crate::ident::Ident;
 
 use super::Operand;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Path<'code> {
     is_relative: bool,
     path: Rc<Vec<Ident<'code>>>,

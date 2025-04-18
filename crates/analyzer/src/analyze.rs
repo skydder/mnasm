@@ -1,6 +1,6 @@
-use std::{cell::RefCell, rc::Rc};
+use std::rc::Rc;
 
-use data::{Ast, Ident, Path, Scope};
+use data::{Ast, Ident, Scope};
 use util::AsmError;
 
 
@@ -39,7 +39,12 @@ pub fn construct_scope<'code>(
                 Ok(())
             }
         }
-        Ast::LabelDef(label, _, _, Some(labeled_ast)) => {
+        Ast::LabelDef(label, _, is_global, Some(labeled_ast)) => {
+            let scope = if *is_global {
+                scope.get_global().unwrap()
+            } else {
+                scope
+            };
             let new = scope.clone().add_new_scope(label.clone(), true); // nl
             if labeled_ast.is_block() {
                 construct_scope(labeled_ast, new)?;
@@ -48,7 +53,12 @@ pub fn construct_scope<'code>(
             }
             Ok(())
         }
-        Ast::LabelDef(label, _, _, None) => {
+        Ast::LabelDef(label, _, is_global, None) => {
+            let scope = if *is_global {
+                scope.get_global().unwrap()
+            } else {
+                scope
+            };
             let new = scope.clone().add_new_scope(label.clone(), true);
             Ok(())
         }

@@ -13,6 +13,7 @@ fn codegen(ast: &Ast, scope: Rc<Scope>) -> String {
                     code.push(',');
                 }
             }
+            code.push('\n');
             code
         },
         Ast::Label(path) => {
@@ -30,7 +31,18 @@ fn codegen(ast: &Ast, scope: Rc<Scope>) -> String {
                 String::new()
             }
         },
-        Ast::LabelDef(ident, section, _, ast) => todo!(),
+        Ast::LabelDef(ident, section, is_global, ast) => {
+            let mut code = if *is_global {
+                ident.get_str().to_string()
+            } else {
+                scope.get_label()
+            };
+            code.push_str(":\n");
+            if let Some(ast) = ast {
+                code.push_str(&codegen(ast, scope));
+            }
+            code
+        },
         Ast::Block(asts, location, _) => todo!(),
         Ast::Macro(ident, ast, asts) => todo!(),
         Ast::Register(register) => todo!(),
