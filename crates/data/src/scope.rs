@@ -5,6 +5,7 @@ use crate::{Ident, Path};
 
 pub struct Scope<'code> {
     global: Option<Rc<Scope<'code>>>,
+    is_global: bool,
     name: Ident<'code>,
     in_scope: RefCell<Vec<Rc<Scope<'code>>>>,
     is_defined: bool,
@@ -12,13 +13,14 @@ pub struct Scope<'code> {
 }
 
 impl<'code> Scope<'code> {
-    pub fn new(global: Rc<Scope<'code>>, name: Ident<'code>, is_defined: bool, path: Path<'code>) -> Rc<Self> {
+    pub fn new(global: Rc<Scope<'code>>, name: Ident<'code>, is_global: bool, is_defined: bool, path: Path<'code>) -> Rc<Self> {
         Rc::new(Self {
             global: Some(global),
             name,
             in_scope: RefCell::new(Vec::new()),
             is_defined,
-            path
+            path,
+            is_global
         })
     }
 
@@ -32,7 +34,7 @@ impl<'code> Scope<'code> {
                 }
             }
         }
-        let new = self.add_new_scope(path.current(), false);
+        let new = self.add_new_scope(path.current(), false, false);
         new.has_path_of(&path.next_path().unwrap());
         false
     }
@@ -44,7 +46,7 @@ impl<'code> Scope<'code> {
         }
         label
     }
-    pub fn add_new_scope(self: &Rc<Self>, name: Ident<'code>, is_defined: bool) -> Rc<Scope<'code>> {
+    pub fn add_new_scope(self: &Rc<Self>, name: Ident<'code>, is_global: bool, is_defined: bool) -> Rc<Scope<'code>> {
         let mut path = self.path.path().to_vec();
         path.push(name.clone());
         let path = Path::new(name.location(), Rc::new(path), false);
@@ -55,8 +57,9 @@ impl<'code> Scope<'code> {
                 self.global.clone().unwrap()
             },
             name,
+            is_global,
             is_defined,
-            path
+            path,
         );
         self.in_scope.borrow_mut().push(new.clone());
         new

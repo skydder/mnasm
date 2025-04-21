@@ -9,12 +9,24 @@ use super::{
     operand::{Immediate, Memory, Path, Register},
 };
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Section {
     Text,
     Data,
     Bss,
     Custom(Rc<String>),
+}
+
+impl Section {
+    #[allow(clippy::inherent_to_string)]
+    pub fn to_string(&self) -> String {
+        match self {
+            Section::Text => ".text".to_string(),
+            Section::Data => ".data".to_string(),
+            Section::Bss => ".bss".to_string(),
+            Section::Custom(c) => c.to_string(),
+        }
+    }
 }
 
 #[derive(Debug)]

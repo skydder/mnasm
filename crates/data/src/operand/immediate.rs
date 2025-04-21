@@ -5,8 +5,8 @@ use super::Operand;
 #[derive(Debug)]
 pub struct Immediate<'code> {
     location: Location<'code>,
-    data: u64,
-    signed: bool,
+    pub data: u64,
+    pub signed: bool,
 }
 
 impl<'code> Immediate<'code> {

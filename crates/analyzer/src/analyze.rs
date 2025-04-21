@@ -40,32 +40,25 @@ pub fn construct_scope<'code>(
             }
         }
         Ast::LabelDef(label, _, is_global, Some(labeled_ast)) => {
-            let scope = if *is_global {
-                scope.get_global().unwrap()
+            if !*is_global || scope.get_global().is_some() {
+                let new = scope.clone().add_new_scope(label.clone(), *is_global, true);
+                construct_scope(labeled_ast, new)
             } else {
-                scope
-            };
-            let new = scope.clone().add_new_scope(label.clone(), true); // nl
-            if labeled_ast.is_block() {
-                construct_scope(labeled_ast, new)?;
-            } else {
-                construct_scope(labeled_ast, scope)?;
+                unimplemented!()
             }
-            Ok(())
         }
         Ast::LabelDef(label, _, is_global, None) => {
-            let scope = if *is_global {
-                scope.get_global().unwrap()
+            if !*is_global || scope.get_global().is_some() {
+                scope.clone().add_new_scope(label.clone(), *is_global, true);
+                Ok(())
             } else {
-                scope
-            };
-            let new = scope.clone().add_new_scope(label.clone(), true);
-            Ok(())
+                unimplemented!()
+            }
         }
         Ast::Block(asts, loc, ..) => {
             let new = scope
                 .clone()
-                .add_new_scope(Ident::anonymous_ident(loc.clone()), true); // nl
+                .add_new_scope(Ident::anonymous_ident(loc.clone()), false, true); // nl
             for a in asts {
                 construct_scope(a, new.clone())?;
             }

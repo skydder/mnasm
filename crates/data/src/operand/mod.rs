@@ -1,5 +1,5 @@
 mod register;
-pub use register::{Register, RegisterKind};
+pub use register::{Register, RegisterKind, REG16, REG8, REG32, REG64};
 
 mod path;
 pub use path::Path;

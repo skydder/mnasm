@@ -4,21 +4,21 @@ use crate::ast::Ast;
 
 use super::{Operand, Register};
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub enum Scale {
-    S1,
-    S2,
-    S4,
-    S8,
+    S1 = 1,
+    S2 = 2,
+    S4 = 4,
+    S8 = 8,
 }
 #[derive(Debug)]
 pub struct Memory<'code> {
     location: Location<'code>,
-    size: u8,
-    base: Option<Register<'code>>,
-    index: Option<Register<'code>>,
-    scale: Option<Scale>,
-    disp: Option<Box<Ast<'code>>>,
+    pub size: u8,
+    pub base: Option<Register<'code>>,
+    pub index: Option<Register<'code>>,
+    pub scale: Option<Scale>,
+    pub disp: Option<Box<Ast<'code>>>,
 }
 
 impl<'code> Memory<'code> {
