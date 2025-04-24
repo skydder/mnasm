@@ -1,5 +1,7 @@
 use std::{cell::RefCell, rc::Rc};
 
+use util::Location;
+
 use crate::{Ident, Path};
 
 
@@ -21,6 +23,17 @@ impl<'code> Scope<'code> {
             is_defined,
             path,
             is_global
+        })
+    }
+
+    pub fn new_global(location: Location<'code>) -> Rc<Self> {
+        Rc::new(Self {
+            global: None,
+            name: Ident::new(Rc::new(String::new()), location.clone()),
+            in_scope: RefCell::new(Vec::new()),
+            is_defined: true,
+            path: Path::new(location, Rc::new(Vec::new()), false),
+            is_global: true,
         })
     }
 
@@ -67,5 +80,21 @@ impl<'code> Scope<'code> {
 
     pub fn get_global(self: &Rc<Self>) -> Option<Rc<Self>> {
         self.global.clone()
+    }
+
+    pub fn get_child(self: &Rc<Self>, name: &Ident<'code>) -> Option<Rc<Self>> {
+        eprintln!("{:#?}", self.in_scope);
+        for child in self.in_scope.borrow().iter() {
+            if child.name == *name {
+                return Some(child.clone());
+            }
+        }
+        None
+    }
+}
+
+impl std::fmt::Debug for Scope<'_> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Scope").field("name", &self.name).field("in_scope", &self.in_scope).finish()
     }
 }

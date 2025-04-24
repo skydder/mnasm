@@ -6,6 +6,7 @@ use std::{
     rc::Rc,
     result::Result,
 };
+use data::{Ident, Scope};
 use tempfile::NamedTempFile;
 
 // use analyzer::analyze;
@@ -25,8 +26,13 @@ fn assemble(file: &str, flag: &RunFlags) -> String {
     let source = Source::new_with_file(file);
     let loc = Location::new(source.unwrap());
     let t = Rc::new(Tokenizer::new(loc.clone(), loc.end()));
-    let ast = parse(t.clone()).unwrap_or_else(|err| emit_msg_and_exit(format!("{}", err)));
-    println!("{:#?}", ast);
+    let global = Scope::new_global(loc.clone());
+    while !loc.is_eos() {
+        let ast = parse(t.clone()).unwrap_or_else(|err| emit_msg_and_exit(format!("{}", err)));
+        eprintln!("{:#?}", ast);
+        // analyzer::construct_scope(&ast, global.clone());
+        // println!("{}", codegen::codegen(&ast, global.clone()));
+    }
     // if flag.is_e {
     //     println!("{}", t.code());
     // }

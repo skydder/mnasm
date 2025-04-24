@@ -39,30 +39,33 @@ pub fn construct_scope<'code>(
                 Ok(())
             }
         }
-        Ast::LabelDef(label, _, is_global, Some(labeled_ast)) => {
-            if !*is_global || scope.get_global().is_some() {
-                let new = scope.clone().add_new_scope(label.clone(), *is_global, true);
-                construct_scope(labeled_ast, new)
-            } else {
-                unimplemented!()
-            }
-        }
-        Ast::LabelDef(label, _, is_global, None) => {
-            if !*is_global || scope.get_global().is_some() {
-                scope.clone().add_new_scope(label.clone(), *is_global, true);
-                Ok(())
-            } else {
-                unimplemented!()
-            }
-        }
-        Ast::Block(asts, loc, ..) => {
-            let new = scope
-                .clone()
-                .add_new_scope(Ident::anonymous_ident(loc.clone()), false, true); // nl
-            for a in asts {
-                construct_scope(a, new.clone())?;
-            }
-            Ok(())
+        // Ast::LabelDef(label, _, is_global, Some(labeled_ast)) => {
+        //     if !*is_global || scope.get_global().is_some() {
+        //         let new = scope.clone().add_new_scope(label.clone(), *is_global, true);
+        //         construct_scope(labeled_ast, new)
+        //     } else {
+        //         unimplemented!()
+        //     }
+        // }
+        // Ast::LabelDef(label, _, is_global, None) => {
+        //     if !*is_global || scope.get_global().is_some() {
+        //         scope.clone().add_new_scope(label.clone(), *is_global, true);
+        //         Ok(())
+        //     } else {
+        //         unimplemented!()
+        //     }
+        // }
+        // Ast::Block(asts, loc, is) => {
+        //     let new = scope
+        //         .clone()
+        //         .add_new_scope(Ident::anonymous_ident(loc.clone()), false, true); // nl
+        //     for a in asts {
+        //         construct_scope(a, new.clone())?;
+        //     }
+        //     Ok(())
+        // }
+        Ast::LabelBlock(labelblock) => {
+            todo!()
         }
         Ast::Macro(label, ast, labels) => todo!(),
         Ast::Register(register) => Ok(()),

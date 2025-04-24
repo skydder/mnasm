@@ -29,9 +29,9 @@ impl<'code> Path<'code> {
     }
 
     pub fn new(location: Location<'code>, path: Rc<Vec<Ident<'code>>>, is_relative: bool) -> Self {
-        if path.is_empty() {
-            unreachable!()
-        }
+        // if path.is_empty() {
+        //     unreachable!()
+        // }
         Self {
             is_relative,
             path,
