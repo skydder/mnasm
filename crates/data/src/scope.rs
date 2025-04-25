@@ -29,7 +29,7 @@ impl<'code> Scope<'code> {
     pub fn new_global(location: Location<'code>) -> Rc<Self> {
         Rc::new(Self {
             global: None,
-            name: Ident::new(Rc::new(String::new()), location.clone()),
+            name: Ident::new(String::new(), location.clone()),
             in_scope: RefCell::new(Vec::new()),
             is_defined: true,
             path: Path::new(location, Rc::new(Vec::new()), false),
@@ -48,14 +48,16 @@ impl<'code> Scope<'code> {
             }
         }
         let new = self.add_new_scope(path.current(), false, false);
-        new.has_path_of(&path.next_path().unwrap());
+        
+        new.has_path_of(&Path::new(path.location(), Rc::new(Vec::new()), false));
         false
     }
 
     pub fn get_label(self: &Rc<Self>) -> String {
         let mut label = String::new();
-        for i in self.path.path().iter() {
-            label.push_str(i.get_str());
+        for (i, ident) in self.path.path().iter().enumerate() {
+            label.push('_');
+            label.push_str(&ident.get_str());
         }
         label
     }
@@ -91,10 +93,14 @@ impl<'code> Scope<'code> {
         }
         None
     }
+
+    pub fn name(&self) -> Ident<'code> {
+        self.name.clone()
+    }
 }
 
 impl std::fmt::Debug for Scope<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("Scope").field("name", &self.name).field("in_scope", &self.in_scope).finish()
+        f.debug_struct("Scope").field("name", &self.name).field("path", &self.path).field("in_scope", &self.in_scope).finish()
     }
 }

@@ -29,9 +29,9 @@ fn assemble(file: &str, flag: &RunFlags) -> String {
     let global = Scope::new_global(loc.clone());
     while !loc.is_eos() {
         let ast = parse(t.clone()).unwrap_or_else(|err| emit_msg_and_exit(format!("{}", err)));
-        eprintln!("{:#?}", ast);
-        // analyzer::construct_scope(&ast, global.clone());
-        // println!("{}", codegen::codegen(&ast, global.clone()));
+        // eprintln!("{:#?}", ast);
+        analyzer::construct_scope(&ast, global.clone());
+        println!("{}", codegen::codegen(&ast, global.clone()));
     }
     // if flag.is_e {
     //     println!("{}", t.code());

@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use data::{Ast, Scope, REG16, REG32, REG64, REG8};
+use data::{Ast, Scope, Section, REG16, REG32, REG64, REG8};
 pub fn codegen<'code>(ast: &Ast<'code>, scope: Rc<Scope<'code>>) -> String {
     match ast {
         Ast::Ins(ident, asts) => {
@@ -20,7 +20,7 @@ pub fn codegen<'code>(ast: &Ast<'code>, scope: Rc<Scope<'code>>) -> String {
                 let mut code = String::new();
                 let len = path.len() - 1;
                 for (i, ident) in path.path().iter().enumerate() {
-                    code.push_str(ident.get_str());
+                    code.push_str(&ident.get_str());
                     if i < len {
                         code.push('.');
                     }
@@ -30,32 +30,29 @@ pub fn codegen<'code>(ast: &Ast<'code>, scope: Rc<Scope<'code>>) -> String {
                 String::new()
             }
         },
-        // Ast::LabelDef(ident, section, is_global, ast) => {
-        //     let mut code = String::new();
-        //     if section.is_some() {
-        //         code.push_str(&format!("section {}\n", section.clone().unwrap().to_string()));
-        //     }
-        //     if *is_global {
-        //         code.push_str(&format!("global {}\n", ident.get_str()));
-        //         code.push_str(ident.get_str());
-        //     } else {
-        //         code.push_str(&format!("{}.{}", scope.get_label(), ident.get_str()));
-        //     }
-        //     code.push_str(":\n");
-        //     if let Some(ast) = ast {
-        //         code.push_str(&codegen(ast, scope.get_child(ident).unwrap()));
-        //     }
-        //     code
-        // },
-        // Ast::Block(asts, location, _) => {
-        //     let mut code = String::new();
-        //     for ast in asts {
-        //         code.push_str(&codegen(ast, scope.clone()));
-        //     }
-        //     code
-        // },
+
         Ast::LabelBlock(labelblock) => {
-            todo!()
+            let mut code = String::new();
+            let own_scope = scope.get_child(&labelblock.name()).unwrap();
+            if !labelblock.name().is_anonymous() {
+                let name = if labelblock.is_global() {
+                    labelblock.name().get_str()
+                } else {
+                    own_scope.get_label()
+                };
+                if labelblock.section() != Section::None {
+                    code.push_str(&format!("section {}\n", labelblock.section().to_string()));
+                }
+                if labelblock.is_global() {
+                    code.push_str(&format!("global {}\n", name));
+                }
+                code.push_str(&format!("{}:\n", name));
+            }
+
+            for ast in labelblock.block().iter() {
+                code.push_str(&codegen(ast, own_scope.clone()));
+            }
+            code
         }
         Ast::Macro(ident, ast, asts) => todo!(),
         Ast::Register(register) => {

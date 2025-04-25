@@ -4,7 +4,7 @@ use util::Location;
 
 use crate::{Ident, Ast};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Section {
     None,
     Text,
@@ -31,7 +31,7 @@ pub struct LabelBlock<'code> {
     name: Ident<'code>,
     section: Section,
     is_global: bool,
-    block: Vec<Ast<'code>>,
+    block: Rc<Vec<Ast<'code>>>,
     location: Location<'code>,
 }
 
@@ -47,6 +47,19 @@ impl<'code> LabelBlock<'code> {
         block: Vec<Ast<'code>>,
         location: Location<'code>
     ) -> Self {
-        Self { name, section, is_global, block, location }
+        Self { name, section, is_global, block: Rc::new(block), location }
     }
+    pub fn name(&self) -> Ident<'code> {
+        self.name.clone()
+    }
+    pub fn section(&self) -> Section {
+        self.section.clone()
+    }
+    pub fn is_global(&self) -> bool {
+        self.is_global
+    }
+    pub fn block(&self) -> Rc<Vec<Ast<'code>>> {
+        self.block.clone()
+    }
+
 }

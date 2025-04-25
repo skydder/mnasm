@@ -54,7 +54,7 @@ where
     tokenizer.skip_space();
 
     let reg_loc = tokenizer.location();
-    let base = match parse_ident(tokenizer.clone())?.get_str() {
+    let base = match parse_ident(tokenizer.clone())?.get_str().as_str() {
         "_" => None,
         i => Some(parse_register_from_str(i, reg_loc)?),
     };
@@ -63,7 +63,7 @@ where
     tokenizer.skip_space();
 
     let reg_loc = tokenizer.location();
-    let index = match parse_ident(tokenizer.clone())?.get_str() {
+    let index = match parse_ident(tokenizer.clone())?.get_str().as_str() {
         "_" => None,
         i => Some(parse_register_from_str(i, reg_loc)?),
     };
