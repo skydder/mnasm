@@ -26,12 +26,13 @@ fn assemble(file: &str, flag: &RunFlags) -> String {
     let source = Source::new_with_file(file);
     let loc = Location::new(source.unwrap());
     let t = Rc::new(Tokenizer::new(loc.clone(), loc.end()));
-    let root = Scope::init_root(loc.clone());
+    let root = Scope::init_root();
     while !loc.is_eos() {
         let ast = parse(t.clone()).unwrap_or_else(|err| emit_msg_and_exit(format!("{}", err)));
         // eprintln!("{:#?}", ast);
-        analyzer::construct_scope(&ast, root..clone());
-        println!("{}", codegen::codegen(&ast, global.clone()));
+        analyzer::construct_scope(&ast, root.get_child(&Ident::new("_local".to_owned())).clone().unwrap());
+        // println!("{}", codegen::codegen(&ast, root.get_child(&Ident::new("_local".to_owned())).clone().unwrap()));
+        println!("{}", codegen::pretty_print(&ast));
     }
     // if flag.is_e {
     //     println!("{}", t.code());

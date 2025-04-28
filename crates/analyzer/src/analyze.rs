@@ -22,23 +22,22 @@ pub fn construct_scope<'code>(
             Ok(())
         }
         Ast::Label(path) => {
+            let location = path.location();
+            let path = path.data();
             let global = scope.global().unwrap();
             if if path.is_relative() {
-                !scope.has_path_of(path)
+                !scope.has_path_of(&path)
             } else {
-                !global.has_path_of(path)
+                !global.has_path_of(&path)
             } {
-                Err(AsmError::ParseError(
-                    ast.location(),
-                    String::new(),
-                    String::new(),
-                ))
+                Err(AsmError::ParseError(location, String::new(), String::new()))
             } else {
                 Ok(())
             }
         }
         Ast::LabelBlock(labelblock) => {
             let mut path = scope.path().path().to_vec();
+            let labelblock = labelblock.data();
             path.push(labelblock.name());
             let path = Path::new(Rc::new(path), scope.path().is_relative());
             let new = Scope::new_local(scope.global().unwrap(), labelblock.name(), true, path);

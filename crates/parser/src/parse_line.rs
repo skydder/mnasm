@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use data::{Ast, Ident, LabelBlock};
+use data::{Ast, Ident, LabelBlock, WithLocation};
 use util::{AsmResult, TokenKind, Tokenizer};
 
 use crate::{parse_ins, util::parse_list};
@@ -24,11 +24,8 @@ where
     tokenizer.consume_token(TokenKind::Comma)?;
     let mut list = parse_list(tokenizer, TokenKind::Comma, TokenKind::NewLine, parse_ins)?;
     list.insert(0, ins);
-    Ok(Ast::LabelBlock(LabelBlock::new(
-        Ident::anonymous_ident(location.clone()),
-        data::Section::None,
-        false,
-        list,
+    Ok(Ast::LabelBlock(WithLocation::new(
         location,
+        LabelBlock::new(Ident::anonymous_ident(), data::Section::None, false, list),
     )))
 }

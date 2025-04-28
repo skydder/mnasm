@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use data::{Ast, Memory, Scale};
+use data::{Ast, Memory, Scale, WithLocation};
 use util::{AsmError, AsmResult, TokenKind, Tokenizer};
 
 use crate::{parse_ident, parse_immediate, parse_register::parse_register_from_str};
@@ -54,7 +54,7 @@ where
     tokenizer.skip_space();
 
     let reg_loc = tokenizer.location();
-    let base = match parse_ident(tokenizer.clone())?.get_str().as_str() {
+    let base = match parse_ident(tokenizer.clone())?.data().get_str().as_str() {
         "_" => None,
         i => Some(parse_register_from_str(i, reg_loc)?),
     };
@@ -63,7 +63,7 @@ where
     tokenizer.skip_space();
 
     let reg_loc = tokenizer.location();
-    let index = match parse_ident(tokenizer.clone())?.get_str().as_str() {
+    let index = match parse_ident(tokenizer.clone())?.data().get_str().as_str() {
         "_" => None,
         i => Some(parse_register_from_str(i, reg_loc)?),
     };
@@ -91,16 +91,17 @@ where
     tokenizer.skip_space();
 
     let disp = match tokenizer.peek_token().kind {
-        TokenKind::Number(_) => Some(Box::new(parse_immediate(tokenizer.clone())?)),
+        TokenKind::Number(_) => Some(Rc::new(parse_immediate(tokenizer.clone())?)),
         TokenKind::Identifier(s) if s.as_str() == "-" => {
-            Some(Box::new(parse_immediate(tokenizer.clone())?))
+            Some(Rc::new(parse_immediate(tokenizer.clone())?))
         }
         // TokenKind::Identifier(_) => parse_label(tokenizer)?
         _ => None,
     };
     tokenizer.skip_space();
     tokenizer.consume_token(TokenKind::CloseParenthesis)?;
-    Ok(Ast::Memory(Memory::new(
-        location, size, base, index, scale, disp,
+    Ok(Ast::Memory(WithLocation::new(
+        location,
+        Memory::new(size, base, index, scale, disp),
     )))
 }

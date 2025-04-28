@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use data::{Ast, Immediate};
+use data::{Ast, Immediate, WithLocation};
 use util::{AsmError, AsmResult, TokenKind, Tokenizer};
 
 pub fn parse_immediate<'code, T>(tokenizer: Rc<T>) -> AsmResult<'code, Ast<'code>>
@@ -17,7 +17,10 @@ where
     match tokenizer.peek_token().kind {
         TokenKind::Number(data) => {
             tokenizer.next_token();
-            Ok(Ast::Immediate(Immediate::new(location, data, signed)))
+            Ok(Ast::Immediate(WithLocation::new(
+                location,
+                Immediate::new(data, signed),
+            )))
         }
         _ => Err(AsmError::ParseError(
             location,

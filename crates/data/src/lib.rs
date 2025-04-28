@@ -15,27 +15,23 @@ pub use scope::Scope;
 use util::Location;
 
 #[derive(Debug)]
-pub struct WithLocation<'code, T>
+pub struct WithLocation<'code, T>(Location<'code>, T)
 where
-    T: Clone + Debug,
-{
-    location: Location<'code>,
-    data: T,
-}
+    T: Clone + Debug;
 
 impl<'code, T> WithLocation<'code, T>
 where
     T: Clone + Debug,
 {
     pub fn new(location: Location<'code>, data: T) -> Self {
-        Self { location, data }
+        Self(location, data)
     }
-    
+
     pub fn location(&self) -> Location<'code> {
-        self.location.clone()
+        self.0.clone()
     }
 
     pub fn data(&self) -> T {
-        self.data.clone()
+        self.1.clone()
     }
 }

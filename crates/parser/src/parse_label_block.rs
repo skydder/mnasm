@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use data::{Ast, Ident, LabelBlock, Section};
+use data::{Ast, Ident, LabelBlock, Section, WithLocation};
 use util::{AsmResult, TokenKind, Tokenizer};
 
 use crate::{parse, parse_ident, util::parse_list};
@@ -12,14 +12,11 @@ where
     let location = tokenizer.location();
     match tokenizer.peek_token().kind {
         TokenKind::OpenBrace => {
-            let name = Ident::anonymous_ident(location.clone());
+            let name = Ident::anonymous_ident();
             let block = parse_block(tokenizer.clone())?;
-            Ok(Ast::LabelBlock(LabelBlock::new(
-                name,
-                Section::None,
-                false,
-                block,
+            Ok(Ast::LabelBlock(WithLocation::new(
                 location,
+                LabelBlock::new(name, Section::None, false, block),
             )))
         }
         TokenKind::LessThan => {
@@ -29,8 +26,9 @@ where
             } else {
                 Vec::new()
             };
-            Ok(Ast::LabelBlock(LabelBlock::new(
-                name, section, is_global, block, location,
+            Ok(Ast::LabelBlock(WithLocation::new(
+                location,
+                LabelBlock::new(name.data(), section, is_global, block),
             )))
         }
         _ => {
@@ -58,7 +56,9 @@ where
     Ok(list)
 }
 
-fn parse_label<'code, T>(tokenizer: Rc<T>) -> AsmResult<'code, (Ident<'code>, Section, bool)>
+fn parse_label<'code, T>(
+    tokenizer: Rc<T>,
+) -> AsmResult<'code, (WithLocation<'code, Ident>, Section, bool)>
 where
     T: Tokenizer<'code>,
 {

@@ -132,7 +132,7 @@ impl<'code> Scope<'code> {
     }
 
     pub fn get_child(self: &Rc<Self>, name: &Ident) -> Option<Rc<Self>> {
-        eprintln!("{:#?}", self.in_scope);
+        // eprintln!("{:#?}", self.in_scope);
         for child in self.in_scope.borrow().iter() {
             if child.name == *name {
                 return Some(child.clone());

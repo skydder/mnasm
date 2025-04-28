@@ -28,7 +28,7 @@ impl Path {
     }
 
     pub fn next_path(&self) -> Option<Self> {
-        if self.path.len() > 1 {
+        if self.path.len() >= 1 {
             Some(Self {
                 is_relative: self.is_relative,
                 path: Rc::new(self.path[1..].to_vec()),
