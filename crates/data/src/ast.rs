@@ -1,25 +1,22 @@
-use std::{cell::RefCell, rc::Rc};
+use util::Location;
 
-use util::{AsmError, Location};
-
-use crate::{label_block::LabelBlock, Strings};
+use crate::{Strings, WithLocation, label_block::LabelBlock};
 
 use super::{
     ident::Ident,
     operand::{Immediate, Memory, Path, Register},
 };
 
-
 #[derive(Debug)]
 pub enum Ast<'code> {
-    Ins(Ident<'code>, Vec<Ast<'code>>),
-    Label(Path<'code>),
-    LabelBlock(LabelBlock<'code>),
-    Macro(Ident<'code>, Box<Ast<'code>>, Vec<Ast<'code>>), // 1 ->
-    Register(Register<'code>),
-    Memory(Memory<'code>),
-    Immediate(Immediate<'code>),
-    String(Strings<'code>),
+    Ins(WithLocation<'code, Ident>, Vec<Ast<'code>>),
+    Label(WithLocation<'code, Path>),
+    LabelBlock(WithLocation<'code, LabelBlock<'code>>),
+    Macro(WithLocation<'code, Ident>, Box<Ast<'code>>, Vec<Ast<'code>>), // 1 ->
+    Register(WithLocation<'code, Register>),
+    Memory(WithLocation<'code, Memory<'code>>),
+    Immediate(WithLocation<'code, Immediate>),
+    String(WithLocation<'code, Strings>),
 }
 
 #[allow(clippy::needless_lifetimes)]

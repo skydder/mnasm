@@ -5,7 +5,7 @@ use util::{AsmResult, TokenKind, Tokenizer};
 
 use crate::{parse, parse_ident, util::parse_list};
 
-pub fn parse_label_block<'code, T>(tokenizer: Rc<T>) -> AsmResult<'code,Ast<'code>>
+pub fn parse_label_block<'code, T>(tokenizer: Rc<T>) -> AsmResult<'code, Ast<'code>>
 where
     T: Tokenizer<'code>,
 {
@@ -14,7 +14,13 @@ where
         TokenKind::OpenBrace => {
             let name = Ident::anonymous_ident(location.clone());
             let block = parse_block(tokenizer.clone())?;
-            Ok(Ast::LabelBlock(LabelBlock::new(name, Section::None, false, block, location)))
+            Ok(Ast::LabelBlock(LabelBlock::new(
+                name,
+                Section::None,
+                false,
+                block,
+                location,
+            )))
         }
         TokenKind::LessThan => {
             let (name, section, is_global) = parse_label(tokenizer.clone())?;
@@ -23,7 +29,9 @@ where
             } else {
                 Vec::new()
             };
-            Ok(Ast::LabelBlock(LabelBlock::new(name, section, is_global, block, location)))
+            Ok(Ast::LabelBlock(LabelBlock::new(
+                name, section, is_global, block, location,
+            )))
         }
         _ => {
             todo!()
@@ -83,7 +91,7 @@ where
     tokenizer.consume_token(TokenKind::GreaterThan)?;
     tokenizer.skip_space();
 
-    Ok((label, section, is_global))    
+    Ok((label, section, is_global))
 }
 
 fn parse_global<'code, T>(tokenizer: Rc<T>) -> bool
@@ -125,6 +133,10 @@ where
             tokenizer.next_token();
             Ok(Section::Custom(s.clone()))
         }
-        _ => Err(util::AsmError::ParseError(tokenizer.location(), "expected token for representing section!".to_string(), String::new())),
+        _ => Err(util::AsmError::ParseError(
+            tokenizer.location(),
+            "expected token for representing section!".to_string(),
+            String::new(),
+        )),
     }
 }

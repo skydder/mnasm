@@ -9,7 +9,10 @@ where
 {
     if tokenizer.peek_token().is_identifier() {
         let token = tokenizer.next_token();
-        Ok(Ident::new(token.get_identifier().unwrap().to_string(), token.location))
+        Ok(Ident::new(
+            token.get_identifier().unwrap().to_string(),
+            token.location,
+        ))
     } else {
         Err(AsmError::ParseError(
             tokenizer.location(),

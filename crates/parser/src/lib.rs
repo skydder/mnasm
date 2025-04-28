@@ -3,12 +3,12 @@ mod parse_ident;
 mod parse_immediate;
 mod parse_ins;
 mod parse_label;
+mod parse_label_block;
 mod parse_line;
 mod parse_memory;
 mod parse_operand;
 mod parse_register;
 mod parse_strings;
-mod parse_label_block;
 mod util;
 
 use std::rc::Rc;
@@ -23,9 +23,9 @@ pub use parse_operand::parse_operand;
 pub use parse_register::parse_register;
 pub use parse_strings::parse_strings;
 
-pub use parse_line::parse_line;
-pub use parse_label_block::parse_label_block;
 pub use parse::parse;
+pub use parse_label_block::parse_label_block;
+pub use parse_line::parse_line;
 
 use ::util::{AsmResult, Tokenizer};
 

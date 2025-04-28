@@ -1,4 +1,4 @@
-use util::Location;
+use std::rc::Rc;
 
 use crate::ast::Ast;
 
@@ -11,31 +11,24 @@ pub enum Scale {
     S4 = 4,
     S8 = 8,
 }
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Memory<'code> {
-    location: Location<'code>,
     pub size: u8,
-    pub base: Option<Register<'code>>,
-    pub index: Option<Register<'code>>,
+    pub base: Option<Register>,
+    pub index: Option<Register>,
     pub scale: Option<Scale>,
-    pub disp: Option<Box<Ast<'code>>>,
+    pub disp: Option<Rc<Ast<'code>>>,
 }
 
 impl<'code> Memory<'code> {
-    pub fn location(&self) -> Location<'code> {
-        self.location.clone()
-    }
-
     pub fn new(
-        location: Location<'code>,
         size: u8,
-        base: Option<Register<'code>>,
-        index: Option<Register<'code>>,
+        base: Option<Register>,
+        index: Option<Register>,
         scale: Option<Scale>,
-        disp: Option<Box<Ast<'code>>>,
+        disp: Option<Rc<Ast<'code>>>,
     ) -> Self {
         Self {
-            location,
             size,
             base,
             index,

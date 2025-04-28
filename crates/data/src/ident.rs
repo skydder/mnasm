@@ -1,11 +1,9 @@
 use std::{rc::Rc, sync::atomic::AtomicUsize};
 
-use util::Location;
-
 #[derive(Debug, Clone, PartialEq)]
 enum Label {
     Named(String),
-    Nameless(usize)
+    Nameless(usize),
 }
 
 impl Label {
@@ -18,29 +16,28 @@ impl Label {
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct Ident<'code> {
-    location: Location<'code>,
+pub struct Ident {
     label: Rc<Label>,
 }
 
 static COUNT: AtomicUsize = AtomicUsize::new(0);
 
-impl<'code> Ident<'code> {
-    pub fn new(label: String, location: Location<'code>) -> Self {
-        Self { location, label: Rc::new(Label::Named(label)) }
-    }
-    pub fn location(&self) -> Location<'code> {
-        self.location.clone()
+impl Ident {
+    pub fn new(label: String) -> Self {
+        Self {
+            label: Rc::new(Label::Named(label)),
+        }
     }
 
     pub fn get_str(&self) -> String {
         self.label.as_string()
     }
 
-    pub fn anonymous_ident(location: Location<'code>) -> Self {
+    pub fn anonymous_ident() -> Self {
         let new = Self {
-            location,
-            label: Rc::new(Label::Nameless(COUNT.load(std::sync::atomic::Ordering::Relaxed))),
+            label: Rc::new(Label::Nameless(
+                COUNT.load(std::sync::atomic::Ordering::Relaxed),
+            )),
         };
         COUNT.fetch_add(1, std::sync::atomic::Ordering::Release);
         new

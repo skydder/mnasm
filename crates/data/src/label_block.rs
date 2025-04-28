@@ -1,8 +1,6 @@
 use std::rc::Rc;
 
-use util::Location;
-
-use crate::{Ident, Ast};
+use crate::{Ast, Ident};
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Section {
@@ -26,30 +24,24 @@ impl Section {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct LabelBlock<'code> {
-    name: Ident<'code>,
+    name: Ident,
     section: Section,
     is_global: bool,
     block: Rc<Vec<Ast<'code>>>,
-    location: Location<'code>,
 }
 
 impl<'code> LabelBlock<'code> {
-    pub fn location(&self) -> Location<'code> {
-        self.location.clone()
+    pub fn new(name: Ident, section: Section, is_global: bool, block: Vec<Ast<'code>>) -> Self {
+        Self {
+            name,
+            section,
+            is_global,
+            block: Rc::new(block),
+        }
     }
-
-    pub fn new(
-        name: Ident<'code>,
-        section: Section,
-        is_global: bool,
-        block: Vec<Ast<'code>>,
-        location: Location<'code>
-    ) -> Self {
-        Self { name, section, is_global, block: Rc::new(block), location }
-    }
-    pub fn name(&self) -> Ident<'code> {
+    pub fn name(&self) -> Ident {
         self.name.clone()
     }
     pub fn section(&self) -> Section {
@@ -61,5 +53,4 @@ impl<'code> LabelBlock<'code> {
     pub fn block(&self) -> Rc<Vec<Ast<'code>>> {
         self.block.clone()
     }
-
 }

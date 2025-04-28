@@ -1,9 +1,7 @@
 use std::rc::Rc;
 
-use data::{Ast, Ident, Scope};
+use data::{Ast, Ident, Path, Scope};
 use util::AsmError;
-
-
 
 pub fn construct_scope<'code>(
     ast: &Ast<'code>,
@@ -24,7 +22,7 @@ pub fn construct_scope<'code>(
             Ok(())
         }
         Ast::Label(path) => {
-            let global = scope.get_global().unwrap();
+            let global = scope.global().unwrap();
             if if path.is_relative() {
                 !scope.has_path_of(path)
             } else {
@@ -40,9 +38,11 @@ pub fn construct_scope<'code>(
             }
         }
         Ast::LabelBlock(labelblock) => {
-            let new = scope
-                .clone()
-                .add_new_scope(labelblock.name(), false, true); // nl
+            let mut path = scope.path().path().to_vec();
+            path.push(labelblock.name());
+            let path = Path::new(Rc::new(path), scope.path().is_relative());
+            let new = Scope::new_local(scope.global().unwrap(), labelblock.name(), true, path);
+            scope.add_to_in_scope(new.clone());
             for ast in labelblock.block().iter() {
                 construct_scope(ast, new.clone())?;
             }
@@ -55,4 +55,3 @@ pub fn construct_scope<'code>(
         Ast::String(_) => Ok(()),
     }
 }
-

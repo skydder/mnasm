@@ -14,7 +14,7 @@ pub fn codegen<'code>(ast: &Ast<'code>, scope: Rc<Scope<'code>>) -> String {
             }
             code.push('\n');
             code
-        },
+        }
         Ast::Label(path) => {
             if !path.is_relative() {
                 let mut code = String::new();
@@ -29,7 +29,7 @@ pub fn codegen<'code>(ast: &Ast<'code>, scope: Rc<Scope<'code>>) -> String {
             } else {
                 String::new()
             }
-        },
+        }
 
         Ast::LabelBlock(labelblock) => {
             let mut code = String::new();
@@ -61,23 +61,56 @@ pub fn codegen<'code>(ast: &Ast<'code>, scope: Rc<Scope<'code>>) -> String {
                 16 => REG16,
                 32 => REG32,
                 64 => REG64,
-                _ => unimplemented!()
+                _ => unimplemented!(),
             };
             reg[register.value as usize].to_string()
-        },
-        Ast::Memory(memory) => {
-            match (&memory.base, &memory.index, &memory.scale, &memory.disp) {
-                (None, None, None, Some(d)) => format!("[{}]", codegen(d, scope)),
-                (None, Some(i), Some(s), None) => format!("[{} * {}]", codegen(&Ast::Register(i.clone()), scope), *s as u64),
-                (None, Some(i), Some(s), Some(d)) => format!("[{} + {} * {}]", codegen(d, scope.clone()),codegen(&Ast::Register(i.clone()), scope), *s as u64),
-                (Some(b), None, None, None) => format!("[{}]", codegen(&Ast::Register(b.clone()), scope)),
-                (Some(b), None, None, Some(d)) => format!("[{} + {}]", codegen(d, scope.clone()), codegen(&Ast::Register(b.clone()), scope)),
-                (Some(b), Some(i), None, None) => format!("[{} + {}]", codegen(&Ast::Register(b.clone()), scope.clone()), codegen(&Ast::Register(i.clone()), scope)),
-                (Some(b), Some(i), None, Some(d)) => format!("[{} + {} + {} ]", codegen(d, scope.clone()), codegen(&Ast::Register(b.clone()), scope.clone()), codegen(&Ast::Register(i.clone()), scope)),
-                (Some(b), Some(i), Some(s), None) => format!("[{} + {} * {} ]", codegen(&Ast::Register(b.clone()), scope.clone()), codegen(&Ast::Register(i.clone()), scope), *s as u64),
-                (Some(b), Some(i), Some(s), Some(d)) => format!("[{} + {} + {} * {}]", codegen(d, scope.clone()), codegen(&Ast::Register(b.clone()), scope.clone()), codegen(&Ast::Register(i.clone()), scope), *s as u64),
-                _ => unimplemented!()
+        }
+        Ast::Memory(memory) => match (&memory.base, &memory.index, &memory.scale, &memory.disp) {
+            (None, None, None, Some(d)) => format!("[{}]", codegen(d, scope)),
+            (None, Some(i), Some(s), None) => format!(
+                "[{} * {}]",
+                codegen(&Ast::Register(i.clone()), scope),
+                *s as u64
+            ),
+            (None, Some(i), Some(s), Some(d)) => format!(
+                "[{} + {} * {}]",
+                codegen(d, scope.clone()),
+                codegen(&Ast::Register(i.clone()), scope),
+                *s as u64
+            ),
+            (Some(b), None, None, None) => {
+                format!("[{}]", codegen(&Ast::Register(b.clone()), scope))
             }
+            (Some(b), None, None, Some(d)) => format!(
+                "[{} + {}]",
+                codegen(d, scope.clone()),
+                codegen(&Ast::Register(b.clone()), scope)
+            ),
+            (Some(b), Some(i), None, None) => format!(
+                "[{} + {}]",
+                codegen(&Ast::Register(b.clone()), scope.clone()),
+                codegen(&Ast::Register(i.clone()), scope)
+            ),
+            (Some(b), Some(i), None, Some(d)) => format!(
+                "[{} + {} + {} ]",
+                codegen(d, scope.clone()),
+                codegen(&Ast::Register(b.clone()), scope.clone()),
+                codegen(&Ast::Register(i.clone()), scope)
+            ),
+            (Some(b), Some(i), Some(s), None) => format!(
+                "[{} + {} * {} ]",
+                codegen(&Ast::Register(b.clone()), scope.clone()),
+                codegen(&Ast::Register(i.clone()), scope),
+                *s as u64
+            ),
+            (Some(b), Some(i), Some(s), Some(d)) => format!(
+                "[{} + {} + {} * {}]",
+                codegen(d, scope.clone()),
+                codegen(&Ast::Register(b.clone()), scope.clone()),
+                codegen(&Ast::Register(i.clone()), scope),
+                *s as u64
+            ),
+            _ => unimplemented!(),
         },
         Ast::Immediate(immediate) => {
             if immediate.signed {
@@ -85,9 +118,9 @@ pub fn codegen<'code>(ast: &Ast<'code>, scope: Rc<Scope<'code>>) -> String {
             } else {
                 format!("{}", immediate.data)
             }
-        },
+        }
         Ast::String(strings) => {
             format!("\"{}\"", strings.get_str())
-        },
+        }
     }
 }

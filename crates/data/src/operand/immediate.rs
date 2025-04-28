@@ -1,26 +1,15 @@
-use util::Location;
-
 use super::Operand;
 
-#[derive(Debug)]
-pub struct Immediate<'code> {
-    location: Location<'code>,
+#[derive(Debug, Clone, Copy)]
+pub struct Immediate {
     pub data: u64,
     pub signed: bool,
 }
 
-impl<'code> Immediate<'code> {
-    pub fn location(&self) -> Location<'code> {
-        self.location.clone()
-    }
-
-    pub fn new(location: Location<'code>, data: u64, signed: bool) -> Self {
-        Self {
-            location,
-            data,
-            signed,
-        }
+impl Immediate {
+    pub fn new(data: u64, signed: bool) -> Self {
+        Self { data, signed }
     }
 }
 
-impl Operand for Immediate<'_> {}
+impl Operand for Immediate {}

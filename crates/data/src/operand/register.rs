@@ -1,5 +1,3 @@
-use util::Location;
-
 use super::Operand;
 
 #[allow(clippy::upper_case_acronyms)]
@@ -18,19 +16,15 @@ pub enum RegisterKind {
     DReg,
 }
 
-#[derive(Debug, Clone)]
-pub struct Register<'code> {
+#[allow(unused)]
+#[derive(Debug, Clone, Copy)]
+pub struct Register {
     kind: RegisterKind,
     pub value: u8,
     pub size: usize,
-    location: Location<'code>,
 }
 
-impl<'code> Register<'code> {
-    pub fn location(&self) -> Location<'code> {
-        self.location.clone()
-    }
-
+impl Register {
     pub fn get_reg_val(s: &str) -> Option<(RegisterKind, u8, usize)> {
         for (i, reg8) in REG8.iter().enumerate() {
             if s == *reg8 {
@@ -58,17 +52,12 @@ impl<'code> Register<'code> {
         None
     }
 
-    pub fn new(kind: RegisterKind, value: u8, size: usize, location: Location<'code>) -> Self {
-        Self {
-            kind,
-            value,
-            size,
-            location,
-        }
+    pub fn new(kind: RegisterKind, value: u8, size: usize) -> Self {
+        Self { kind, value, size }
     }
 }
 
-impl Operand for Register<'_> {}
+impl Operand for Register {}
 
 pub const REG8: &[&str] = &[
     "al", "cl", "dl", "bl", "ah", "ch", "dh", "bh", "r8b", "r9b", "r10b", "r11b", "r12b", "r13b",

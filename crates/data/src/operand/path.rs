@@ -1,60 +1,48 @@
-use std::{cell::RefCell, rc::Rc};
-
-use util::Location;
+use std::rc::Rc;
 
 use crate::ident::Ident;
 
 use super::Operand;
 
 #[derive(Debug, Clone)]
-pub struct Path<'code> {
+pub struct Path {
     is_relative: bool,
-    path: Rc<Vec<Ident<'code>>>,
-    location: Location<'code>,
-    name: RefCell<String>
+    path: Rc<Vec<Ident>>,
 }
 
 #[allow(clippy::needless_lifetimes)]
-impl<'code> Path<'code> {
+impl Path {
     pub fn is_relative(&self) -> bool {
         self.is_relative
     }
 
-    pub fn path(&self) -> Rc<Vec<Ident<'code>>> {
+    pub fn path(&self) -> Rc<Vec<Ident>> {
         self.path.clone()
     }
 
-    pub fn location(&self) -> Location<'code> {
-        self.location.clone()
-    }
-
-    pub fn new(location: Location<'code>, path: Rc<Vec<Ident<'code>>>, is_relative: bool) -> Self {
+    pub fn new(path: Rc<Vec<Ident>>, is_relative: bool) -> Self {
         // if path.is_empty() {
         //     unreachable!()
         // }
-        Self {
-            is_relative,
-            path,
-            location,
-            name: RefCell::new(String::new()),
-        }
+        Self { is_relative, path }
     }
 
-    pub fn next_path(&self) -> Option<Rc<Self>> {
+    pub fn next_path(&self) -> Option<Self> {
         if self.path.len() > 1 {
-            Some(Rc::new(Self {
+            Some(Self {
                 is_relative: self.is_relative,
                 path: Rc::new(self.path[1..].to_vec()),
-                location: self.path.get(1).unwrap().location(),
-                name: RefCell::new(String::new())
-            }))
+            })
         } else {
             None
         }
     }
 
-    pub fn current(&self) -> Ident<'code> {
-        self.path.first().unwrap().clone()
+    pub fn current(&self) -> Ident {
+        self.path
+            .first()
+            .expect("failed when using Path::current")
+            .clone()
     }
 
     pub fn is_last(&self) -> bool {
@@ -70,4 +58,4 @@ impl<'code> Path<'code> {
     }
 }
 
-impl Operand for Path<'_> {}
+impl Operand for Path {}

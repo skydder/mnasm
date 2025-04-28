@@ -24,5 +24,11 @@ where
     tokenizer.consume_token(TokenKind::Comma)?;
     let mut list = parse_list(tokenizer, TokenKind::Comma, TokenKind::NewLine, parse_ins)?;
     list.insert(0, ins);
-    Ok(Ast::LabelBlock(LabelBlock::new(Ident::anonymous_ident(location.clone()), data::Section::None, false, list, location)))
+    Ok(Ast::LabelBlock(LabelBlock::new(
+        Ident::anonymous_ident(location.clone()),
+        data::Section::None,
+        false,
+        list,
+        location,
+    )))
 }
