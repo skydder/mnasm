@@ -21,6 +21,9 @@ where
             }
         }
         TokenKind::String(_) => Ok(Ast::String(parse_strings(tokenizer)?)),
-        _ => todo!(),
+        s => {
+            eprintln!("{:#?}", s);
+            unimplemented!()
+        }
     }
 }

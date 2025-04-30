@@ -30,8 +30,21 @@ fn assemble(file: &str, flag: &RunFlags) -> String {
     while !loc.is_eos() {
         let ast = parse(t.clone()).unwrap_or_else(|err| emit_msg_and_exit(format!("{}", err)));
         // eprintln!("{:#?}", ast);
-        analyzer::construct_scope(&ast, root.get_child(&Ident::new("_local".to_owned())).clone().unwrap());
-        // println!("{}", codegen::codegen(&ast, root.get_child(&Ident::new("_local".to_owned())).clone().unwrap()));
+        // analyzer::construct_scope(
+        //     &ast,
+        //     root.get_child(&Ident::new("_local".to_owned()))
+        //         .clone()
+        //         .unwrap(),
+        // );
+        // println!(
+        //     "{}",
+        //     codegen::codegen(
+        //         &ast,
+        //         root.get_child(&Ident::new("_local".to_owned()))
+        //             .clone()
+        //             .unwrap()
+        //     )
+        // );
         println!("{}", codegen::pretty_print(&ast));
     }
     // if flag.is_e {

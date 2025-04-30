@@ -4,14 +4,14 @@ pub fn pretty_print(ast: &Ast) -> String {
     match ast {
         Ast::Ins(ident, asts) => {
             let mut code = ident.data().get_str().to_string();
+            code.push('(');
             for (i, ast) in asts.iter().enumerate() {
-                code.push(' ');
                 code.push_str(&pretty_print(ast));
                 if i < asts.len() - 1 {
-                    code.push(',');
+                    code.push_str(", ");
                 }
             }
-            code.push('\n');
+            code.push_str(")\n");
             code
         }
         Ast::Label(path) => {
@@ -45,11 +45,14 @@ pub fn pretty_print(ast: &Ast) -> String {
             }
 
             if !labelblock.block().is_empty() {
-                code.push('{');
+                let mut block = "{\n".to_string();
                 for ast in labelblock.block().iter() {
-                    code.push_str(&pretty_print(ast))
+                    block.push_str(&pretty_print(ast))
                 }
+                code.push_str(&block.trim_end_matches('\n').replace("\n", "\n    "));
+                code.push_str("\n}");
             }
+            code.push('\n');
             code
         }
         Ast::Macro(_ident, _ast, _asts) => todo!(),
