@@ -24,12 +24,7 @@ pub fn construct_scope<'code>(
         Ast::Label(path) => {
             let location = path.location();
             let path = path.data();
-            let global = scope.global().unwrap();
-            if if path.is_relative() {
-                !scope.has_path_of(&path)
-            } else {
-                !global.has_path_of(&path)
-            } {
+            if scope.has_path_of(&path) {
                 Err(AsmError::ParseError(location, String::new(), String::new()))
             } else {
                 Ok(())
@@ -40,7 +35,7 @@ pub fn construct_scope<'code>(
             let labelblock = labelblock.data();
             path.push(labelblock.name());
             let path = Path::new(Rc::new(path), scope.path().is_relative());
-            let new = Scope::new_local(scope.global().unwrap(), labelblock.name(), true, path);
+            let new = Scope::new_local(scope.clone(), labelblock.name(), true, path);
             scope.add_to_in_scope(new.clone());
             for ast in labelblock.block().iter() {
                 construct_scope(ast, new.clone())?;

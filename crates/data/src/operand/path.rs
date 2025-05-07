@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use crate::ident::Ident;
+use crate::ident::{self, Ident};
 
 use super::Operand;
 
@@ -25,6 +25,12 @@ impl Path {
         //     unreachable!()
         // }
         Self { is_relative, path }
+    }
+
+    pub fn append(&self, name: Ident) -> Self {
+        let mut path = self.path.to_vec();
+        path.push(name);
+        Self::new(Rc::new(path), self.is_relative)
     }
 
     pub fn next_path(&self) -> Option<Self> {
@@ -55,6 +61,16 @@ impl Path {
 
     pub fn is_empty(&self) -> bool {
         self.len() == 0
+    }
+}
+
+impl std::iter::IntoIterator for Path {
+    type Item = Ident;
+
+    type IntoIter = std::vec::IntoIter<Ident>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        <std::vec::Vec<ident::Ident> as Clone>::clone(&self.path).into_iter()
     }
 }
 

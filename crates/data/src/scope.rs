@@ -7,7 +7,7 @@ use crate::{Ident, Path};
 
 #[allow(dead_code)]
 pub struct Scope<'code> {
-    global: Option<Rc<Scope<'code>>>, // root of the tree
+    parent: Option<Rc<Scope<'code>>>, // root of the tree
     is_global: bool,
     name: Ident,
     in_scope: RefCell<Vec<Rc<Scope<'code>>>>, // children
@@ -25,14 +25,14 @@ pub struct Scope<'code> {
 
 impl<'code> Scope<'code> {
     fn new(
-        global: Option<Rc<Scope<'code>>>,
+        parent: Option<Rc<Scope<'code>>>,
         name: Ident,
         is_global: bool,
         is_defined: bool,
         path: Path,
     ) -> Rc<Self> {
         Rc::new(Self {
-            global,
+            parent,
             name,
             in_scope: RefCell::new(Vec::new()),
             is_defined: Cell::new(is_defined),
@@ -41,9 +41,9 @@ impl<'code> Scope<'code> {
         })
     }
 
-    fn new_global_root() -> Rc<Self> {
+    fn new_global_root(parent: Rc<Self>) -> Rc<Self> {
         Self::new(
-            None,
+            Some(parent),
             Ident::new("_global".to_string()),
             true,
             true,
@@ -51,9 +51,9 @@ impl<'code> Scope<'code> {
         )
     }
 
-    fn new_local_root(global: Rc<Scope<'code>>) -> Rc<Self> {
+    fn new_local_root(parent: Rc<Self>) -> Rc<Self> {
         Self::new(
-            Some(global),
+            Some(parent),
             Ident::new("_local".to_string()),
             true,
             true,
@@ -69,19 +69,47 @@ impl<'code> Scope<'code> {
             true,
             Path::new(Rc::new(Vec::new()), false),
         );
-        let global = Self::new_global_root();
+        let global = Self::new_global_root(root.clone());
         root.add_to_in_scope(global.clone());
-        root.add_to_in_scope(Self::new_local_root(global));
+        root.add_to_in_scope(Self::new_local_root(root.clone()));
         root
     }
 
+    fn get_local_root(self: &Rc<Self>) -> Rc<Self> {
+        let mut current = self.clone();
+        // unsafe { // potentially has likelihood of unwrap() failed
+        loop {
+            for scope in current.in_scope.borrow().iter() {
+                if scope.name.get_str() == "_local" {
+                    return scope.clone();
+                }
+            }
+            current = current.parent.clone().unwrap();
+        }
+        // }
+    }
+
+    fn get_global_root(self: &Rc<Self>) -> Rc<Self> {
+        let mut current = self.clone();
+        // unsafe { // potentially has likelihood of unwrap() failed
+        loop {
+            for scope in current.in_scope.borrow().iter() {
+                if scope.name.get_str() == "_global" {
+                    return scope.clone();
+                }
+            }
+            current = current.parent.clone().unwrap();
+        }
+        // }
+    }
+
     pub fn new_local(
-        global: Rc<Scope<'code>>,
+        parent: Rc<Scope<'code>>,
         name: Ident,
         is_defined: bool,
         path: Path,
     ) -> Rc<Self> {
-        Self::new(Some(global), name, false, is_defined, path)
+        Self::new(Some(parent), name, false, is_defined, path)
     }
 
     pub fn add_to_in_scope(&self, scope: Rc<Scope<'code>>) {
@@ -89,29 +117,22 @@ impl<'code> Scope<'code> {
     }
 
     pub fn has_path_of(self: &Rc<Self>, path: &Path) -> bool {
-        if path.is_empty() {
-            return false;
-        }
-
-        for label in self.in_scope.borrow().iter() {
-            if label.name == path.current() {
-                if path.is_last() {
-                    return true;
-                } else {
-                    return label.clone().has_path_of(&path.next_path().unwrap());
-                }
+        let mut flag = true;
+        let mut current = if path.is_relative() {
+            self.clone()
+        } else {
+            self.get_global_root()
+        };
+        let route = path.clone().into_iter();
+        for point in route {
+            current = if let Some(scope) = current.in_scope.borrow().iter().find(|&scope| scope.name == point) {
+                scope.clone()
+            } else {
+                flag = false;
+                Self::new_local(current.clone(), point.clone(), false, current.path.append(point))
             }
         }
-        let new = Self::new_local(
-            self.global.clone().unwrap(),
-            path.current(),
-            false,
-            path.next_path().unwrap().clone(),
-        );
-        self.add_to_in_scope(new.clone());
-
-        new.has_path_of(&Path::new(Rc::new(Vec::new()), false));
-        false
+        flag
     }
 
     pub fn get_label(self: &Rc<Self>) -> String {
@@ -121,10 +142,6 @@ impl<'code> Scope<'code> {
             label.push_str(&ident.get_str());
         }
         label
-    }
-
-    pub fn global(self: &Rc<Self>) -> Option<Rc<Self>> {
-        self.global.clone()
     }
 
     pub fn path(self: &Rc<Self>) -> Path {

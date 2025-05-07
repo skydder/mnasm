@@ -16,7 +16,7 @@ pub fn pretty_print(ast: &Ast) -> String {
         }
         Ast::Label(path) => {
             let path = path.data();
-            if !path.is_relative() {
+            if path.is_relative() {
                 let mut code = String::new();
                 let len = path.len() - 1;
                 for (i, ident) in path.path().iter().enumerate() {
@@ -27,7 +27,12 @@ pub fn pretty_print(ast: &Ast) -> String {
                 }
                 code
             } else {
-                String::new()
+                let mut code = String::new();
+                for ident in path.path().iter() {
+                    code.push_str("::");
+                    code.push_str(&ident.get_str());
+                }
+                code
             }
         }
         Ast::LabelBlock(labelblock) => {
