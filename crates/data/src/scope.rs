@@ -112,6 +112,17 @@ impl<'code> Scope<'code> {
         Self::new(Some(parent), name, false, is_defined, path)
     }
 
+    pub fn new_global(
+        parent: Rc<Scope<'code>>,
+        name: Ident,
+        is_defined: bool,
+        path: Path,
+    ) -> Rc<Self> {
+        let new = Self::new(Some(parent), name, false, is_defined, path);
+        new.get_global_root().add_to_in_scope(new.clone());
+        new
+    }
+
     pub fn add_to_in_scope(&self, scope: Rc<Scope<'code>>) {
         self.in_scope.borrow_mut().push(scope);
     }
@@ -121,7 +132,7 @@ impl<'code> Scope<'code> {
         let mut current = if path.is_relative() {
             self.clone()
         } else {
-            self.get_global_root()
+            self.get_local_root()
         };
         let route = path.clone().into_iter();
         for point in route {

@@ -4,6 +4,9 @@ use data::{Ast, Scope, Section, WithLocation, REG16, REG32, REG64, REG8};
 pub fn codegen<'code>(ast: &Ast<'code>, scope: Rc<Scope<'code>>) -> String {
     match ast {
         Ast::Ins(ident, asts) => {
+            if ident.data().get_str() == "extern" {
+                return String::new();
+            }
             let mut code = format!("\t{}", ident.data().get_str());
             for (i, ast) in asts.iter().enumerate() {
                 code.push(' ');
@@ -17,19 +20,16 @@ pub fn codegen<'code>(ast: &Ast<'code>, scope: Rc<Scope<'code>>) -> String {
         }
         Ast::Label(path) => {
             let path = path.data();
-            if !path.is_relative() {
-                let mut code = String::new();
-                let len = path.len() - 1;
-                for (i, ident) in path.path().iter().enumerate() {
-                    code.push_str(&ident.get_str());
-                    if i < len {
-                        code.push('.');
-                    }
-                }
-                code
-            } else {
+            let mut code = if !path.is_relative() {
                 String::new()
+            } else {
+                scope.get_label()
+            };
+            for ident in path.path().iter() {
+                code.push('_');
+                code.push_str(&ident.get_str());
             }
+            code
         }
 
         Ast::LabelBlock(labelblock) => {

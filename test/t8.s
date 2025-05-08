@@ -4,7 +4,7 @@
     }
     <test2> {
         <test3>
-        jump(::test::test1::test3)
+        jump(::test::test1::test4)
     }
     extern(pyton)
 }

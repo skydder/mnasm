@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use data::{Ast, Ident, Path, Scope};
+use data::{Ast, Path, Scope};
 use util::AsmError;
 
 pub fn construct_scope<'code>(
@@ -9,6 +9,22 @@ pub fn construct_scope<'code>(
 ) -> Result<(), AsmError<'code>> {
     match ast {
         Ast::Ins(label, asts) => {
+            if label.data().get_str() == "extern" {
+                for label in asts {
+                    assert!(matches!(label, Ast::Label(_)));
+                    let ident = if let Ast::Label(l) = label {
+                        l.data()
+                    } else {
+                        return Err(AsmError::ParseError(
+                            label.location(),
+                            String::new(),
+                            String::new(),
+                        ));
+                    };
+                    Scope::new_global(scope.clone(), ident.current(), true, ident);
+                }
+                return Ok(())
+            }
             for op in asts {
                 if !op.is_operand() {
                     return Err(AsmError::ParseError(
@@ -24,7 +40,9 @@ pub fn construct_scope<'code>(
         Ast::Label(path) => {
             let location = path.location();
             let path = path.data();
-            if scope.has_path_of(&path) {
+            let is = scope.has_path_of(&path);
+            eprintln!("wwwa: {}", is);
+            if !is {
                 Err(AsmError::ParseError(location, String::new(), String::new()))
             } else {
                 Ok(())
