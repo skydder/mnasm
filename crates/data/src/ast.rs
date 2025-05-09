@@ -1,4 +1,4 @@
-use util::Location;
+use util::{Location, Token, TokenKind};
 
 use crate::{Strings, WithLocation, label_block::LabelBlock};
 
@@ -12,7 +12,7 @@ pub enum Ast<'code> {
     Ins(WithLocation<'code, Ident>, Vec<Ast<'code>>),
     Label(WithLocation<'code, Path>),
     LabelBlock(WithLocation<'code, LabelBlock<'code>>),
-    Macro(WithLocation<'code, Ident>, Box<Ast<'code>>, Vec<Ast<'code>>), // 1 ->
+    Macro(WithLocation<'code, Ident>, Vec<TokenKind>), // 1 ->
     Register(WithLocation<'code, Register>),
     Memory(WithLocation<'code, Memory<'code>>),
     Immediate(WithLocation<'code, Immediate>),

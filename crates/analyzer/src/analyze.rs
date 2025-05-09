@@ -60,7 +60,7 @@ pub fn construct_scope<'code>(
             }
             Ok(())
         }
-        Ast::Macro(label, ast, labels) => todo!(),
+        Ast::Macro(label, stream) => todo!(),
         Ast::Register(register) => Ok(()),
         Ast::Memory(memory) => Ok(()),
         Ast::Immediate(immediate) => Ok(()),

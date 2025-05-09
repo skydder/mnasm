@@ -71,6 +71,15 @@ impl std::fmt::Display for TokenKind {
     }
 }
 
+pub fn pair_end(token_kind: &TokenKind) -> TokenKind {
+    match token_kind {
+        TokenKind::OpenBrace => TokenKind::CloseBrace,
+        TokenKind::OpenParenthesis => TokenKind::CloseParenthesis,
+        TokenKind::OpenSquareBracket => TokenKind::CloseSquareBracket,
+        _ => unimplemented!("there is no pair defined"),
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct Token<'code> {
     pub kind: TokenKind,
