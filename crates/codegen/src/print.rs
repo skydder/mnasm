@@ -60,7 +60,7 @@ pub fn pretty_print(ast: &Ast) -> String {
             code.push('\n');
             code
         }
-        Ast::Macro(_ident, _ast, _asts) => todo!(),
+        Ast::Macro(_ident, _ast) => todo!(),
         Ast::Register(register) => {
             let register = register.data();
             let reg = match register.size {
@@ -137,5 +137,6 @@ pub fn pretty_print(ast: &Ast) -> String {
         Ast::String(strings) => {
             format!("\"{}\"", strings.data().get_str())
         }
+        Ast::EOS => String::new()
     }
 }

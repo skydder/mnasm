@@ -14,6 +14,7 @@ pub fn parse_macro<'code, T>(tokenizer: Rc<T>) -> AsmResult<'code, Ast<'code>>
 where
     T: Tokenizer<'code>,
 {
+    tokenizer.consume_token(TokenKind::At)?;
     let macro_name = parse_ident(tokenizer.clone())?;
     tokenizer.skip_space();
     let mut list = Vec::new();

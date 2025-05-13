@@ -1,7 +1,7 @@
 use std::rc::Rc;
 
-use data::{Ast, Path, Scope};
-use util::AsmError;
+use data::{Ast, Ident, Path, Scope};
+use util::{AsmError, AsmResult};
 
 pub fn construct_scope<'code>(
     ast: &Ast<'code>,
@@ -43,7 +43,7 @@ pub fn construct_scope<'code>(
             let is = scope.has_path_of(&path);
             eprintln!("wwwa: {}", is);
             if !is {
-                Err(AsmError::ParseError(location, String::new(), String::new()))
+                Err(AsmError::ParseError(location, "undefined label".to_string(), String::new()))
             } else {
                 Ok(())
             }
@@ -60,10 +60,27 @@ pub fn construct_scope<'code>(
             }
             Ok(())
         }
-        Ast::Macro(label, stream) => todo!(),
+        Ast::Macro(label, stream) => {
+            
+            todo!()
+        },
         Ast::Register(register) => Ok(()),
         Ast::Memory(memory) => Ok(()),
         Ast::Immediate(immediate) => Ok(()),
         Ast::String(_) => Ok(()),
+        Ast::EOS => Ok(())
     }
+}
+
+pub fn analyze_code<'code>(code: &Vec<Ast<'code>>) -> AsmResult<'code, Rc<Scope<'code>>> {
+    let root = Scope::init_root();
+    for ast in code {
+        construct_scope(
+            ast,
+        root.get_child(&Ident::new("_local".to_owned()))
+                .clone()
+                .unwrap()
+        )?;
+    }
+    Ok(root)
 }

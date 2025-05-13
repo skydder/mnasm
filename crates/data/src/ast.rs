@@ -17,6 +17,7 @@ pub enum Ast<'code> {
     Memory(WithLocation<'code, Memory<'code>>),
     Immediate(WithLocation<'code, Immediate>),
     String(WithLocation<'code, Strings>),
+    EOS,
 }
 
 #[allow(clippy::needless_lifetimes)]
@@ -38,6 +39,7 @@ impl<'code> Ast<'code> {
             Ast::Memory(memory) => memory.location(),
             Ast::Immediate(immediate) => immediate.location(),
             Ast::String(_) => todo!(),
+            Ast::EOS => todo!(),
         }
     }
 }

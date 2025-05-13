@@ -1,15 +1,17 @@
+use analyzer::analyze_code;
+use codegen::codegen_code;
 use data::{Ident, Scope};
 use std::{
     fs::{self, File},
     io::{self, Write},
     path::Path,
-    process::Command,
+    process::{exit, Command},
     rc::Rc,
     result::Result,
 };
 use tempfile::NamedTempFile;
 
-use parser::parse;
+use parser::{parse, parse_code};
 use tokenizer::Tokenizer;
 use util::{emit_msg_and_exit, set_iw, Location, Source};
 
@@ -21,33 +23,17 @@ fn main() {
 fn assemble(file: &str, _flag: &RunFlags) -> String {
     let source = Source::new_with_file(file);
     let loc = Location::new(source.unwrap());
-    let t = Rc::new(Tokenizer::new(loc.clone(), loc.end()));
-    let root = Scope::init_root();
-    while !loc.is_eos() {
-        let ast = parse(t.clone()).unwrap_or_else(|err| emit_msg_and_exit(format!("{}", err)));
-        // eprintln!("{:#?}", ast);
-        let _ = analyzer::construct_scope(
-            &ast,
-            root.get_child(&Ident::new("_local".to_owned()))
-                .clone()
-                .unwrap(),
-        );
-        println!(
-            "{}",
-            codegen::codegen(
-                &ast,
-                root.get_child(&Ident::new("_local".to_owned()))
-                    .clone()
-                    .unwrap()
-            )
-        );
-        // println!("{}", codegen::pretty_print(&ast));
-    }
-    // if flag.is_e {
-    //     println!("{}", t.code());
-    // }
-    // analyze(&ast);
-    // codegen_code(&ast)
+    let tokenizer = Rc::new(Tokenizer::new(loc.clone(), loc.end()));
+    let code = parse_code(tokenizer).unwrap_or_else(|e| {
+        eprintln!("{}", e);
+        exit(1)
+    });
+    eprintln!("{:?}", code);
+    let root = analyze_code(&code).unwrap_or_else(|e| {
+        eprintln!("{}", e);
+        exit(1)
+    });
+    let _ = codegen_code(&code, root);
     todo!()
 }
 

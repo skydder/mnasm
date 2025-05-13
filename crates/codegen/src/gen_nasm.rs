@@ -1,6 +1,7 @@
 use std::rc::Rc;
 
-use data::{Ast, Scope, Section, WithLocation, REG16, REG32, REG64, REG8};
+use data::{Ast, Ident, Scope, Section, WithLocation, REG16, REG32, REG64, REG8};
+use util::AsmResult;
 pub fn codegen<'code>(ast: &Ast<'code>, scope: Rc<Scope<'code>>) -> String {
     match ast {
         Ast::Ins(ident, asts) => {
@@ -56,7 +57,7 @@ pub fn codegen<'code>(ast: &Ast<'code>, scope: Rc<Scope<'code>>) -> String {
             }
             code
         }
-        Ast::Macro(ident, ast, asts) => todo!(),
+        Ast::Macro(ident, ast) => todo!(),
         Ast::Register(register) => {
             let register = register.data();
             let reg = match register.size {
@@ -145,5 +146,18 @@ pub fn codegen<'code>(ast: &Ast<'code>, scope: Rc<Scope<'code>>) -> String {
         Ast::String(strings) => {
             format!("\"{}\"", strings.data().get_str())
         }
+        Ast::EOS => String::new()
     }
+}
+
+pub fn codegen_code<'code>(code: &Vec<Ast<'code>>, root: Rc<Scope<'code>>) ->AsmResult<'code, ()> {
+    for ast in code {
+        println!("{}", codegen(
+            ast,
+            root.get_child(&Ident::new("_local".to_owned()))
+                .clone()
+                .unwrap()
+        ));
+    }
+    Ok(())
 }

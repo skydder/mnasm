@@ -4,7 +4,8 @@
     }
     <test2> {
         <test3>
-        jump(::test::test1::test4)
+        jump(::test::test1::test3)
     }
+    @test(tstd asdfasd {})
     extern(pyton)
 }

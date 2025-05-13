@@ -24,8 +24,9 @@ pub use parse_memory::parse_memory;
 pub use parse_operand::parse_operand;
 pub use parse_register::parse_register;
 pub use parse_strings::parse_strings;
+pub use parse_macro::parse_macro;
 
-pub use parse::parse;
+pub use parse::{parse, parse_code};
 pub use parse_label_block::parse_label_block;
 pub use parse_line::parse_line;
 
