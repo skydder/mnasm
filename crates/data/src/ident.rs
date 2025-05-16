@@ -1,6 +1,6 @@
 use std::{rc::Rc, sync::atomic::AtomicUsize};
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Hash, Eq)]
 enum Label {
     Named(String),
     Nameless(usize),
@@ -15,7 +15,7 @@ impl Label {
     }
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Hash, Eq)]
 pub struct Ident {
     label: Rc<Label>,
 }

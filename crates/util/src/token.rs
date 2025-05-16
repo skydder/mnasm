@@ -4,7 +4,7 @@ use std::rc::Rc;
 
 use crate::Location;
 
-#[derive(PartialEq, Debug, Clone)]
+#[derive(PartialEq, Debug, Clone, Eq, Hash)]
 pub enum TokenKind {
     LessThan,
     GreaterThan,
