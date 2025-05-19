@@ -3,24 +3,29 @@
 // 3. expand: (name, stream(Vec<TokenKind>)) | expander -> stream (AST)
 
 mod macro_data;
+mod macro_tokenizer;
 use crate::macro_data::MacroData;
+use crate::macro_tokenizer::MacroTokenizer;
 use data::Ast;
+use util::AsmResult;
 
-pub fn expand_macro(ast: Vec<Ast<'_>>) -> Vec<Ast<'_>> {
-    let data = MacroData::new();
-    let mut expanded = Vec::new();
-    for a in ast {
-        expanded.push(expand(a, &data));
-    }
-    expanded
-}
+// this module is a sub-module of parser and real_expander would be implemented in parser module
 
-pub fn expand<'code>(ast: Ast<'code>, macro_data: &MacroData) -> Ast<'code> {
+// pub fn expand_macro(ast: Vec<Ast<'_>>) -> Vec<Ast<'_>> {
+//     let data = MacroData::new();
+//     let mut expanded = Vec::new();
+//     for a in ast {
+//         expanded.push(expand(a, &data));
+//     }
+//     expanded
+// }
+
+pub fn expand<'code>(ast: Ast<'code>, macro_data: &'code MacroData) -> AsmResult<'code, Vec<util::TokenKind>> {
     match ast {
         Ast::Macro(name, stream) => {
             let expander = macro_data.get(name.data()).unwrap();
-            expander.expand(stream)
+            expander.expand(macro_data, stream)
         }
-        _ => ast
+        _ => unimplemented!(),
     }
 }

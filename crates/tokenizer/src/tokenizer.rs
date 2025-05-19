@@ -67,10 +67,4 @@ impl<'code> TokenizerTrait<'code> for Tokenizer<'code> {
             ))
         }
     }
-
-    fn skip_space(&self) {
-        while self.peek_token().is(&TokenKind::Space) {
-            self.next_token();
-        }
-    }
 }

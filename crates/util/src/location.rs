@@ -1,8 +1,8 @@
 use std::{fmt::Debug, io::Read, rc::Rc};
 
-use crate::{emit_msg_and_exit, open_safely, AsmError, AsmResult};
+use crate::{open_safely, AsmError, AsmResult};
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Default)]
 pub struct Source<'code> {
     pub code: Rc<String>,
     pub file: &'code str,
@@ -37,7 +37,7 @@ impl<'code> Source<'code> {
         self.file
     }
 }
-#[derive(Clone)]
+#[derive(Clone, Default)]
 pub struct Location<'code> {
     source: Source<'code>,
     line: usize,

@@ -136,11 +136,21 @@ impl<'code> Scope<'code> {
         };
         let route = path.clone().into_iter();
         for point in route {
-            current = if let Some(scope) = current.in_scope.borrow().iter().find(|&scope| scope.name == point) {
+            current = if let Some(scope) = current
+                .in_scope
+                .borrow()
+                .iter()
+                .find(|&scope| scope.name == point)
+            {
                 scope.clone()
             } else {
                 flag = false;
-                Self::new_local(current.clone(), point.clone(), false, current.path.append(point))
+                Self::new_local(
+                    current.clone(),
+                    point.clone(),
+                    false,
+                    current.path.append(point),
+                )
             }
         }
         flag

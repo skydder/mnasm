@@ -5,13 +5,12 @@ mod parse_ins;
 mod parse_label;
 mod parse_label_block;
 mod parse_line;
+mod parse_macro;
 mod parse_memory;
 mod parse_operand;
 mod parse_register;
 mod parse_strings;
-mod parse_macro;
 mod util;
-
 
 use std::rc::Rc;
 
@@ -20,11 +19,11 @@ pub use parse_ins::parse_ins;
 
 pub use parse_immediate::parse_immediate;
 pub use parse_label::parse_label;
+pub use parse_macro::parse_macro;
 pub use parse_memory::parse_memory;
 pub use parse_operand::parse_operand;
 pub use parse_register::parse_register;
 pub use parse_strings::parse_strings;
-pub use parse_macro::parse_macro;
 
 pub use parse::{parse, parse_code};
 pub use parse_label_block::parse_label_block;

@@ -32,6 +32,23 @@ pub enum TokenKind {
     Arcane(char),
 }
 
+impl TokenKind {
+    pub fn to_be_token<'code>(&self, location: Location<'code>) -> Token<'code> {
+        Token::new(self.clone(), self.len(), location)
+    }
+
+    #[allow(clippy::len_without_is_empty)]
+    pub fn len(&self) -> usize {
+        match self {
+            TokenKind::Number(i) => format!("{}", i).to_string().len(), // a little unnatural
+            TokenKind::String(s) => s.len() + 2,
+            TokenKind::Identifier(i) => i.len(),
+            TokenKind::EOS => 0,
+            _ => 1,
+        }
+    }
+}
+
 impl std::fmt::Display for TokenKind {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(

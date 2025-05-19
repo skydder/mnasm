@@ -146,18 +146,21 @@ pub fn codegen<'code>(ast: &Ast<'code>, scope: Rc<Scope<'code>>) -> String {
         Ast::String(strings) => {
             format!("\"{}\"", strings.data().get_str())
         }
-        Ast::EOS => String::new()
+        Ast::EOS => String::new(),
     }
 }
 
-pub fn codegen_code<'code>(code: &Vec<Ast<'code>>, root: Rc<Scope<'code>>) ->AsmResult<'code, ()> {
+pub fn codegen_code<'code>(code: &Vec<Ast<'code>>, root: Rc<Scope<'code>>) -> AsmResult<'code, ()> {
     for ast in code {
-        println!("{}", codegen(
-            ast,
-            root.get_child(&Ident::new("_local".to_owned()))
-                .clone()
-                .unwrap()
-        ));
+        println!(
+            "{}",
+            codegen(
+                ast,
+                root.get_child(&Ident::new("_local".to_owned()))
+                    .clone()
+                    .unwrap()
+            )
+        );
     }
     Ok(())
 }

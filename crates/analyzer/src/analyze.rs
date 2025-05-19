@@ -10,7 +10,7 @@ pub fn construct_scope<'code>(
     match ast {
         Ast::Ins(label, asts) => {
             if label.data().get_str() == "extern" {
-                for label in asts {
+                for label in asts.iter() {
                     assert!(matches!(label, Ast::Label(_)));
                     let ident = if let Ast::Label(l) = label {
                         l.data()
@@ -23,9 +23,9 @@ pub fn construct_scope<'code>(
                     };
                     Scope::new_global(scope.clone(), ident.current(), true, ident);
                 }
-                return Ok(())
+                return Ok(());
             }
-            for op in asts {
+            for op in asts.iter() {
                 if !op.is_operand() {
                     return Err(AsmError::ParseError(
                         op.location(),
@@ -43,7 +43,11 @@ pub fn construct_scope<'code>(
             let is = scope.has_path_of(&path);
             eprintln!("wwwa: {}", is);
             if !is {
-                Err(AsmError::ParseError(location, "undefined label".to_string(), String::new()))
+                Err(AsmError::ParseError(
+                    location,
+                    "undefined label".to_string(),
+                    String::new(),
+                ))
             } else {
                 Ok(())
             }
@@ -61,14 +65,13 @@ pub fn construct_scope<'code>(
             Ok(())
         }
         Ast::Macro(label, stream) => {
-            
             todo!()
-        },
+        }
         Ast::Register(register) => Ok(()),
         Ast::Memory(memory) => Ok(()),
         Ast::Immediate(immediate) => Ok(()),
         Ast::String(_) => Ok(()),
-        Ast::EOS => Ok(())
+        Ast::EOS => Ok(()),
     }
 }
 
@@ -77,9 +80,9 @@ pub fn analyze_code<'code>(code: &Vec<Ast<'code>>) -> AsmResult<'code, Rc<Scope<
     for ast in code {
         construct_scope(
             ast,
-        root.get_child(&Ident::new("_local".to_owned()))
+            root.get_child(&Ident::new("_local".to_owned()))
                 .clone()
-                .unwrap()
+                .unwrap(),
         )?;
     }
     Ok(root)

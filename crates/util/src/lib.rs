@@ -13,5 +13,5 @@ pub fn open_safely(file: &str) -> File {
     })
 }
 
-pub use token::{Token, TokenKind, pair_end};
+pub use token::{pair_end, Token, TokenKind};
 pub use tokenizer_requirement::Tokenizer;

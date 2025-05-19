@@ -19,8 +19,8 @@ where
     tokenizer.skip_space();
     let mut list = Vec::new();
     parse_stream(tokenizer, &mut list)?;
-    
-    Ok(Ast::Macro(macro_name, list))
+
+    Ok(Ast::Macro(macro_name, Rc::new(list)))
 }
 
 fn parse_stream<'code, T>(tokenizer: Rc<T>, list: &mut Vec<TokenKind>) -> AsmResult<'code, ()>
@@ -33,13 +33,21 @@ where
             list.push(open.clone());
             open
         }
-        _ => return Err(util::AsmError::ParseError(tokenizer.location(), String::new(), String::new()))
+        _ => {
+            return Err(util::AsmError::ParseError(
+                tokenizer.location(),
+                String::new(),
+                String::new(),
+            ))
+        }
     };
     let close = pair_end(&open);
     while !tokenizer.peek_token().is(&close) {
         match tokenizer.peek_token().kind {
-            TokenKind::OpenBrace | TokenKind::OpenParenthesis | TokenKind::OpenSquareBracket => parse_stream(tokenizer.clone(), list)?,
-            _ => list.push(tokenizer.next_token().kind)
+            TokenKind::OpenBrace | TokenKind::OpenParenthesis | TokenKind::OpenSquareBracket => {
+                parse_stream(tokenizer.clone(), list)?
+            }
+            _ => list.push(tokenizer.next_token().kind),
         }
     }
     tokenizer.consume_token(close.clone())?;
