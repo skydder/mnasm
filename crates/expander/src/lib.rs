@@ -4,8 +4,7 @@
 
 mod macro_data;
 mod macro_tokenizer;
-use crate::macro_data::MacroData;
-use crate::macro_tokenizer::MacroTokenizer;
+pub use crate::macro_data::MacroData;
 use data::Ast;
 use util::AsmResult;
 
@@ -20,7 +19,10 @@ use util::AsmResult;
 //     expanded
 // }
 
-pub fn expand<'code>(ast: Ast<'code>, macro_data: &'code MacroData) -> AsmResult<'code, Vec<util::TokenKind>> {
+pub fn expand_macro<'code>(
+    ast: Ast<'code>,
+    macro_data: &'code MacroData,
+) -> AsmResult<'code, Vec<util::TokenKind>> {
     match ast {
         Ast::Macro(name, stream) => {
             let expander = macro_data.get(name.data()).unwrap();

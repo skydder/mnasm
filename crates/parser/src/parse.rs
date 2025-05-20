@@ -1,8 +1,8 @@
 use std::rc::Rc;
 
 use data::Ast;
-use util::{AsmResult, TokenKind, Tokenizer};
-
+use util::{AsmResult, Stream, TokenKind, Tokenizer};
+use expander::MacroData;
 use crate::{parse_label_block, parse_line, parse_macro};
 
 pub fn parse<'code, T>(tokenizer: Rc<T>) -> AsmResult<'code, Ast<'code>>
@@ -38,4 +38,18 @@ where
             _ => code.push(ast),
         }
     }
+}
+
+pub fn expand_macro_ast<'code>(ast: Ast<'code>, pacro_data: MacroData) -> Ast<'code> {
+    match ast {
+        Ast::Macro(name, stream) => {
+
+        }
+        Ast::LabelBlock(labelblock) => {
+            for inner_block_ast in labelblock.data().block().iter() {
+
+            }
+        }
+    }
+    todo!()
 }
