@@ -4,7 +4,10 @@
 
 mod macro_data;
 mod macro_tokenizer;
+use std::rc::Rc;
+
 pub use crate::macro_data::MacroData;
+pub use crate::macro_tokenizer::MacroTokenizer;
 use data::Ast;
 use util::AsmResult;
 
@@ -20,13 +23,15 @@ use util::AsmResult;
 // }
 
 pub fn expand_macro<'code>(
-    ast: Ast<'code>,
-    macro_data: &'code MacroData,
-) -> AsmResult<'code, Vec<util::TokenKind>> {
+    ast: &Ast<'code>,
+    macro_data: MacroData,
+) -> AsmResult<'code, Rc<Vec<util::TokenKind>>> {
     match ast {
         Ast::Macro(name, stream) => {
+            eprintln!("{:?}", name);
             let expander = macro_data.get(name.data()).unwrap();
-            expander.expand(macro_data, stream)
+            let res = expander.expand(macro_data, stream.clone())?;
+            Ok(res)
         }
         _ => unimplemented!(),
     }

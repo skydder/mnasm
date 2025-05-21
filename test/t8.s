@@ -1,3 +1,7 @@
+@macro_def(test(a, b) => {
+    test(`a, `b)
+})
+
 <test:.text> {
     <test1> {
         <test3>
@@ -6,6 +10,6 @@
         <test3>
         jump(::test::test1::test3)
     }
-    @test(tstd asdfasd {})
+    @test(test, 1)
     extern(pyton)
 }

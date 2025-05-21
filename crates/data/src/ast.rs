@@ -9,7 +9,7 @@ use super::{
     operand::{Immediate, Memory, Path, Register},
 };
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Ast<'code> {
     Ins(WithLocation<'code, Ident>, Rc<Vec<Ast<'code>>>),
     Label(WithLocation<'code, Path>),

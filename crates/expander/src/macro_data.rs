@@ -12,21 +12,23 @@ pub enum Expander {
 }
 
 impl Expander {
-    pub fn expand(
-        self,
-        macro_data: &MacroData,
+    pub fn expand<'code>(
+        &self,
+        macro_data: MacroData,
         stream: Rc<Vec<TokenKind>>,
-    ) -> AsmResult<Vec<TokenKind>> {
+    ) -> AsmResult<'code, Rc<Vec<TokenKind>>> {
         match self {
             Expander::Definition => {
                 // name shoulb be "macro_def"
                 // stream should be following cases
                 // <macro_name> '(' <args>* ')' "=>" { <newline> <stream> <newline> }
-
+                eprintln!("read macro-def");
                 let tokenizer = Rc::new(MacroTokenizer::new(Location::default(), stream));
+                tokenizer.consume_token(TokenKind::OpenParenthesis)?; 
                 let macro_name = match tokenizer.peek_token().kind {
                     TokenKind::Identifier(ident) => Ident::new(ident.to_string()),
                     _ => {
+                        eprintln!("e: {:?}", tokenizer.peek_token());
                         return Err(util::AsmError::ParseError(
                             tokenizer.location(),
                             "expected Ident, but found others".to_string(),
@@ -34,26 +36,31 @@ impl Expander {
                         ));
                     }
                 };
+                tokenizer.next_token();
                 tokenizer.skip_space();
                 tokenizer.consume_token(TokenKind::OpenParenthesis)?;
                 tokenizer.skip_space();
                 let mut params = Vec::new();
                 parse_args(tokenizer.clone(), &mut params)?;
+                tokenizer.consume_token(TokenKind::CloseParenthesis)?;
                 tokenizer.skip_space();
                 tokenizer.consume_token(TokenKind::Arcane('='))?;
                 tokenizer.consume_token(TokenKind::GreaterThan)?;
-
+                tokenizer.skip_space();
                 let mut def_stream = Vec::new();
                 if tokenizer.peek_token().is(&TokenKind::OpenBrace) {
+                    // tokenizer.next_token();
                     parse_stream(tokenizer.clone(), &mut def_stream)?;
+                    tokenizer.consume_token(TokenKind::CloseParenthesis)?;
                 } else {
+                    eprintln!("woe");
                     while !matches!(
                         tokenizer.peek_token().kind,
                         TokenKind::EOS | TokenKind::NewLine
                     ) {
                         def_stream.push(tokenizer.next_token().kind);
                     }
-                    if !tokenizer.peek_token().is(&TokenKind::EOS) {
+                    if !tokenizer.peek_token().is(&TokenKind::CloseParenthesis) {
                         return Err(util::AsmError::ParseError(
                             tokenizer.location(),
                             "use multiple line stream, use {}".to_string(),
@@ -61,22 +68,24 @@ impl Expander {
                         ));
                     }
                 }
+                eprintln!("wow");
                 macro_data.register_macro(
                     macro_name,
                     Expander::Replace((Rc::new(params), Rc::new(def_stream))),
                 );
 
-                Ok(Vec::new())
+                Ok(Rc::new(Vec::new()))
             }
             Expander::Replace((params, def_stream)) => {
                 // 1. anlyze the stream
                 // 2. connect the anlyzed stream and args
                 // 3. load the def_stream and relpace them
-
+                eprintln!("relpase");
                 let stream_tokenizer = Rc::new(MacroTokenizer::new(Location::default(), stream));
                 let mut args = Vec::new();
+                stream_tokenizer.consume_token(TokenKind::OpenParenthesis)?;
                 parse_params(stream_tokenizer, &mut args)?;
-
+                eprintln!("paa");
                 let replacement_table = if params.len() == args.len() {
                     params
                         .iter()
@@ -88,7 +97,7 @@ impl Expander {
                 };
 
                 let def_stream_tokenizer =
-                    Rc::new(MacroTokenizer::new(Location::default(), def_stream));
+                    Rc::new(MacroTokenizer::new(Location::default(), def_stream.clone()));
                 let mut output_stream = Vec::new();
                 while !def_stream_tokenizer.peek_token().is(&TokenKind::EOS) {
                     match def_stream_tokenizer.peek_token().kind {
@@ -103,20 +112,21 @@ impl Expander {
                     }
                 }
 
-                Ok(output_stream)
+                Ok(Rc::new(output_stream))
             }
         }
     }
 }
 
+#[derive(Clone)]
 pub struct MacroData {
-    definition: RefCell<HashMap<Ident, Expander>>,
+    definition: Rc<RefCell<HashMap<Ident, Expander>>>,
 }
 
 impl MacroData {
     pub fn new() -> Self {
         Self {
-            definition: RefCell::new(HashMap::new()),
+            definition: Rc::new(RefCell::new(HashMap::new())),
         }
     }
 
@@ -150,6 +160,7 @@ where
         parse_args(tokenizer, list)
     } else {
         let item = tokenizer.peek_token().kind;
+        eprintln!("item: {}", item);
         if matches!(item, TokenKind::Identifier(_)) {
             tokenizer.next_token();
         } else {
@@ -169,12 +180,15 @@ where
     T: Tokenizer<'code>,
 {
     let open = match tokenizer.peek_token().kind {
-        TokenKind::OpenBrace => {
+        TokenKind::OpenBrace
+        | TokenKind::OpenParenthesis
+        | TokenKind::OpenSquareBracket => {
             let open = tokenizer.next_token().kind;
             list.push(open.clone());
             open
         }
         _ => {
+            eprintln!("st:item:{:?}", tokenizer.peek_token().kind);
             return Err(util::AsmError::ParseError(
                 tokenizer.location(),
                 String::new(),
@@ -206,8 +220,8 @@ where
         parse_params(tokenizer, list)
     } else {
         let mut stream = Vec::new();
-        let item = tokenizer.peek_token().kind;
-        while tokenizer.peek_token().is(&TokenKind::Comma) {
+        // let item = tokenizer.peek_token().kind;
+        while !tokenizer.peek_token().is(&TokenKind::Comma) {
             match tokenizer.peek_token().kind {
                 TokenKind::OpenBrace
                 | TokenKind::OpenParenthesis

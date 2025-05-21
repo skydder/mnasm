@@ -14,7 +14,7 @@ pub use operand::{
 pub use scope::Scope;
 use util::Location;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct WithLocation<'code, T>(Location<'code>, T)
 where
     T: Clone + Debug;

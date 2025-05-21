@@ -1,6 +1,6 @@
 use analyzer::analyze_code;
 use codegen::codegen_code;
-use data::{Ident, Scope};
+// use data::{Ident, Scope};
 use std::{
     fs::{self, File},
     io::{self, Write},
@@ -11,7 +11,7 @@ use std::{
 };
 use tempfile::NamedTempFile;
 
-use parser::{parse, parse_code};
+use parser::{expand_code, parse_code};
 use tokenizer::Tokenizer;
 use util::{emit_msg_and_exit, set_iw, Location, Source};
 
@@ -28,12 +28,16 @@ fn assemble(file: &str, _flag: &RunFlags) -> String {
         eprintln!("{}", e);
         exit(1)
     });
-    eprintln!("{:?}", code);
-    let root = analyze_code(&code).unwrap_or_else(|e| {
+    let expanded = expand_code(code).unwrap_or_else(|e| {
         eprintln!("{}", e);
         exit(1)
     });
-    let _ = codegen_code(&code, root);
+    // eprintln!("{:?}", code);
+    let root = analyze_code(&expanded).unwrap_or_else(|e| {
+        eprintln!("{}", e);
+        exit(1)
+    });
+    let _ = codegen_code(&expanded, root);
     todo!()
 }
 
