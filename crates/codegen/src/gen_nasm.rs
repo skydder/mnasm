@@ -57,7 +57,7 @@ pub fn codegen<'code>(ast: &Ast<'code>, scope: Rc<Scope<'code>>) -> String {
             }
             code
         }
-        Ast::Macro(ident, ast) => todo!(),
+        Ast::Macro(_ident, _ast) => todo!(),
         Ast::Register(register) => {
             let register = register.data();
             let reg = match register.size {
@@ -150,17 +150,18 @@ pub fn codegen<'code>(ast: &Ast<'code>, scope: Rc<Scope<'code>>) -> String {
     }
 }
 
-pub fn codegen_code<'code>(code: &Vec<Ast<'code>>, root: Rc<Scope<'code>>) -> AsmResult<'code, ()> {
+pub fn codegen_code<'code>(
+    code: &Vec<Ast<'code>>,
+    root: Rc<Scope<'code>>,
+) -> AsmResult<'code, String> {
+    let mut output = String::new();
     for ast in code {
-        println!(
-            "{}",
-            codegen(
-                ast,
-                root.get_child(&Ident::new("_local".to_owned()))
-                    .clone()
-                    .unwrap()
-            )
-        );
+        output.push_str(&codegen(
+            ast,
+            root.get_child(&Ident::new("_local".to_owned()))
+                .clone()
+                .unwrap(),
+        ));
     }
-    Ok(())
+    Ok(output)
 }

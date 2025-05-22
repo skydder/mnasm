@@ -28,7 +28,7 @@ pub fn expand_macro<'code>(
 ) -> AsmResult<'code, Rc<Vec<util::TokenKind>>> {
     match ast {
         Ast::Macro(name, stream) => {
-            eprintln!("{:?}", name);
+            // eprintln!("{:?}", name);
             let expander = macro_data.get(name.data()).unwrap();
             let res = expander.expand(macro_data, stream.clone())?;
             Ok(res)

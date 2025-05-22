@@ -1,5 +1,14 @@
 use data::{Ast, Section, WithLocation, REG16, REG32, REG64, REG8};
 
+pub fn pretty_print_code(code: &Vec<Ast>) -> String {
+    let mut output = String::new();
+
+    for ast in code {
+        output.push_str(&pretty_print(ast));
+    }
+    output
+}
+
 pub fn pretty_print(ast: &Ast) -> String {
     match ast {
         Ast::Ins(ident, asts) => {

@@ -70,3 +70,9 @@ impl std::fmt::Display for AsmError<'_> {
 impl std::error::Error for AsmError<'_> {}
 
 pub type AsmResult<'a, T> = Result<T, AsmError<'a>>;
+
+
+pub fn convert_to_asmerror<'code, OK, ERROR>(result: Result<OK, ERROR>) -> AsmResult<'code, OK> 
+where ERROR: std::error::Error {
+    result.map_err(|err| AsmError::IOError(err.to_string()))
+}

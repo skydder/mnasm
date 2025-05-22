@@ -64,12 +64,12 @@ pub fn construct_scope<'code>(
             }
             Ok(())
         }
-        Ast::Macro(label, stream) => {
+        Ast::Macro(_label,_streamm) => {
             todo!()
         }
-        Ast::Register(register) => Ok(()),
-        Ast::Memory(memory) => Ok(()),
-        Ast::Immediate(immediate) => Ok(()),
+        Ast::Register(_register) => Ok(()),
+        Ast::Memory(_memory) => Ok(()),
+        Ast::Immediate(_immediate) => Ok(()),
         Ast::String(_) => Ok(()),
         Ast::EOS => Ok(()),
     }

@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use util::{Location, Token, TokenKind};
+use util::{Location, TokenKind};
 
 use crate::{Strings, WithLocation, label_block::LabelBlock};
 
@@ -27,7 +27,7 @@ impl<'code> Ast<'code> {
     pub fn is_operand(&self) -> bool {
         matches!(
             self,
-            Ast::Label(..) | Ast::Immediate(..) | Ast::Memory(..) | Ast::Register(..)
+            Ast::Label(..) | Ast::Immediate(..) | Ast::Memory(..) | Ast::Register(..) | Ast::String(..)
         )
     }
 
@@ -40,7 +40,7 @@ impl<'code> Ast<'code> {
             Ast::Register(register) => register.location(),
             Ast::Memory(memory) => memory.location(),
             Ast::Immediate(immediate) => immediate.location(),
-            Ast::String(_) => todo!(),
+            Ast::String(s) => s.location(),
             Ast::EOS => todo!(),
         }
     }

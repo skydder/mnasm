@@ -1,48 +1,36 @@
 use analyzer::analyze_code;
-use codegen::codegen_code;
+use codegen::{codegen_code, pretty_print_code};
 // use data::{Ident, Scope};
 use std::{
-    fs::{self, File},
-    io::{self, Write},
-    path::Path,
-    process::{exit, Command},
-    rc::Rc,
-    result::Result,
+    fs::{self, File}, io::{Write}, path::Path, process::Command, rc::Rc, result::Result
 };
 use tempfile::NamedTempFile;
 
 use parser::{expand_code, parse_code};
 use tokenizer::Tokenizer;
-use util::{emit_msg_and_exit, set_iw, Location, Source};
+use util::{convert_to_asmerror, emit_msg_and_exit, set_iw, AsmError, AsmResult, Location, Source};
 
 fn main() {
     unsafe { backtrace_on_stack_overflow::enable() };
-    run().unwrap_or_else(|e| eprintln!("{}", e));
+    let flag = parse_run_flags(std::env::args().skip(1).collect());
+    run(&flag).unwrap_or_else(|e| eprintln!("{}", e));
 }
 
-fn assemble(file: &str, _flag: &RunFlags) -> String {
-    let source = Source::new_with_file(file);
-    let loc = Location::new(source.unwrap());
+fn assemble(file: &str, is_only_macroexpantion: bool) -> AsmResult<'_, String> {
+    let source = Source::new_with_file(file)?;
+    let loc = Location::new(source);
     let tokenizer = Rc::new(Tokenizer::new(loc.clone(), loc.end()));
-    let code = parse_code(tokenizer).unwrap_or_else(|e| {
-        eprintln!("{}", e);
-        exit(1)
-    });
-    let expanded = expand_code(code).unwrap_or_else(|e| {
-        eprintln!("{}", e);
-        exit(1)
-    });
-    // eprintln!("{:?}", code);
-    let root = analyze_code(&expanded).unwrap_or_else(|e| {
-        eprintln!("{}", e);
-        exit(1)
-    });
-    let _ = codegen_code(&expanded, root);
-    todo!()
+    let asts = parse_code(tokenizer)?;
+    let expanded = expand_code(asts)?;
+    if is_only_macroexpantion {
+        eprintln!("{}", pretty_print_code(&expanded));
+    }
+    let root = analyze_code(&expanded)?;
+    codegen_code(&expanded, root)
 }
 
-fn assemble_by_nasm(nasm_file: &Path, out_file: &Path) -> Result<(), io::Error> {
-    Command::new("nasm")
+fn assemble_by_nasm<'code>(nasm_file: &Path, out_file: &Path) ->  AsmResult<'code, ()> {
+    convert_to_asmerror(Command::new("nasm")
         .arg(format!("{}", nasm_file.display()))
         .arg("-f")
         .arg("elf64")
@@ -50,12 +38,12 @@ fn assemble_by_nasm(nasm_file: &Path, out_file: &Path) -> Result<(), io::Error> 
         .arg(format!("{}", out_file.display()))
         .spawn()
         .expect("do you have nasm?")
-        .wait()?;
+        .wait())?;
     Ok(())
 }
 
-fn link(obj_file: &Path, out_file: &Path) -> Result<(), io::Error> {
-    Command::new("ld")
+fn link<'code>(obj_file: &Path, out_file: &Path) -> AsmResult<'code, ()> {
+    convert_to_asmerror(Command::new("ld")
         .arg(format!("{}", obj_file.display()))
         .arg("-o")
         .arg(format!("{}", out_file.display()))
@@ -63,7 +51,7 @@ fn link(obj_file: &Path, out_file: &Path) -> Result<(), io::Error> {
         .arg("elf_x86_64")
         .spawn()
         .expect("do you have ld?")
-        .wait()?;
+        .wait())?;
 
     Ok(())
 }
@@ -143,53 +131,54 @@ fn parse_run_flags(args: Vec<String>) -> RunFlags {
     flags
 }
 
-fn run() -> Result<(), io::Error> {
-    let flag = parse_run_flags(std::env::args().skip(1).collect());
-    let nasm_code = NamedTempFile::new()?;
+fn run(flag: &RunFlags) -> Result<(), AsmError<'_>> {
+    let nasm_code = convert_to_asmerror(NamedTempFile::new())?;
+    let obj_file = convert_to_asmerror(NamedTempFile::new())?;
+    let exc = convert_to_asmerror(NamedTempFile::new())?;
 
-    write!(
-        &mut File::create(nasm_code.path())?,
+
+    convert_to_asmerror(write!(
+        &mut convert_to_asmerror(File::create(nasm_code.path()))?,
         "{}",
-        assemble(&flag.input, &flag)
-    )
-    .expect("failed to write file");
+        assemble(&flag.input, flag.is_e)?
+    ))?;
+
     if flag.is_cs {
-        fs::copy(
+        convert_to_asmerror(fs::copy(
             nasm_code.path(),
             if !flag.output.is_empty() {
-                flag.output
+                &flag.output
             } else {
-                "out.s".to_string()
+                "out.s"
             },
-        )?;
-        return Ok(());
-    }
+        ))?;
+        Ok(())
+    } else {
 
-    let obj_file = NamedTempFile::new()?;
-    assemble_by_nasm(nasm_code.path(), obj_file.path())?;
+        assemble_by_nasm(nasm_code.path(), obj_file.path())?;
 
-    if flag.is_c {
-        fs::copy(
-            obj_file.path(),
-            if !flag.output.is_empty() {
-                flag.output
-            } else {
-                "out.o".to_string()
-            },
-        )?;
-        return Ok(());
-    }
-
-    let exc = NamedTempFile::new()?;
-    link(obj_file.path(), exc.path())?;
-
-    fs::copy(
-        exc.path(),
-        if !flag.output.is_empty() {
-            flag.output
+        if flag.is_c {
+            convert_to_asmerror(fs::copy(
+                obj_file.path(),
+                if !flag.output.is_empty() {
+                    &flag.output
+                } else {
+                    "out.o"
+                },
+            ))?;
+            Ok(())
         } else {
-            "a.out".to_string()
-        },
-    )?;
-    Ok(())
+            link(obj_file.path(), exc.path())?;
+
+            convert_to_asmerror(fs::copy(
+                exc.path(),
+                if !flag.output.is_empty() {
+                    &flag.output
+                } else {
+                    "a.out"
+                },
+            ))?;
+            Ok(())
+        }
+    }
 }
