@@ -4,44 +4,54 @@ use crate::ident::{self, Ident};
 
 use super::Operand;
 
+#[derive(Debug, Clone, Copy)]
+pub enum PathState {
+    Relative,
+    Absolute,
+    Global,
+}
+
 #[derive(Debug, Clone)]
 pub struct Path {
-    is_relative: bool,
+    state: PathState,
     path: Rc<Vec<Ident>>,
 }
 
 #[allow(clippy::needless_lifetimes)]
 impl Path {
     pub fn is_relative(&self) -> bool {
-        self.is_relative
+        matches!(self.state, PathState::Relative)
     }
 
     pub fn path(&self) -> Rc<Vec<Ident>> {
         self.path.clone()
     }
 
-    pub fn new(path: Rc<Vec<Ident>>, is_relative: bool) -> Self {
+    pub fn new(path: Rc<Vec<Ident>>, state: PathState) -> Self {
         // if path.is_empty() {
         //     unreachable!()
         // }
-        Self { is_relative, path }
+        Self { state, path }
     }
 
     pub fn append(&self, name: Ident) -> Self {
         let mut path = self.path.to_vec();
         path.push(name);
-        Self::new(Rc::new(path), self.is_relative)
+        Self::new(Rc::new(path), self.state)
     }
 
     pub fn next_path(&self) -> Option<Self> {
         if self.path.len() >= 1 {
-            Some(Self {
-                is_relative: self.is_relative,
-                path: Rc::new(self.path[1..].to_vec()),
-            })
+            Some(Self::new(
+                Rc::new(self.path[1..].to_vec()),
+                self.state
+            ))
         } else {
             None
         }
+    }
+    pub fn state(&self) -> PathState {
+        self.state
     }
 
     pub fn current(&self) -> Ident {

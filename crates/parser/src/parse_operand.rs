@@ -11,7 +11,7 @@ where
 {
     match tokenizer.peek_token().kind {
         TokenKind::Number(_) => parse_immediate(tokenizer),
-        TokenKind::Colon => parse_label(tokenizer),
+        TokenKind::Colon| TokenKind::Dot => parse_label(tokenizer),
         TokenKind::Identifier(s) if s.as_str() == "ptr" => parse_memory(tokenizer),
         TokenKind::Identifier(_) => {
             if let Ok(reg) = parse_register(tokenizer.clone()) {

@@ -43,11 +43,12 @@ pub fn construct_scope<'code>(
             let is = scope.has_path_of(&path);
             eprintln!("wwwa: {}", is);
             if !is {
-                Err(AsmError::ParseError(
-                    location,
-                    "undefined label".to_string(),
-                    String::new(),
-                ))
+                // Err(AsmError::ParseError(
+                //     location,
+                //     "undefined label".to_string(),
+                //     String::new(),
+                // ))
+                Ok(())
             } else {
                 Ok(())
             }
@@ -56,8 +57,8 @@ pub fn construct_scope<'code>(
             let mut path = scope.path().path().to_vec();
             let labelblock = labelblock.data();
             path.push(labelblock.name());
-            let path = Path::new(Rc::new(path), scope.path().is_relative());
-            let new = Scope::new_local(scope.clone(), labelblock.name(), true, path);
+            let path = Path::new(Rc::new(path), scope.path().state());
+            let new = Scope::new_label(scope.clone(), labelblock.name(), true, path, labelblock.is_global());
             scope.add_to_in_scope(new.clone());
             for ast in labelblock.block().iter() {
                 construct_scope(ast, new.clone())?;

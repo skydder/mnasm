@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use data::{Ast, Path, WithLocation};
+use data::{Ast, Path, PathState, WithLocation};
 use util::{AsmResult, TokenKind, Tokenizer};
 
 use crate::parse_ident;
@@ -10,13 +10,17 @@ where
     T: Tokenizer<'code>,
 {
     let location = tokenizer.location();
-    let is_relative = if tokenizer.peek_token().is(&TokenKind::Colon) {
+    let state = if tokenizer.peek_token().is(&TokenKind::Colon) {
         tokenizer.consume_token(TokenKind::Colon)?;
         tokenizer.consume_token(TokenKind::Colon)?;
         tokenizer.skip_space();
-        false
-    } else {
-        true
+        PathState::Absolute
+    } else if tokenizer.peek_token().is(&TokenKind::Dot) {
+        tokenizer.next_token();
+        tokenizer.skip_space();
+        PathState::Relative
+    }else {
+        PathState::Global
     };
     let mut path = vec![parse_ident(tokenizer.clone())?.data()];
     tokenizer.skip_space();
@@ -31,6 +35,6 @@ where
 
     Ok(Ast::Label(WithLocation::new(
         location,
-        Path::new(Rc::new(path), is_relative),
+        Path::new(Rc::new(path), state),
     )))
 }

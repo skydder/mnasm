@@ -23,7 +23,7 @@ fn assemble(file: &str, is_only_macroexpantion: bool) -> AsmResult<'_, String> {
     let asts = parse_code(tokenizer)?;
     let expanded = expand_code(asts)?;
     if is_only_macroexpantion {
-        eprintln!("{}", pretty_print_code(&expanded));
+        println!("{}", pretty_print_code(&expanded));
     }
     let root = analyze_code(&expanded)?;
     codegen_code(&expanded, root)

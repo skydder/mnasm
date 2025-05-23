@@ -1,8 +1,8 @@
 @def_macro(if(cond, then, else,) => {
     `cond
-    jne(else)
+    jne(.else)
     `then
-    jmp(end)
+    jmp(.end)
     <else>
     `else
     <end>
@@ -39,24 +39,33 @@
     div(rdi)
 })
 
+@def_macro(divide1(a, b,)=> {
+    @divide(`a, `b)
+})
+
+@def_macro(divide2(a, b,)=> {
+    @divide1(`a, `b)
+})
+
+
 <_start:global:.text> {
     #r8:counter
     mov(r8, 1)
     <loop> {
-        @divide(r8, 3)
+        @divide2(r8, 3)
 
         @if(cmp(rdx, 0), {
-            @print(::fizz, 5)
+            @print(fizz, 5)
         }, {
             @divide(r8, 5)
             @if(cmp(rdx, 0), {
-                @print(::buzz, 5)
+                @print(buzz, 5)
             }, {})
         })
 
         add(r8, 1)
         cmp(r8, 15)
-        jl(::_start::loop)
+        jl(_start::loop)
     }
     @exit()
 }

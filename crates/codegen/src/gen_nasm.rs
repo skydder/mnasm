@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use data::{Ast, Ident, Scope, Section, WithLocation, REG16, REG32, REG64, REG8};
+use data::{Ast, Ident, PathState, Scope, Section, WithLocation, REG16, REG32, REG64, REG8};
 use util::AsmResult;
 pub fn codegen<'code>(ast: &Ast<'code>, scope: Rc<Scope<'code>>) -> String {
     match ast {
@@ -21,16 +21,23 @@ pub fn codegen<'code>(ast: &Ast<'code>, scope: Rc<Scope<'code>>) -> String {
         }
         Ast::Label(path) => {
             let path = path.data();
-            let mut code = if !path.is_relative() {
-                String::new()
-            } else {
-                scope.get_label()
-            };
-            for ident in path.path().iter() {
-                code.push('_');
-                code.push_str(&ident.get_str());
+            match path.state() {
+                PathState::Absolute | PathState::Relative => {
+                    let mut code = if !path.is_relative() {
+                        String::new()
+                    } else {
+                        scope.get_label()
+                    };
+                    for ident in path.path().iter() {
+                        code.push('_');
+                        code.push_str(&ident.get_str());
+                    }
+                    code
+                }
+                PathState::Global => {
+                    path.current().get_str()
+                }
             }
-            code
         }
 
         Ast::LabelBlock(labelblock) => {

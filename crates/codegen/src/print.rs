@@ -49,12 +49,13 @@ pub fn pretty_print(ast: &Ast) -> String {
             let mut code = String::new();
             if !labelblock.name().is_anonymous() {
                 code.push_str(&format!("<{}", labelblock.name().get_str()));
-                if labelblock.section() != Section::None {
-                    code.push_str(&format!(":{}", labelblock.section().to_string()));
-                }
                 if labelblock.is_global() {
                     code.push_str(":global");
                 }
+                if labelblock.section() != Section::None {
+                    code.push_str(&format!(":{}", labelblock.section().to_string()));
+                }
+                
                 code.push('>');
             }
 

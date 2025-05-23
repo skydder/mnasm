@@ -2,7 +2,7 @@ mod register;
 pub use register::{REG8, REG16, REG32, REG64, Register, RegisterKind};
 
 mod path;
-pub use path::Path;
+pub use path::{Path,  PathState};
 
 mod immediate;
 pub use immediate::Immediate;

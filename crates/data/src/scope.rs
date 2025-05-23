@@ -3,7 +3,7 @@ use std::{
     rc::Rc,
 };
 
-use crate::{Ident, Path};
+use crate::{Ident, Path, PathState};
 
 #[allow(dead_code)]
 pub struct Scope<'code> {
@@ -47,7 +47,7 @@ impl<'code> Scope<'code> {
             Ident::new("_global".to_string()),
             true,
             true,
-            Path::new(Rc::new(Vec::new()), false),
+            Path::new(Rc::new(Vec::new()), PathState::Global),
         )
     }
 
@@ -57,7 +57,7 @@ impl<'code> Scope<'code> {
             Ident::new("_local".to_string()),
             true,
             true,
-            Path::new(Rc::new(Vec::new()), false),
+            Path::new(Rc::new(Vec::new()), PathState::Absolute),
         )
     }
 
@@ -67,7 +67,7 @@ impl<'code> Scope<'code> {
             Ident::new("_root".to_string()),
             true,
             true,
-            Path::new(Rc::new(Vec::new()), false),
+            Path::new(Rc::new(Vec::new()), PathState::Absolute),
         );
         let global = Self::new_global_root(root.clone());
         root.add_to_in_scope(global.clone());
@@ -120,6 +120,20 @@ impl<'code> Scope<'code> {
     ) -> Rc<Self> {
         let new = Self::new(Some(parent), name, false, is_defined, path);
         new.get_global_root().add_to_in_scope(new.clone());
+        new
+    }
+
+    pub fn new_label(
+        parent: Rc<Scope<'code>>,
+        name: Ident,
+        is_defined: bool,
+        path: Path,
+        is_global: bool
+    ) -> Rc<Self> {
+        let new = Self::new(Some(parent), name, false, is_defined, path);
+        if is_global {
+            new.get_global_root().add_to_in_scope(new.clone());
+        }
         new
     }
 
