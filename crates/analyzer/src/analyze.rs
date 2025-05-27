@@ -42,16 +42,7 @@ pub fn construct_scope<'code>(
             let path = path.data();
             let is = scope.has_path_of(&path);
             eprintln!("wwwa: {}", is);
-            if !is {
-                // Err(AsmError::ParseError(
-                //     location,
-                //     "undefined label".to_string(),
-                //     String::new(),
-                // ))
-                Ok(())
-            } else {
-                Ok(())
-            }
+            Ok(())
         }
         Ast::LabelBlock(labelblock) => {
             let mut path = scope.path().path().to_vec();
@@ -87,4 +78,9 @@ pub fn analyze_code<'code>(code: &Vec<Ast<'code>>) -> AsmResult<'code, Rc<Scope<
         )?;
     }
     Ok(root)
+}
+
+fn analyze_scope<'code>(scope: Rc<Scope<'code>>) -> AsmResult<'code, AsmError<'code>> {
+    
+    todo!()
 }

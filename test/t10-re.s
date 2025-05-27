@@ -64,8 +64,8 @@
         })
 
         add(r8, 1)
-        cmp(r8, 15)
-        jl(_start::loop)
+        cmp(r8, 100)
+        jl(::_start::loop)
     }
     @exit()
 }

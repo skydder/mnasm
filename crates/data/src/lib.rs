@@ -3,6 +3,8 @@ mod ident;
 mod label_block;
 mod operand;
 mod scope;
+mod scope2;
+
 use std::fmt::Debug;
 
 pub use ast::Ast;

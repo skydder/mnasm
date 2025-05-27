@@ -8,7 +8,7 @@ use super::Operand;
 pub enum PathState {
     Relative,
     Absolute,
-    Global,
+    GlobalRelative,
 }
 
 #[derive(Debug, Clone)]

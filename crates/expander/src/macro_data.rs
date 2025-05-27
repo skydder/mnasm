@@ -24,7 +24,9 @@ impl Expander {
                 // <macro_name> '(' <args>* ')' "=>" { <newline> <stream> <newline> }
                 eprintln!("read macro-def");
                 let tokenizer = Rc::new(MacroTokenizer::new(Location::default(), stream));
+                
                 tokenizer.consume_token(TokenKind::OpenParenthesis)?;
+                tokenizer.skip_space();
                 let macro_name = match tokenizer.peek_token().kind {
                     TokenKind::Identifier(ident) => Ident::new(ident.to_string()),
                     _ => {

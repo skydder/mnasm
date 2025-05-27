@@ -47,7 +47,7 @@ impl<'code> Scope<'code> {
             Ident::new("_global".to_string()),
             true,
             true,
-            Path::new(Rc::new(Vec::new()), PathState::Global),
+            Path::new(Rc::new(Vec::new()), PathState::GlobalRelative),
         )
     }
 

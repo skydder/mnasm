@@ -34,7 +34,7 @@ pub fn codegen<'code>(ast: &Ast<'code>, scope: Rc<Scope<'code>>) -> String {
                     }
                     code
                 }
-                PathState::Global => {
+                PathState::GlobalRelative => {
                     path.current().get_str()
                 }
             }
