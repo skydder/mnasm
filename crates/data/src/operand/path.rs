@@ -1,4 +1,4 @@
-use std::rc::Rc;
+use std::{rc::Rc, thread::panicking};
 
 use crate::ident::{self, Ident};
 
@@ -42,10 +42,7 @@ impl Path {
 
     pub fn next_path(&self) -> Option<Self> {
         if self.path.len() >= 1 {
-            Some(Self::new(
-                Rc::new(self.path[1..].to_vec()),
-                self.state
-            ))
+            Some(Self::new(Rc::new(self.path[1..].to_vec()), self.state))
         } else {
             None
         }
@@ -54,13 +51,16 @@ impl Path {
         self.state
     }
 
-    pub fn current(&self) -> Ident {
+    pub fn get(&self, nth: usize) -> Option<Ident> {
+        self.path.get(nth).cloned()
+    }
+
+    pub fn last(&self) -> Ident {
         self.path
-            .first()
+            .last()
             .expect("failed when using Path::current")
             .clone()
     }
-
     pub fn is_last(&self) -> bool {
         self.path.len() == 1
     }
@@ -71,6 +71,28 @@ impl Path {
 
     pub fn is_empty(&self) -> bool {
         self.len() == 0
+    }
+
+    pub fn diff(&self, path: Path) -> Path {
+        let mut s = 0;
+        for (i, now) in self.path.iter().enumerate() {
+            if path.get(i).is_some_and(|i| i == *now) {
+                continue;
+            }
+            s = i;
+        }
+        Path::new(Rc::new(self.path[s..].to_vec()), PathState::Relative)
+    }
+
+    pub fn absolutify(&self, path: Path) -> Path {
+        if matches!(self.state, PathState::Relative) {
+            Path::new(
+                Rc::new([path.path.to_vec(), self.path.to_vec()].concat()),
+                PathState::Absolute,
+            )
+        } else {
+            self.clone()
+        }
     }
 }
 

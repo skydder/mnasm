@@ -1,6 +1,6 @@
-use std::rc::Rc;
+use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
-use data::{Ast, Ident, Path, Scope};
+use data::{Ast, DefinedStatus, Ident, Path, PathState, Scope};
 use util::{AsmError, AsmResult};
 
 pub fn construct_scope<'code>(
@@ -39,24 +39,61 @@ pub fn construct_scope<'code>(
         }
         Ast::Label(path) => {
             let location = path.location();
-            let path = path.data();
-            let is = scope.has_path_of(&path);
-            eprintln!("wwwa: {}", is);
-            Ok(())
+            let path = path.data().absolutify(scope.absolute_path());
+            let res = scope.manager().find_label(path);
+
+            match res {
+                Ok(s) => {
+                    let status = s.get_defined_status();
+                    match status {
+                        DefinedStatus::Undefined(lox) => {
+                            lox.borrow_mut().push(location);
+                            Ok(())
+                        }
+                        DefinedStatus::Defined => Ok(()),
+                    }
+                }
+                Err(Ok(s)) => {
+                    let missing = path.diff(s.absolute_path());
+                    let mut new_scope = s;
+                    for i in 0..missing.len() {
+                        let name = missing.get(i).unwrap();
+                        let n = Scope::new(
+                            s.manager(),
+                            name.clone(),
+                            RefCell::new(DefinedStatus::Undefined(Rc::new(RefCell::new(vec![
+                                location,
+                            ])))),
+                            RefCell::new(HashMap::new()),
+                            RefCell::new(new_scope.absolute_path().append(name)),
+                        );
+                        new_scope.add_new_scope(n);
+                        new_scope = n;
+                    }
+                    Ok(())
+                }
+                Err(Err(())) => todo!(),
+            }
         }
         Ast::LabelBlock(labelblock) => {
             let mut path = scope.path().path().to_vec();
             let labelblock = labelblock.data();
             path.push(labelblock.name());
             let path = Path::new(Rc::new(path), scope.path().state());
-            let new = Scope::new_label(scope.clone(), labelblock.name(), true, path, labelblock.is_global());
+            let new = Scope::new_label(
+                scope.clone(),
+                labelblock.name(),
+                true,
+                path,
+                labelblock.is_global(),
+            );
             scope.add_to_in_scope(new.clone());
             for ast in labelblock.block().iter() {
                 construct_scope(ast, new.clone())?;
             }
             Ok(())
         }
-        Ast::Macro(_label,_streamm) => {
+        Ast::Macro(_label, _streamm) => {
             todo!()
         }
         Ast::Register(_register) => Ok(()),
@@ -81,6 +118,5 @@ pub fn analyze_code<'code>(code: &Vec<Ast<'code>>) -> AsmResult<'code, Rc<Scope<
 }
 
 fn analyze_scope<'code>(scope: Rc<Scope<'code>>) -> AsmResult<'code, AsmError<'code>> {
-    
     todo!()
 }

@@ -11,9 +11,10 @@ pub use ast::Ast;
 pub use ident::Ident;
 pub use label_block::{LabelBlock, Section};
 pub use operand::{
-    Immediate, Memory, Path, REG8, REG16, REG32, REG64, Register, RegisterKind, Scale, Strings,  PathState
+    Immediate, Memory, Path, PathState, REG8, REG16, REG32, REG64, Register, RegisterKind, Scale,
+    Strings,
 };
-pub use scope::Scope;
+pub use scope2::{DefinedStatus, Scope, ScopeManager};
 use util::Location;
 
 #[derive(Debug, Clone)]

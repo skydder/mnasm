@@ -128,7 +128,7 @@ impl<'code> Scope<'code> {
         name: Ident,
         is_defined: bool,
         path: Path,
-        is_global: bool
+        is_global: bool,
     ) -> Rc<Self> {
         let new = Self::new(Some(parent), name, false, is_defined, path);
         if is_global {

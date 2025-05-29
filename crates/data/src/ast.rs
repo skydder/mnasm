@@ -27,7 +27,11 @@ impl<'code> Ast<'code> {
     pub fn is_operand(&self) -> bool {
         matches!(
             self,
-            Ast::Label(..) | Ast::Immediate(..) | Ast::Memory(..) | Ast::Register(..) | Ast::String(..)
+            Ast::Label(..)
+                | Ast::Immediate(..)
+                | Ast::Memory(..)
+                | Ast::Register(..)
+                | Ast::String(..)
         )
     }
 

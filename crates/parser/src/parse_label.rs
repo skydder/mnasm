@@ -19,7 +19,7 @@ where
         tokenizer.next_token();
         tokenizer.skip_space();
         PathState::Relative
-    }else {
+    } else {
         PathState::GlobalRelative
     };
     let mut path = vec![parse_ident(tokenizer.clone())?.data()];

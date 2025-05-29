@@ -55,7 +55,7 @@ pub fn pretty_print(ast: &Ast) -> String {
                 if labelblock.section() != Section::None {
                     code.push_str(&format!(":{}", labelblock.section().to_string()));
                 }
-                
+
                 code.push('>');
             }
 

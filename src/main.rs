@@ -2,7 +2,12 @@ use analyzer::analyze_code;
 use codegen::{codegen_code, pretty_print_code};
 // use data::{Ident, Scope};
 use std::{
-    fs::{self, File}, io::{Write}, path::Path, process::Command, rc::Rc, result::Result
+    fs::{self, File},
+    io::Write,
+    path::Path,
+    process::Command,
+    rc::Rc,
+    result::Result,
 };
 use tempfile::NamedTempFile;
 
@@ -29,29 +34,33 @@ fn assemble(file: &str, is_only_macroexpantion: bool) -> AsmResult<'_, String> {
     codegen_code(&expanded, root)
 }
 
-fn assemble_by_nasm<'code>(nasm_file: &Path, out_file: &Path) ->  AsmResult<'code, ()> {
-    convert_to_asmerror(Command::new("nasm")
-        .arg(format!("{}", nasm_file.display()))
-        .arg("-f")
-        .arg("elf64")
-        .arg("-o")
-        .arg(format!("{}", out_file.display()))
-        .spawn()
-        .expect("do you have nasm?")
-        .wait())?;
+fn assemble_by_nasm<'code>(nasm_file: &Path, out_file: &Path) -> AsmResult<'code, ()> {
+    convert_to_asmerror(
+        Command::new("nasm")
+            .arg(format!("{}", nasm_file.display()))
+            .arg("-f")
+            .arg("elf64")
+            .arg("-o")
+            .arg(format!("{}", out_file.display()))
+            .spawn()
+            .expect("do you have nasm?")
+            .wait(),
+    )?;
     Ok(())
 }
 
 fn link<'code>(obj_file: &Path, out_file: &Path) -> AsmResult<'code, ()> {
-    convert_to_asmerror(Command::new("ld")
-        .arg(format!("{}", obj_file.display()))
-        .arg("-o")
-        .arg(format!("{}", out_file.display()))
-        .arg("-m")
-        .arg("elf_x86_64")
-        .spawn()
-        .expect("do you have ld?")
-        .wait())?;
+    convert_to_asmerror(
+        Command::new("ld")
+            .arg(format!("{}", obj_file.display()))
+            .arg("-o")
+            .arg(format!("{}", out_file.display()))
+            .arg("-m")
+            .arg("elf_x86_64")
+            .spawn()
+            .expect("do you have ld?")
+            .wait(),
+    )?;
 
     Ok(())
 }
@@ -136,7 +145,6 @@ fn run(flag: &RunFlags) -> Result<(), AsmError<'_>> {
     let obj_file = convert_to_asmerror(NamedTempFile::new())?;
     let exc = convert_to_asmerror(NamedTempFile::new())?;
 
-
     convert_to_asmerror(write!(
         &mut convert_to_asmerror(File::create(nasm_code.path()))?,
         "{}",
@@ -154,7 +162,6 @@ fn run(flag: &RunFlags) -> Result<(), AsmError<'_>> {
         ))?;
         Ok(())
     } else {
-
         assemble_by_nasm(nasm_code.path(), obj_file.path())?;
 
         if flag.is_c {

@@ -5,7 +5,9 @@ mod location;
 mod token;
 mod tokenizer_requirement;
 
-pub use error::{emit_error, emit_msg_and_exit, emit_warning, set_iw, AsmError, AsmResult, convert_to_asmerror};
+pub use error::{
+    convert_to_asmerror, emit_error, emit_msg_and_exit, emit_warning, set_iw, AsmError, AsmResult,
+};
 pub use location::{Location, Source, Stream};
 pub fn open_safely(file: &str) -> File {
     File::open(file).unwrap_or_else(|_| {
