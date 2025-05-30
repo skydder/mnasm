@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use data::{Ast, Ident, PathState, Scope, Section, WithLocation, REG16, REG32, REG64, REG8};
+use data::{Ast, Ident, PathState, Scope, ScopeManager, Section, WithLocation, REG16, REG32, REG64, REG8};
 use util::AsmResult;
 pub fn codegen<'code>(ast: &Ast<'code>, scope: Rc<Scope<'code>>) -> String {
     match ast {
@@ -34,7 +34,7 @@ pub fn codegen<'code>(ast: &Ast<'code>, scope: Rc<Scope<'code>>) -> String {
                     }
                     code
                 }
-                PathState::GlobalRelative => path.current().get_str(),
+                PathState::GlobalRelative => path.get(0).unwrap().get_str(),
             }
         }
 
@@ -157,15 +157,13 @@ pub fn codegen<'code>(ast: &Ast<'code>, scope: Rc<Scope<'code>>) -> String {
 
 pub fn codegen_code<'code>(
     code: &Vec<Ast<'code>>,
-    root: Rc<Scope<'code>>,
+    manager: Rc<ScopeManager<'code>>,
 ) -> AsmResult<'code, String> {
     let mut output = String::new();
     for ast in code {
         output.push_str(&codegen(
             ast,
-            root.get_child(&Ident::new("_local".to_owned()))
-                .clone()
-                .unwrap(),
+            manager.local(),
         ));
     }
     Ok(output)

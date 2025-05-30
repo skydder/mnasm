@@ -1,6 +1,6 @@
 use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
-use data::{Ast, DefinedStatus, Ident, Path, PathState, Scope};
+use data::{Ast, DefinedStatus, Ident, Path, PathState, Scope, ScopeManager};
 use util::{AsmError, AsmResult};
 
 pub fn construct_scope<'code>(
@@ -21,7 +21,7 @@ pub fn construct_scope<'code>(
                             String::new(),
                         ));
                     };
-                    Scope::new_global(scope.clone(), ident.current(), true, ident);
+                    Scope::new(Rc::downgrade(&scope.manager()), ident.get(0).unwrap(), DefinedStatus::Defined, HashMap::new(), ident);
                 }
                 return Ok(());
             }
@@ -40,7 +40,7 @@ pub fn construct_scope<'code>(
         Ast::Label(path) => {
             let location = path.location();
             let path = path.data().absolutify(scope.absolute_path());
-            let res = scope.manager().find_label(path);
+            let res = scope.manager().find_label(&path);
 
             match res {
                 Ok(s) => {
@@ -55,19 +55,19 @@ pub fn construct_scope<'code>(
                 }
                 Err(Ok(s)) => {
                     let missing = path.diff(s.absolute_path());
-                    let mut new_scope = s;
+                    let mut new_scope = s.clone();
                     for i in 0..missing.len() {
                         let name = missing.get(i).unwrap();
                         let n = Scope::new(
-                            s.manager(),
+                            Rc::downgrade(&s.manager()),
                             name.clone(),
-                            RefCell::new(DefinedStatus::Undefined(Rc::new(RefCell::new(vec![
-                                location,
-                            ])))),
-                            RefCell::new(HashMap::new()),
-                            RefCell::new(new_scope.absolute_path().append(name)),
+                            DefinedStatus::Undefined(Rc::new(RefCell::new(vec![
+                                location.clone(),
+                            ]))),
+                            HashMap::new(),
+                            new_scope.absolute_path().append(name),
                         );
-                        new_scope.add_new_scope(n);
+                        new_scope.add_new_scope(n.clone());
                         new_scope = n;
                     }
                     Ok(())
@@ -76,19 +76,20 @@ pub fn construct_scope<'code>(
             }
         }
         Ast::LabelBlock(labelblock) => {
-            let mut path = scope.path().path().to_vec();
-            let labelblock = labelblock.data();
-            path.push(labelblock.name());
-            let path = Path::new(Rc::new(path), scope.path().state());
-            let new = Scope::new_label(
-                scope.clone(),
-                labelblock.name(),
-                true,
+            let path = scope.absolute_path().append(labelblock.data().name());
+
+            let new = Scope::new(
+                Rc::downgrade(&scope.manager()),
+                labelblock.data().name(),
+                DefinedStatus::Defined,
+                HashMap::new(),
                 path,
-                labelblock.is_global(),
             );
-            scope.add_to_in_scope(new.clone());
-            for ast in labelblock.block().iter() {
+            scope.add_new_scope(new.clone());
+            if labelblock.data().is_global() {
+                scope.manager().add_global_label(new.clone());
+            }
+            for ast in labelblock.data().block().iter() {
                 construct_scope(ast, new.clone())?;
             }
             Ok(())
@@ -104,17 +105,16 @@ pub fn construct_scope<'code>(
     }
 }
 
-pub fn analyze_code<'code>(code: &Vec<Ast<'code>>) -> AsmResult<'code, Rc<Scope<'code>>> {
-    let root = Scope::init_root();
+pub fn analyze_code<'code>(code: &Vec<Ast<'code>>) -> AsmResult<'code, Rc<ScopeManager<'code>>> {
+    let manager = ScopeManager::new();
+    
     for ast in code {
         construct_scope(
             ast,
-            root.get_child(&Ident::new("_local".to_owned()))
-                .clone()
-                .unwrap(),
+            manager.local()
         )?;
     }
-    Ok(root)
+    Ok(manager)
 }
 
 fn analyze_scope<'code>(scope: Rc<Scope<'code>>) -> AsmResult<'code, AsmError<'code>> {
