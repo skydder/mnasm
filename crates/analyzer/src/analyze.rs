@@ -1,7 +1,7 @@
 use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
 use data::{Ast, DefinedStatus, Ident, Path, PathState, Scope, ScopeManager};
-use util::{AsmError, AsmResult};
+use util::{AsmError, AsmResult, Location};
 
 pub fn construct_scope<'code>(
     ast: &Ast<'code>,
@@ -21,7 +21,13 @@ pub fn construct_scope<'code>(
                             String::new(),
                         ));
                     };
-                    Scope::new(Rc::downgrade(&scope.manager()), ident.get(0).unwrap(), DefinedStatus::Defined, HashMap::new(), ident);
+                    Scope::new(
+                        Rc::downgrade(&scope.manager()),
+                        ident.get(0).unwrap(),
+                        DefinedStatus::Defined,
+                        HashMap::new(),
+                        ident,
+                    );
                 }
                 return Ok(());
             }
@@ -61,9 +67,7 @@ pub fn construct_scope<'code>(
                         let n = Scope::new(
                             Rc::downgrade(&s.manager()),
                             name.clone(),
-                            DefinedStatus::Undefined(Rc::new(RefCell::new(vec![
-                                location.clone(),
-                            ]))),
+                            DefinedStatus::Undefined(Rc::new(RefCell::new(vec![location.clone()]))),
                             HashMap::new(),
                             new_scope.absolute_path().append(name),
                         );
@@ -107,16 +111,22 @@ pub fn construct_scope<'code>(
 
 pub fn analyze_code<'code>(code: &Vec<Ast<'code>>) -> AsmResult<'code, Rc<ScopeManager<'code>>> {
     let manager = ScopeManager::new();
-    
+
     for ast in code {
-        construct_scope(
-            ast,
-            manager.local()
-        )?;
+        construct_scope(ast, manager.local())?;
     }
+
+    analyze_scope(manager.global())?;
+    analyze_scope(manager.local())?;
     Ok(manager)
 }
 
-fn analyze_scope<'code>(scope: Rc<Scope<'code>>) -> AsmResult<'code, AsmError<'code>> {
-    todo!()
+fn analyze_scope<'code>(scope: Rc<Scope<'code>>) -> AsmResult<'code, ()> {
+    if matches!(scope.get_defined_status(), DefinedStatus::Undefined(_)) {
+        return Err(AsmError::ParseError(Location::default(), "undefined label".to_string(), String::new()));
+    }
+    for child in scope.get_children().borrow().iter() {
+        analyze_scope(child.1.clone())?;
+    }
+    Ok(())
 }

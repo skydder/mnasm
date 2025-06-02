@@ -25,7 +25,7 @@ pub struct Scope<'code> {
     manager: RefCell<Weak<ScopeManager<'code>>>,
     name: Ident,
     defined_status: RefCell<DefinedStatus<'code>>,
-    children: RefCell<HashMap<Ident, Rc<Scope<'code>>>>,
+    children: Rc<RefCell<HashMap<Ident, Rc<Scope<'code>>>>>,
     absolute_path: RefCell<Path>, // this field is unneseary in the perspective of "DRY"
 }
 
@@ -41,15 +41,15 @@ impl<'code> Scope<'code> {
             manager: RefCell::new(manager),
             name,
             defined_status: RefCell::new(defined_status),
-            children: RefCell::new(children),
+            children: Rc::new(RefCell::new(children)),
             absolute_path: RefCell::new(absolute_path),
         })
     }
 
     pub fn add_new_scope(&self, new_scope: Rc<Self>) -> bool {
-        if self.children.borrow_mut().get(&new_scope.name).is_some() {
-            return false;
-        }
+        // if self.children.borrow_mut().get(&new_scope.name).is_some() {
+        //     return false;
+        // }
         self.children
             .borrow_mut()
             .insert(new_scope.name.clone(), new_scope);
@@ -83,6 +83,10 @@ impl<'code> Scope<'code> {
     pub fn get_child(&self, name: &Ident) -> Option<Rc<Scope<'code>>> {
         self.children.borrow_mut().get(name).cloned()
     }
+
+    pub fn get_children(&self) -> Rc<RefCell<HashMap<Ident, Rc<Scope<'code>>>>> {
+        self.children.clone()
+    }
 }
 
 impl<'code> ScopeManager<'code> {
@@ -101,7 +105,7 @@ impl<'code> ScopeManager<'code> {
                 DefinedStatus::Defined,
                 HashMap::new(),
                 Path::new(Rc::new(Vec::new()), PathState::Absolute),
-            )
+            ),
         });
         *new.global.manager.borrow_mut() = Rc::downgrade(&new);
         *new.local.manager.borrow_mut() = Rc::downgrade(&new);

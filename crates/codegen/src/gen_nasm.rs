@@ -1,6 +1,8 @@
 use std::rc::Rc;
 
-use data::{Ast, Ident, PathState, Scope, ScopeManager, Section, WithLocation, REG16, REG32, REG64, REG8};
+use data::{
+    Ast, Ident, PathState, Scope, ScopeManager, Section, WithLocation, REG16, REG32, REG64, REG8,
+};
 use util::AsmResult;
 pub fn codegen<'code>(ast: &Ast<'code>, scope: Rc<Scope<'code>>) -> String {
     match ast {
@@ -23,16 +25,7 @@ pub fn codegen<'code>(ast: &Ast<'code>, scope: Rc<Scope<'code>>) -> String {
             let path = path.data();
             match path.state() {
                 PathState::Absolute | PathState::Relative => {
-                    let mut code = if !path.is_relative() {
-                        String::new()
-                    } else {
-                        scope.get_label()
-                    };
-                    for ident in path.path().iter() {
-                        code.push('_');
-                        code.push_str(&ident.get_str());
-                    }
-                    code
+                    path.absolutify(scope.absolute_path()).labelify()
                 }
                 PathState::GlobalRelative => path.get(0).unwrap().get_str(),
             }
@@ -46,7 +39,7 @@ pub fn codegen<'code>(ast: &Ast<'code>, scope: Rc<Scope<'code>>) -> String {
                 let name = if labelblock.is_global() {
                     labelblock.name().get_str()
                 } else {
-                    own_scope.get_label()
+                    own_scope.absolute_path().labelify()
                 };
                 if labelblock.section() != Section::None {
                     code.push_str(&format!("section {}\n", labelblock.section().to_string()));
@@ -161,10 +154,7 @@ pub fn codegen_code<'code>(
 ) -> AsmResult<'code, String> {
     let mut output = String::new();
     for ast in code {
-        output.push_str(&codegen(
-            ast,
-            manager.local(),
-        ));
+        output.push_str(&codegen(ast, manager.local()));
     }
     Ok(output)
 }

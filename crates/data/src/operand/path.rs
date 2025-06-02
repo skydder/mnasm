@@ -41,7 +41,7 @@ impl Path {
     }
 
     pub fn next_path(&self) -> Option<Self> {
-        if self.path.len() >= 1 {
+        if self.path.len() > 1 {
             Some(Self::new(Rc::new(self.path[1..].to_vec()), self.state))
         } else {
             None
@@ -93,6 +93,15 @@ impl Path {
         } else {
             self.clone()
         }
+    }
+
+    pub fn labelify(&self) -> String {
+        let mut code = String::new();
+        for ident in self.path.iter() {
+            code.push('_');
+            code.push_str(&ident.get_str());
+        }
+        code
     }
 }
 
