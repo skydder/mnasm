@@ -147,6 +147,9 @@ pub fn pretty_print(ast: &Ast) -> String {
         Ast::String(strings) => {
             format!("\"{}\"", strings.data().get_str())
         }
+        Ast::Nasm(strings) => {
+            format!("nasm!({})\n", strings.data().get_str())
+        }
         Ast::EOS => String::new(),
     }
 }

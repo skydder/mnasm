@@ -18,7 +18,7 @@ where
         TokenKind::CloseParenthesis,
         parse_operand,
     )?;
-    eprintln!("{:?}", list);
+    // eprintln!("{:?}", list);
     tokenizer.consume_token(TokenKind::CloseParenthesis)?;
     Ok(Ast::Ins(ins_name, Rc::new(list)))
 }

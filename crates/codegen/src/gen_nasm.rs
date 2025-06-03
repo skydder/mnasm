@@ -144,6 +144,9 @@ pub fn codegen<'code>(ast: &Ast<'code>, scope: Rc<Scope<'code>>) -> String {
         Ast::String(strings) => {
             format!("\"{}\"", strings.data().get_str())
         }
+        Ast::Nasm(strings) => {
+            format!("\t{}\n", strings.data().get_str())
+        }
         Ast::EOS => String::new(),
     }
 }

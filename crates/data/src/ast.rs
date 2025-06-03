@@ -19,6 +19,7 @@ pub enum Ast<'code> {
     Memory(WithLocation<'code, Memory<'code>>),
     Immediate(WithLocation<'code, Immediate>),
     String(WithLocation<'code, Strings>),
+    Nasm(WithLocation<'code, Strings>),
     EOS,
 }
 
@@ -45,6 +46,7 @@ impl<'code> Ast<'code> {
             Ast::Memory(memory) => memory.location(),
             Ast::Immediate(immediate) => immediate.location(),
             Ast::String(s) => s.location(),
+            Ast::Nasm(s) => s.location(),
             Ast::EOS => todo!(),
         }
     }

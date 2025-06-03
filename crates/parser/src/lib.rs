@@ -10,6 +10,7 @@ mod parse_memory;
 mod parse_operand;
 mod parse_register;
 mod parse_strings;
+mod parse_nasm;
 mod util;
 
 use std::rc::Rc;
