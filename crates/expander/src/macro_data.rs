@@ -1,6 +1,6 @@
 use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
-use data::{Ident, Strings};
+use data::Ident;
 use util::{AsmResult, Location, TokenKind, Tokenizer, pair_end};
 
 use crate::macro_tokenizer::MacroTokenizer;
@@ -120,32 +120,11 @@ impl Expander {
             }
             Expander::Nasm => {
                 eprintln!("read nasm");
-                let tokenizer = Rc::new(MacroTokenizer::new(Location::default(), stream));
-
-                tokenizer.consume_token(TokenKind::OpenParenthesis)?;
-                let mut def_stream = Vec::new();
-                if tokenizer.peek_token().is(&TokenKind::OpenBrace) {
-                    // tokenizer.next_token();
-                    parse_stream(tokenizer.clone(), &mut def_stream)?;
-                    tokenizer.consume_token(TokenKind::CloseParenthesis)?;
-                } else {
-                    // eprintln!("woe");
-                    while !matches!(
-                        tokenizer.peek_token().kind,
-                        TokenKind::EOS | TokenKind::NewLine
-                    ) {
-                        def_stream.push(tokenizer.next_token().kind);
-                    }
-                    if !tokenizer.peek_token().is(&TokenKind::CloseParenthesis) {
-                        return Err(util::AsmError::ParseError(
-                            tokenizer.location(),
-                            "use multiple line stream, use {}".to_string(),
-                            String::new(),
-                        ));
-                    }
-                };
-                def_stream.push(TokenKind::CloseParenthesis);
+                eprintln!("{:?}", stream);
+                let def_stream = stream[1..stream.len() -1]. to_vec();
+                
                 let nasm = Rc::new(def_stream.iter().map(|s| format!("{}", s)).collect::<Vec<String>>().concat());
+                eprintln!("end nasm");
                 Ok(Rc::new(vec![TokenKind::Identifier(Rc::new("nasm".to_string())), TokenKind::OpenParenthesis, TokenKind::String(nasm),TokenKind::CloseParenthesis ]))
             }
         }
@@ -167,6 +146,8 @@ impl MacroData {
     pub fn get(&self, name: Ident) -> Option<Expander> {
         if name.get_str() == "def_macro" {
             return Some(Expander::Definition);
+        } else if name.get_str() == "nasm" {
+            return Some(Expander::Nasm);
         }
         self.definition.borrow().get(&name).cloned()
     }

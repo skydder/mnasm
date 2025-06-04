@@ -1,6 +1,6 @@
 use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
-use data::{Ast, DefinedStatus, Ident, Path, PathState, Scope, ScopeManager};
+use data::{Ast, DefinedStatus, Scope, ScopeManager};
 use util::{AsmError, AsmResult, Location};
 
 pub fn construct_scope<'code>(
@@ -120,7 +120,8 @@ pub fn analyze_code<'code>(code: &Vec<Ast<'code>>) -> AsmResult<'code, Rc<ScopeM
 
 fn analyze_scope<'code>(scope: Rc<Scope<'code>>) -> AsmResult<'code, ()> {
     if matches!(scope.get_defined_status(), DefinedStatus::Undefined(_)) {
-        return Err(AsmError::ParseError(Location::default(), "undefined label".to_string(), String::new()));
+        eprintln!("{:?}", scope.absolute_path());
+        return Err(AsmError::ParseError(Location::default(), "undefined label:: analyzer".to_string(), String::new()));
     }
     for child in scope.get_children().borrow().iter() {
         analyze_scope(child.1.clone())?;

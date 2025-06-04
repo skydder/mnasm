@@ -1,7 +1,7 @@
 use std::rc::Rc;
 
 use data::{
-    Ast, Ident, PathState, Scope, ScopeManager, Section, WithLocation, REG16, REG32, REG64, REG8,
+    Ast, PathState, Scope, ScopeManager, Section, WithLocation, REG16, REG32, REG64, REG8,
 };
 use util::AsmResult;
 pub fn codegen<'code>(ast: &Ast<'code>, scope: Rc<Scope<'code>>) -> String {

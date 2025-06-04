@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use crate::{parse_label_block, parse_line, parse_macro};
+use crate::{parse_label_block, parse_line, parse_macro, parse_nasm};
 use data::{Ast, LabelBlock, WithLocation};
 use expander::{expand_macro, MacroData, MacroTokenizer};
 use util::{AsmResult, TokenKind, Tokenizer};
@@ -11,6 +11,7 @@ where
 {
     match tokenizer.peek_token().kind {
         TokenKind::LessThan | TokenKind::OpenBrace => parse_label_block(tokenizer),
+        TokenKind::Identifier(s) if s.to_string() == "nasm" => parse_nasm(tokenizer),
         TokenKind::Identifier(_) => parse_line(tokenizer),
         TokenKind::At => parse_macro(tokenizer),
         TokenKind::NewLine => {

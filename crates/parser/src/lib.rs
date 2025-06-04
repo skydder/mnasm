@@ -29,6 +29,7 @@ pub use parse_strings::parse_strings;
 pub use parse::{expand_code, expand_macro_ast, parse, parse_code};
 pub use parse_label_block::parse_label_block;
 pub use parse_line::parse_line;
+pub use parse_nasm::parse_nasm;
 
 use ::util::{AsmResult, Tokenizer};
 
