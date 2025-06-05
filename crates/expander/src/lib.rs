@@ -4,10 +4,13 @@
 
 mod macro_data;
 mod macro_tokenizer;
+mod macro_process;
+
 use std::rc::Rc;
 
 pub use crate::macro_data::MacroData;
 pub use crate::macro_tokenizer::MacroTokenizer;
+
 use data::Ast;
 use util::AsmResult;
 
